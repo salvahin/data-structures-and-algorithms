@@ -1,6 +1,6 @@
 # Estructuras de Datos y Algoritmos — slides
 
-Slides del curso **TC1031**, publicados con GitHub Pages:
+Slides del curso, publicados con GitHub Pages:
 
 **https://salvahin.github.io/data-structures-and-algorithms/**
 
