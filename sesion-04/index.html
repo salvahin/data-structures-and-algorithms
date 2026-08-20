@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sesión 4 — Análisis de algoritmos recursivos</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+  <link rel="stylesheet" href="../css/theme-curso.css">
+</head>
+<body>
+<div class="reveal">
+  <div class="slides">
+
+    <!-- ============ PORTADA ============ -->
+    <section class="cover">
+      <span class="kicker">Estructuras de Datos y Algoritmos · Bloque 1</span>
+      <h1>Análisis de algoritmos recursivos</h1>
+      <div class="cover-meta">
+        Sesión 4 · Semana 2<br>
+        Salvador Hinojosa
+      </div>
+    </section>
+
+    <!-- ============ AGENDA ============ -->
+    <section>
+      <span class="kicker">Sesión 4 · Agenda</span>
+      <h2>Qué vamos a ver hoy</h2>
+      <table>
+        <tbody>
+          <tr><td>20 min</td><td>3.2.1 Plantear la <span class="term" data-term="recurrencia">ecuación de recurrencia</span></td></tr>
+          <tr><td>30 min</td><td>3.2.2 Resolverla: sustitución, <span class="term" data-term="arbol-recursion">árbol de recursión</span>, <span class="term" data-term="teorema-maestro">Teorema Maestro</span></td></tr>
+          <tr><td>20 min</td><td>Ejercicios: búsqueda binaria, merge sort, Hanói, Fibonacci</td></tr>
+          <tr><td>15 min</td><td><span class="term" data-term="memoizacion">Memoización</span>: de exponencial a lineal</td></tr>
+          <tr><td>10 min</td><td>Cierre STL</td></tr>
+          <tr><td>25 min</td><td>Reto en parejas: divide y vencerás + memoización</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ============ OBJETIVO ============ -->
+    <section>
+      <span class="kicker">Objetivo de hoy</span>
+      <h2>Al salir de esta sesión podrás…</h2>
+      <ul>
+        <li class="fragment">Plantear la ecuación de recurrencia de un algoritmo recursivo a partir de su código.</li>
+        <li class="fragment">Resolverla por sustitución, por árbol de recursión y con el Teorema Maestro.</li>
+        <li class="fragment">Analizar búsqueda binaria, merge sort, Torres de Hanói y Fibonacci con esas herramientas.</li>
+        <li class="fragment">Aplicar memoización para bajar una recursión de exponencial a lineal.</li>
+      </ul>
+    </section>
+
+    <!-- ============ DIVIDER 3.2.1 ============ -->
+    <section class="divider">
+      <h2>3.2.1 Plantear la recurrencia</h2>
+    </section>
+
+    <!-- ============ DE CÓDIGO A RECURRENCIA ============ -->
+    <section>
+      <span class="kicker">3.2.1 · Plantear la recurrencia</span>
+      <h2>De código a ecuación</h2>
+      <pre data-title="busqueda_binaria.cpp"><code class="language-cpp" data-trim data-line-numbers="1-7|3-4|5-6">
+int buscar(const vector&lt;int&gt;&amp; v, int lo, int hi, int x) {
+    if (lo &gt; hi) return -1;             // caso base: costo constante
+    int m = lo + (hi - lo) / 2;
+    if (v[m] == x) return m;            // trabajo propio: constante
+    if (v[m] &lt; x) return buscar(v, m + 1, hi, x);   // un subproblema
+    return buscar(v, lo, m - 1, x);                 //   de tamaño n/2
+}
+      </code></pre>
+      <ul>
+        <li class="fragment">El costo de la llamada es el trabajo propio más el costo de las llamadas internas, sobre entradas más chicas.</li>
+        <li class="fragment">Eso da una <span class="term" data-term="recurrencia">recurrencia</span>: \(T(n) = T(n/2) + c\), con caso base \(T(0) = c\), que es el <code>return</code> de la primera línea.</li>
+      </ul>
+    </section>
+
+    <!-- ============ FORMA GENERAL ============ -->
+    <section>
+      <span class="kicker">3.2.1 · Plantear la recurrencia</span>
+      <h2>La forma divide y vencerás</h2>
+      <div class="eq-key">\[ T(n) = a\,T(n/b) + f(n) \]</div>
+      <ul>
+        <li class="fragment">\(a\) — cuántos subproblemas genera cada llamada.</li>
+        <li class="fragment">\(b\) — entre cuánto se divide el tamaño en cada subproblema.</li>
+        <li class="fragment">\(f(n)\) — el trabajo propio de la llamada: dividir, combinar, comparar.</li>
+        <li class="fragment">Búsqueda binaria: \(a = 1,\; b = 2,\; f(n) = c\). Merge sort: \(a = 2,\; b = 2,\; f(n) = \Theta(n)\) — dos mitades y una fusión lineal.</li>
+        <li class="fragment">Si \(n\) no se divide exacto, los tamaños reales son \(\lfloor n/b \rfloor\) y \(\lceil n/b \rceil\). Escribimos \(n/b\) porque ese redondeo no cambia la cota.</li>
+      </ul>
+    </section>
+
+    <!-- ============ CON RESTA ============ -->
+    <section>
+      <span class="kicker">3.2.1 · Plantear la recurrencia</span>
+      <h2>Recurrencias con resta</h2>
+      <ul>
+        <li class="fragment">Cuando la llamada reduce el problema en 1 en lugar de dividirlo: \(T(n) = T(n-1) + f(n)\).</li>
+        <li class="fragment">Con \(f(n) = c\) (factorial): \(T(n) = c\,n \to \Theta(n)\). Se desenrolla como una suma de \(n\) términos constantes.</li>
+        <li class="fragment">Con \(f(n) = c\,n\) (procesar todo el arreglo antes de recursar): \(T(n) = c\bigl(n + (n-1) + \cdots + 1\bigr) \to \Theta(n^{2})\). La sumatoria aritmética de la sesión pasada.</li>
+        <li class="fragment">Restar y dividir producen mundos distintos: \(T(n) = T(n-1) + c\) es lineal y \(T(n) = T(n/2) + c\) es logarítmica. La recurrencia registra esa diferencia desde el planteamiento.</li>
+      </ul>
+    </section>
+
+    <!-- ============ QUIZ 1 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="a">
+        <p class="quiz-question">Merge sort divide el arreglo en dos mitades, ordena cada una recursivamente y las fusiona en tiempo lineal. ¿Su recurrencia?</p>
+        <button class="quiz-option" data-opt="a">\(T(n) = 2T(n/2) + \Theta(n)\)</button>
+        <button class="quiz-option" data-opt="b">\(T(n) = T(n/2) + \Theta(1)\)</button>
+        <button class="quiz-option" data-opt="c">\(T(n) = T(n-1) + \Theta(n)\)</button>
+        <div class="quiz-explain">
+          <strong>A.</strong> Dos subproblemas (\(a = 2\)) de la mitad del tamaño (\(b = 2\)), más la fusión
+          lineal como \(f(n)\). La opción B es búsqueda binaria (un solo subproblema, trabajo constante)
+          y la C es el patrón de "quitar un elemento y procesar el resto", que resuelve a \(\Theta(n^{2})\).
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ DIVIDER 3.2.2 ============ -->
+    <section class="divider">
+      <h2>3.2.2 Resolver la recurrencia</h2>
+    </section>
+
+    <!-- ============ SUSTITUCIÓN ============ -->
+    <section>
+      <span class="kicker">3.2.2 · Método de sustitución</span>
+      <h2>Desenrollar hasta ver el patrón</h2>
+      <div class="eq">
+        \[ \begin{aligned}
+          T(n) &amp;= T(n/2) + c \\
+               &amp;= T(n/4) + 2c \\
+               &amp;= T(n/8) + 3c \\
+               &amp;= T(n/2^{k}) + k\,c &amp;&amp; \text{tras } k \text{ pasos} \\
+               &amp;= T(1) + c \log_2 n &amp;&amp; \text{con } k = \log_2 n
+        \end{aligned} \]
+      </div>
+      <ul>
+        <li class="fragment">Se sustituye la recurrencia dentro de sí misma, lo cual es legal porque la ecuación vale para cualquier tamaño, no solo para \(n\).</li>
+        <li class="fragment">¿De dónde sale \(k = \log_2 n\)? El caso base se alcanza cuando \(n/2^{k} = 1\); al despejar \(k\) queda el logaritmo.</li>
+        <li class="fragment">Resultado: \(T(n) = \Theta(\log n)\). El término \(T(1)\) es una constante y la notación lo absorbe, igual que a \(c\).</li>
+      </ul>
+    </section>
+
+    <!-- ============ SVG ÁRBOL DE RECURSIÓN ============ -->
+    <section>
+      <span class="kicker">3.2.2 · Árbol de recursión</span>
+      <h2>\(T(n) = 2T(n/2) + cn\), nivel por nivel</h2>
+      <svg viewBox="0 0 1100 420" style="width:100%; max-height:420px;">
+        <text class="svg-label" x="965" y="40" style="font-size:22px; font-weight:600;">costo por nivel</text>
+
+        <g class="anim-step" data-step="1">
+          <rect class="svg-node" x="330" y="52" width="380" height="52" rx="10"/>
+          <text class="svg-label" x="520" y="85" text-anchor="middle" style="font-size:23px;">cn</text>
+          <text x="1000" y="85" fill="#0b57d0" style="font-size:23px; font-weight:600;">cn</text>
+        </g>
+
+        <g class="anim-step" data-step="2">
+          <line class="svg-edge" x1="425" y1="104" x2="330" y2="130"/>
+          <line class="svg-edge" x1="615" y1="104" x2="710" y2="130"/>
+          <rect class="svg-node" x="240" y="132" width="180" height="50" rx="10"/>
+          <text class="svg-label" x="330" y="164" text-anchor="middle" style="font-size:22px;">cn/2</text>
+          <rect class="svg-node" x="620" y="132" width="180" height="50" rx="10"/>
+          <text class="svg-label" x="710" y="164" text-anchor="middle" style="font-size:22px;">cn/2</text>
+          <text x="1000" y="164" fill="#0b57d0" style="font-size:23px; font-weight:600;">cn</text>
+        </g>
+
+        <g class="anim-step" data-step="3">
+          <line class="svg-edge" x1="285" y1="182" x2="235" y2="208"/>
+          <line class="svg-edge" x1="375" y1="182" x2="425" y2="208"/>
+          <line class="svg-edge" x1="665" y1="182" x2="615" y2="208"/>
+          <line class="svg-edge" x1="755" y1="182" x2="805" y2="208"/>
+          <rect class="svg-node" x="192" y="210" width="86" height="46" rx="8"/>
+          <text class="svg-label" x="235" y="240" text-anchor="middle" style="font-size:20px;">cn/4</text>
+          <rect class="svg-node" x="382" y="210" width="86" height="46" rx="8"/>
+          <text class="svg-label" x="425" y="240" text-anchor="middle" style="font-size:20px;">cn/4</text>
+          <rect class="svg-node" x="572" y="210" width="86" height="46" rx="8"/>
+          <text class="svg-label" x="615" y="240" text-anchor="middle" style="font-size:20px;">cn/4</text>
+          <rect class="svg-node" x="762" y="210" width="86" height="46" rx="8"/>
+          <text class="svg-label" x="805" y="240" text-anchor="middle" style="font-size:20px;">cn/4</text>
+          <text x="1000" y="240" fill="#0b57d0" style="font-size:23px; font-weight:600;">cn</text>
+        </g>
+
+        <g class="anim-step" data-step="4">
+          <text class="svg-label" x="520" y="292" text-anchor="middle" style="font-size:26px;">⋮</text>
+          <rect class="svg-node" x="150" y="308" width="740" height="44" rx="8"/>
+          <text class="svg-label" x="520" y="337" text-anchor="middle" style="font-size:20px;">n hojas T(1) de costo c</text>
+          <text x="1000" y="337" fill="#0b57d0" style="font-size:23px; font-weight:600;">cn</text>
+          <text class="svg-label" x="60" y="200" style="font-size:22px; font-weight:600;">log<tspan dy="6" style="font-size:16px;">2</tspan><tspan dy="-6"> n</tspan></text>
+          <text class="svg-label" x="60" y="228" style="font-size:22px; font-weight:600;">niveles</text>
+        </g>
+
+        <g class="anim-step" data-step="5">
+          <rect x="220" y="374" width="600" height="42" rx="8" fill="none" stroke="#0b57d0" stroke-width="3"/>
+          <text x="520" y="402" text-anchor="middle" fill="#0b57d0" style="font-size:23px; font-weight:700;">total: cn por nivel × log<tspan dy="6" style="font-size:17px;">2</tspan><tspan dy="-6"> n niveles → Θ(n log n)</tspan></text>
+        </g>
+      </svg>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+    </section>
+
+    <!-- ============ DE DÓNDE SALE n^(log_b a) ============ -->
+    <section>
+      <span class="kicker">3.2.2 · Árbol de recursión</span>
+      <h2>Cuántas hojas tiene el árbol</h2>
+      <p>Con \(a\) llamadas de tamaño \(n/b\), el conteo por niveles es el mismo:</p>
+      <table>
+        <thead><tr><th>Nivel</th><th>Subproblemas</th><th>Tamaño de cada uno</th></tr></thead>
+        <tbody>
+          <tr class="fragment"><td>0</td><td>1</td><td>\(n\)</td></tr>
+          <tr class="fragment"><td>1</td><td>\(a\)</td><td>\(n/b\)</td></tr>
+          <tr class="fragment"><td>\(k\)</td><td>\(a^{k}\)</td><td>\(n/b^{k}\)</td></tr>
+        </tbody>
+      </table>
+      <div class="eq fragment">\[ n/b^{k} = 1 \;\Longrightarrow\; k = \log_b n \;\Longrightarrow\; \text{hojas} = a^{\log_b n} = n^{\log_b a} \]</div>
+      <p class="fragment muted">Ese \(n^{\log_b a}\) es el costo agregado de las hojas, y es contra lo que se compara \(f(n)\).</p>
+    </section>
+
+    <!-- ============ TEOREMA MAESTRO ============ -->
+    <section>
+      <span class="kicker">3.2.2 · Teorema Maestro</span>
+      <h2>Cómo se decide, paso a paso</h2>
+      <p>Toda la decisión es una comparación entre dos cantidades: el costo de las hojas, \(n^{\log_b a}\), y el trabajo propio \(f(n)\).</p>
+      <ul>
+        <li class="fragment"><strong>1. Identifica \(a\), \(b\) y \(f(n)\).</strong> En \(T(n) = 8T(n/2) + n^{2}\): \(a = 8\), \(b = 2\), \(f(n) = n^{2}\).</li>
+        <li class="fragment"><strong>2. Calcula el costo de las hojas.</strong> \(\log_2 8 = 3\), así que las hojas cuestan \(n^{3}\).</li>
+        <li class="fragment"><strong>3. Compara y lee el caso.</strong> \(n^{2}\) crece menos que \(n^{3}\): mandan las hojas, es el caso 1 y da \(\Theta(n^{3})\).</li>
+      </ul>
+    </section>
+
+    <!-- ============ LOS TRES CASOS ============ -->
+    <section>
+      <span class="kicker">3.2.2 · Teorema Maestro</span>
+      <h2>Los tres casos</h2>
+      <table>
+        <thead><tr><th>Caso</th><th>Comparación</th><th>Resultado</th><th>Ejemplo</th></tr></thead>
+        <tbody>
+          <tr class="fragment"><td>1</td><td>\(f(n)\) crece <em>menos</em></td><td>\(\Theta(n^{\log_b a})\)</td><td>\(4T(n/2)+n\): \(n\) contra \(n^{2}\) → \(\Theta(n^{2})\)</td></tr>
+          <tr class="fragment"><td>2</td><td>crecen <em>igual</em></td><td>\(\Theta(n^{\log_b a} \log n)\)</td><td>\(2T(n/2)+n\): \(n\) contra \(n\) → \(\Theta(n \log n)\)</td></tr>
+          <tr class="fragment"><td>3</td><td>\(f(n)\) crece <em>más</em></td><td>\(\Theta(f(n))\)</td><td>\(2T(n/2)+n^{3}\): \(n^{3}\) contra \(n\) → \(\Theta(n^{3})\)</td></tr>
+        </tbody>
+      </table>
+      <p class="fragment muted">En la columna del ejemplo, el primer término es \(f(n)\) y el segundo el costo de las hojas.</p>
+    </section>
+
+    <!-- ============ DÓNDE SE CONCENTRA EL COSTO ============ -->
+    <section>
+      <span class="kicker">3.2.2 · Teorema Maestro</span>
+      <h2>Dónde se concentra el costo</h2>
+      <svg viewBox="0 0 1100 210" style="width:100%; max-height:210px;">
+        <g class="anim-step" data-step="1">
+          <polygon points="140,85 260,85 290,125 110,125" fill="#0b57d0" opacity="0.75"/>
+          <polygon points="200,25 110,125 290,125" fill="none" stroke="#16181d" stroke-width="3"/>
+          <text x="200" y="160" text-anchor="middle" fill="#16181d" style="font-size:23px; font-weight:700;">Caso 1</text>
+          <text x="200" y="188" text-anchor="middle" fill="#4b5260" style="font-size:21px;">manda el último nivel</text>
+        </g>
+        <g class="anim-step" data-step="2">
+          <polygon points="550,25 460,125 640,125" fill="#0b57d0" opacity="0.35"/>
+          <polygon points="550,25 460,125 640,125" fill="none" stroke="#16181d" stroke-width="3"/>
+          <line x1="490" y1="92" x2="610" y2="92" stroke="#ffffff" stroke-width="2"/>
+          <line x1="520" y1="58" x2="580" y2="58" stroke="#ffffff" stroke-width="2"/>
+          <text x="550" y="160" text-anchor="middle" fill="#16181d" style="font-size:23px; font-weight:700;">Caso 2</text>
+          <text x="550" y="188" text-anchor="middle" fill="#4b5260" style="font-size:21px;">todos aportan lo mismo</text>
+        </g>
+        <g class="anim-step" data-step="3">
+          <polygon points="900,25 870,58 930,58" fill="#0b57d0" opacity="0.75"/>
+          <polygon points="900,25 810,125 990,125" fill="none" stroke="#16181d" stroke-width="3"/>
+          <text x="900" y="160" text-anchor="middle" fill="#16181d" style="font-size:23px; font-weight:700;">Caso 3</text>
+          <text x="900" y="188" text-anchor="middle" fill="#4b5260" style="font-size:21px;">manda la raíz</text>
+        </g>
+      </svg>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <p class="fragment">Cada triángulo es el árbol de recursión, con la parte sombreada aportando casi todo el costo. Saber cuál de los tres es te dice dónde optimizar.</p>
+    </section>
+
+    <!-- ============ APLICABILIDAD ============ -->
+    <section>
+      <span class="kicker">3.2.2 · Teorema Maestro</span>
+      <h2>Cuándo aplica y cuándo no</h2>
+      <ul>
+        <li class="fragment">La comparación debe ser por un <strong>factor polinomial</strong>, alguna potencia \(n^{\varepsilon}\). Entre \(n^{2}\) y \(n\) el factor es \(n\), que sí lo es.</li>
+        <li class="fragment">\(T(n) = 2T(n/2) + n\log n\) cae en el hueco entre los casos 2 y 3: el factor es \(\log n\), que se queda corto frente a cualquier potencia.</li>
+        <li class="fragment">Con \(n = 10^{6}\): \(\log_2 n \approx 20\), mientras \(n^{0{,}1} = 4\) y \(n^{0{,}5} = 1000\). El teorema no decide este caso; el árbol de recursión sí.</li>
+      </ul>
+    </section>
+
+    <!-- ============ CUANDO NO APLICA ============ -->
+    <section>
+      <span class="kicker">3.2.2 · Teorema Maestro</span>
+      <h2>Y si no aplica, qué usar</h2>
+      <ul>
+        <li class="fragment">El caso 3 pide además <em>regularidad</em>: que al bajar un nivel el trabajo se reduzca en una fracción fija, \(a\,f(n/b) \le k\,f(n)\) con \(k &lt; 1\). Se cumple en todo lo que verán en el curso.</li>
+        <li class="fragment">Tampoco aplica a recurrencias con resta — \(T(n) = T(n-1) + f(n)\) se resuelve desenrollando, como hicimos.</li>
+        <li class="fragment">Orden de herramientas en la práctica: Teorema Maestro si la forma encaja; árbol de recursión para entender o para los casos raros; inducción para formalizar.</li>
+      </ul>
+    </section>
+
+    <!-- ============ QUIZ 2 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="b">
+        <p class="quiz-question">\(T(n) = 4T(n/2) + n\). ¿Qué dice el Teorema Maestro?</p>
+        <button class="quiz-option" data-opt="a">\(\Theta(n \log n)\): un subproblema por nivel más trabajo lineal.</button>
+        <button class="quiz-option" data-opt="b">\(\Theta(n^{2})\): \(n^{\log_2 4} = n^{2}\) domina sobre \(f(n) = n\).</button>
+        <button class="quiz-option" data-opt="c">\(\Theta(n)\): el trabajo de la raíz domina al de las hojas.</button>
+        <div class="quiz-explain">
+          <strong>B.</strong> \(\log_2 4 = 2\), así que las hojas aportan \(n^{2}\), que crece polinomialmente más
+          que \(f(n) = n\): caso 1. El error típico es mirar solo la \(f(n)\) visible en el código y olvidar
+          que el número de hojas se multiplica por \(a\) en cada nivel — aquí hay \(4^{k}\) subproblemas en el
+          nivel \(k\).
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ DIVIDER EJERCICIOS ============ -->
+    <section class="divider">
+      <h2>Ejercicios dirigidos</h2>
+    </section>
+
+    <!-- ============ EJERCICIOS TABLA ============ -->
+    <section>
+      <span class="kicker">Ejercicios · Cuatro clásicos</span>
+      <h2>Plantear y resolver</h2>
+      <table>
+        <thead><tr><th>Algoritmo</th><th>Recurrencia</th><th>Herramienta</th><th>Resultado</th></tr></thead>
+        <tbody>
+          <tr class="fragment"><td>Búsqueda binaria</td><td>\(T(n) = T(n/2) + c\)</td><td>sustitución · Maestro caso 2</td><td>\(\Theta(\log n)\)</td></tr>
+          <tr class="fragment"><td>Merge sort</td><td>\(T(n) = 2T(n/2) + cn\)</td><td>árbol · Maestro caso 2</td><td>\(\Theta(n \log n)\)</td></tr>
+          <tr class="fragment"><td>Torres de Hanói</td><td>\(T(n) = 2T(n-1) + 1\)</td><td>sustitución</td><td>\(\Theta(2^{n})\)</td></tr>
+          <tr class="fragment"><td>Fibonacci ingenuo</td><td>\(T(n) = T(n-1) + T(n-2) + c\)</td><td>cotas por arriba y por abajo</td><td>\(\approx \Theta(1.62^{n})\)</td></tr>
+        </tbody>
+      </table>
+      <p class="fragment muted">Los dos últimos restan el tamaño y multiplican las llamadas: la combinación que explota. Fibonacci además no encaja en ninguna de las tres herramientas.</p>
+    </section>
+
+    <!-- ============ HANÓI: EL PROBLEMA ============ -->
+    <section>
+      <span class="kicker">Ejercicios · Torres de Hanói</span>
+      <h2>El problema</h2>
+      <ul>
+        <li>Tres postes. En el primero hay \(n\) discos de distinto tamaño, apilados del más grande abajo al más chico arriba.</li>
+        <li class="fragment">Objetivo: dejar la torre completa en el tercer poste, en el mismo orden.</li>
+        <li class="fragment"><strong>Regla 1:</strong> se mueve un solo disco a la vez, y siempre el de hasta arriba de un poste.</li>
+        <li class="fragment"><strong>Regla 2:</strong> nunca puede quedar un disco sobre otro más chico.</li>
+        <li class="fragment">El poste de en medio no es un adorno: sirve de espacio temporal, y es lo que hace posible la solución.</li>
+      </ul>
+    </section>
+
+    <!-- ============ HANÓI: SIMULACIÓN COMPLETA ============ -->
+    <section>
+      <span class="kicker">Ejercicios · Torres de Hanói</span>
+      <h2>Los siete movimientos con tres discos</h2>
+      <svg viewBox="0 0 1100 430" style="width:100%; max-height:390px;">
+        <g class="anim-step" data-step="1">
+          <rect x="18" y="34" width="248" height="168" rx="10" fill="none" stroke="#e8eaef" stroke-width="2"/>
+          <rect x="34" y="152" width="216" height="7" fill="#16181d"/>
+          <rect x="67" y="94" width="6" height="58" fill="#16181d"/>
+          <text x="70" y="176" text-anchor="middle" fill="#4b5260" style="font-size:15px;">A</text>
+          <rect x="33" y="135" width="74" height="15" rx="4" fill="#0b57d0"/>
+          <rect x="43" y="117" width="54" height="15" rx="4" fill="#e8f0fe" stroke="#0b57d0" stroke-width="2.5"/>
+          <rect x="53" y="99" width="34" height="15" rx="4" fill="#e8f0fe" stroke="#0b57d0" stroke-width="2.5"/>
+          <rect x="139" y="94" width="6" height="58" fill="#16181d"/>
+          <text x="142" y="176" text-anchor="middle" fill="#4b5260" style="font-size:15px;">B</text>
+          <rect x="211" y="94" width="6" height="58" fill="#16181d"/>
+          <text x="214" y="176" text-anchor="middle" fill="#4b5260" style="font-size:15px;">C</text>
+          <text x="34" y="56" fill="#4b5260" style="font-size:19px; font-weight:700;">inicio</text>
+        </g>
+        <g class="anim-step" data-step="2">
+          <rect x="290" y="34" width="248" height="168" rx="10" fill="none" stroke="#e8eaef" stroke-width="2"/>
+          <rect x="306" y="152" width="216" height="7" fill="#16181d"/>
+          <rect x="339" y="94" width="6" height="58" fill="#16181d"/>
+          <text x="342" y="176" text-anchor="middle" fill="#4b5260" style="font-size:15px;">A</text>
+          <rect x="305" y="135" width="74" height="15" rx="4" fill="#0b57d0"/>
+          <rect x="315" y="117" width="54" height="15" rx="4" fill="#e8f0fe" stroke="#0b57d0" stroke-width="2.5"/>
+          <rect x="411" y="94" width="6" height="58" fill="#16181d"/>
+          <text x="414" y="176" text-anchor="middle" fill="#4b5260" style="font-size:15px;">B</text>
+          <rect x="483" y="94" width="6" height="58" fill="#16181d"/>
+          <text x="486" y="176" text-anchor="middle" fill="#4b5260" style="font-size:15px;">C</text>
+          <rect x="469" y="135" width="34" height="15" rx="4" fill="#e8f0fe" stroke="#0b57d0" stroke-width="2.5"/>
+          <text x="306" y="56" fill="#0b57d0" style="font-size:19px; font-weight:700;">1. A → C</text>
+        </g>
+        <g class="anim-step" data-step="3">
+          <rect x="562" y="34" width="248" height="168" rx="10" fill="none" stroke="#e8eaef" stroke-width="2"/>
+          <rect x="578" y="152" width="216" height="7" fill="#16181d"/>
+          <rect x="611" y="94" width="6" height="58" fill="#16181d"/>
+          <text x="614" y="176" text-anchor="middle" fill="#4b5260" style="font-size:15px;">A</text>
+          <rect x="577" y="135" width="74" height="15" rx="4" fill="#0b57d0"/>
+          <rect x="683" y="94" width="6" height="58" fill="#16181d"/>
+          <text x="686" y="176" text-anchor="middle" fill="#4b5260" style="font-size:15px;">B</text>
+          <rect x="659" y="135" width="54" height="15" rx="4" fill="#e8f0fe" stroke="#0b57d0" stroke-width="2.5"/>
+          <rect x="755" y="94" width="6" height="58" fill="#16181d"/>
+          <text x="758" y="176" text-anchor="middle" fill="#4b5260" style="font-size:15px;">C</text>
+          <rect x="741" y="135" width="34" height="15" rx="4" fill="#e8f0fe" stroke="#0b57d0" stroke-width="2.5"/>
+          <text x="578" y="56" fill="#0b57d0" style="font-size:19px; font-weight:700;">2. A → B</text>
+        </g>
+        <g class="anim-step" data-step="4">
+          <rect x="834" y="34" width="248" height="168" rx="10" fill="none" stroke="#e8eaef" stroke-width="2"/>
+          <rect x="850" y="152" width="216" height="7" fill="#16181d"/>
+          <rect x="883" y="94" width="6" height="58" fill="#16181d"/>
+          <text x="886" y="176" text-anchor="middle" fill="#4b5260" style="font-size:15px;">A</text>
+          <rect x="849" y="135" width="74" height="15" rx="4" fill="#0b57d0"/>
+          <rect x="955" y="94" width="6" height="58" fill="#16181d"/>
+          <text x="958" y="176" text-anchor="middle" fill="#4b5260" style="font-size:15px;">B</text>
+          <rect x="931" y="135" width="54" height="15" rx="4" fill="#e8f0fe" stroke="#0b57d0" stroke-width="2.5"/>
+          <rect x="941" y="117" width="34" height="15" rx="4" fill="#e8f0fe" stroke="#0b57d0" stroke-width="2.5"/>
+          <rect x="1027" y="94" width="6" height="58" fill="#16181d"/>
+          <text x="1030" y="176" text-anchor="middle" fill="#4b5260" style="font-size:15px;">C</text>
+          <text x="850" y="56" fill="#0b57d0" style="font-size:19px; font-weight:700;">3. C → B</text>
+        </g>
+        <g class="anim-step" data-step="5">
+          <rect x="18" y="246" width="248" height="168" rx="10" fill="none" stroke="#e8eaef" stroke-width="2"/>
+          <rect x="34" y="364" width="216" height="7" fill="#16181d"/>
+          <rect x="67" y="306" width="6" height="58" fill="#16181d"/>
+          <text x="70" y="388" text-anchor="middle" fill="#4b5260" style="font-size:15px;">A</text>
+          <rect x="139" y="306" width="6" height="58" fill="#16181d"/>
+          <text x="142" y="388" text-anchor="middle" fill="#4b5260" style="font-size:15px;">B</text>
+          <rect x="115" y="347" width="54" height="15" rx="4" fill="#e8f0fe" stroke="#0b57d0" stroke-width="2.5"/>
+          <rect x="125" y="329" width="34" height="15" rx="4" fill="#e8f0fe" stroke="#0b57d0" stroke-width="2.5"/>
+          <rect x="211" y="306" width="6" height="58" fill="#16181d"/>
+          <text x="214" y="388" text-anchor="middle" fill="#4b5260" style="font-size:15px;">C</text>
+          <rect x="177" y="347" width="74" height="15" rx="4" fill="#0b57d0"/>
+          <text x="34" y="268" fill="#b3261e" style="font-size:19px; font-weight:700;">4. A → C</text>
+        </g>
+        <g class="anim-step" data-step="6">
+          <rect x="290" y="246" width="248" height="168" rx="10" fill="none" stroke="#e8eaef" stroke-width="2"/>
+          <rect x="306" y="364" width="216" height="7" fill="#16181d"/>
+          <rect x="339" y="306" width="6" height="58" fill="#16181d"/>
+          <text x="342" y="388" text-anchor="middle" fill="#4b5260" style="font-size:15px;">A</text>
+          <rect x="325" y="347" width="34" height="15" rx="4" fill="#e8f0fe" stroke="#0b57d0" stroke-width="2.5"/>
+          <rect x="411" y="306" width="6" height="58" fill="#16181d"/>
+          <text x="414" y="388" text-anchor="middle" fill="#4b5260" style="font-size:15px;">B</text>
+          <rect x="387" y="347" width="54" height="15" rx="4" fill="#e8f0fe" stroke="#0b57d0" stroke-width="2.5"/>
+          <rect x="483" y="306" width="6" height="58" fill="#16181d"/>
+          <text x="486" y="388" text-anchor="middle" fill="#4b5260" style="font-size:15px;">C</text>
+          <rect x="449" y="347" width="74" height="15" rx="4" fill="#0b57d0"/>
+          <text x="306" y="268" fill="#0b57d0" style="font-size:19px; font-weight:700;">5. B → A</text>
+        </g>
+        <g class="anim-step" data-step="7">
+          <rect x="562" y="246" width="248" height="168" rx="10" fill="none" stroke="#e8eaef" stroke-width="2"/>
+          <rect x="578" y="364" width="216" height="7" fill="#16181d"/>
+          <rect x="611" y="306" width="6" height="58" fill="#16181d"/>
+          <text x="614" y="388" text-anchor="middle" fill="#4b5260" style="font-size:15px;">A</text>
+          <rect x="597" y="347" width="34" height="15" rx="4" fill="#e8f0fe" stroke="#0b57d0" stroke-width="2.5"/>
+          <rect x="683" y="306" width="6" height="58" fill="#16181d"/>
+          <text x="686" y="388" text-anchor="middle" fill="#4b5260" style="font-size:15px;">B</text>
+          <rect x="755" y="306" width="6" height="58" fill="#16181d"/>
+          <text x="758" y="388" text-anchor="middle" fill="#4b5260" style="font-size:15px;">C</text>
+          <rect x="721" y="347" width="74" height="15" rx="4" fill="#0b57d0"/>
+          <rect x="731" y="329" width="54" height="15" rx="4" fill="#e8f0fe" stroke="#0b57d0" stroke-width="2.5"/>
+          <text x="578" y="268" fill="#0b57d0" style="font-size:19px; font-weight:700;">6. B → C</text>
+        </g>
+        <g class="anim-step" data-step="8">
+          <rect x="834" y="246" width="248" height="168" rx="10" fill="none" stroke="#e8eaef" stroke-width="2"/>
+          <rect x="850" y="364" width="216" height="7" fill="#16181d"/>
+          <rect x="883" y="306" width="6" height="58" fill="#16181d"/>
+          <text x="886" y="388" text-anchor="middle" fill="#4b5260" style="font-size:15px;">A</text>
+          <rect x="955" y="306" width="6" height="58" fill="#16181d"/>
+          <text x="958" y="388" text-anchor="middle" fill="#4b5260" style="font-size:15px;">B</text>
+          <rect x="1027" y="306" width="6" height="58" fill="#16181d"/>
+          <text x="1030" y="388" text-anchor="middle" fill="#4b5260" style="font-size:15px;">C</text>
+          <rect x="993" y="347" width="74" height="15" rx="4" fill="#0b57d0"/>
+          <rect x="1003" y="329" width="54" height="15" rx="4" fill="#e8f0fe" stroke="#0b57d0" stroke-width="2.5"/>
+          <rect x="1013" y="311" width="34" height="15" rx="4" fill="#e8f0fe" stroke="#0b57d0" stroke-width="2.5"/>
+          <text x="850" y="268" fill="#0b57d0" style="font-size:19px; font-weight:700;">7. A → C</text>
+        </g>
+      </svg>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+    </section>
+
+    <!-- ============ HANÓI: LAS TRES FASES ============ -->
+    <section>
+      <span class="kicker">Ejercicios · Torres de Hanói</span>
+      <h2>Esos siete movimientos son tres bloques</h2>
+      <table>
+        <thead><tr><th>Movimientos</th><th>Qué logran</th><th>Cuántos discos mueven</th></tr></thead>
+        <tbody>
+          <tr class="fragment"><td>1, 2 y 3</td><td>Dejan los 2 discos de arriba en el poste auxiliar</td><td>2</td></tr>
+          <tr class="fragment"><td>4</td><td>Pasa el disco grande al destino</td><td>1</td></tr>
+          <tr class="fragment"><td>5, 6 y 7</td><td>Devuelven los 2 discos encima del grande</td><td>2</td></tr>
+        </tbody>
+      </table>
+      <p class="fragment">Los bloques primero y tercero son el mismo problema con un disco menos, aunque usen postes distintos: mover una torre cuesta lo mismo salga de donde salga, porque el número de movimientos depende de cuántos discos son, no de cuáles postes se usan.</p>
+    </section>
+
+    <!-- ============ HANÓI: DE LOS BLOQUES A LA ECUACIÓN ============ -->
+    <section>
+      <span class="kicker">Ejercicios · Torres de Hanói</span>
+      <h2>De los tres bloques a la ecuación</h2>
+      <p>Llama \(T(n)\) al número de movimientos que hace falta para pasar una torre de \(n\) discos de un poste a otro.</p>
+      <pre data-title="hanoi.cpp"><code class="language-cpp" data-trim data-line-numbers="1-6|3|4|5">
+void hanoi(int n, char origen, char aux, char destino) {
+    if (n == 0) return;                        // T(0) = 0
+    hanoi(n - 1, origen, destino, aux);        // bloque 1: T(n-1)
+    mover(origen, destino);                    // el grande: 1 movimiento
+    hanoi(n - 1, aux, origen, destino);        // bloque 3: T(n-1)
+}
+      </code></pre>
+      <div class="eq fragment">\[ T(n) = \underbrace{T(n-1)}_{\text{bloque 1}} + \underbrace{1}_{\text{el grande}} + \underbrace{T(n-1)}_{\text{bloque 3}} = 2T(n-1) + 1 \]</div>
+    </section>
+
+    <!-- ============ HANÓI: LA ECUACIÓN CUADRA ============ -->
+    <section>
+      <span class="kicker">Ejercicios · Torres de Hanói</span>
+      <h2>La ecuación reproduce lo que contamos</h2>
+      <table>
+        <thead><tr><th>Discos</th><th>Cuenta</th><th>Movimientos</th></tr></thead>
+        <tbody>
+          <tr class="fragment"><td>\(n = 1\)</td><td>\(2 \cdot T(0) + 1 = 2 \cdot 0 + 1\)</td><td>\(T(1) = 1\)</td></tr>
+          <tr class="fragment"><td>\(n = 2\)</td><td>\(2 \cdot T(1) + 1 = 2 \cdot 1 + 1\)</td><td>\(T(2) = 3\)</td></tr>
+          <tr class="fragment"><td>\(n = 3\)</td><td>\(2 \cdot T(2) + 1 = 2 \cdot 3 + 1\)</td><td>\(T(3) = 7\)</td></tr>
+          <tr class="fragment"><td>\(n = 4\)</td><td>\(2 \cdot T(3) + 1 = 2 \cdot 7 + 1\)</td><td>\(T(4) = 15\)</td></tr>
+        </tbody>
+      </table>
+      <p class="fragment">Esos 7 son exactamente los movimientos de la simulación, así que la ecuación resume el conteo que ya hiciste a mano.</p>
+    </section>
+
+    <!-- ============ HANÓI ============ -->
+    <section>
+      <span class="kicker">Ejercicios · Torres de Hanói</span>
+      <h2>Restar el tamaño, duplicar las llamadas</h2>
+      <div class="eq">
+        \[ \begin{aligned}
+          T(n) &amp;= 2T(n-1) + 1 \\
+               &amp;= 4T(n-2) + 2 + 1 \\
+               &amp;= 8T(n-3) + 4 + 2 + 1 \\
+               &amp;= 2^{k}T(n-k) + 2^{k} - 1 \;\;\longrightarrow\;\; T(n) = 2^{n} - 1
+        \end{aligned} \]
+      </div>
+      <ul>
+        <li class="fragment">El caso base llega con \(k = n\), donde \(T(0) = 0\): queda \(2^{n} \cdot 0 + 2^{n} - 1\).</li>
+        <li class="fragment">La suma \(1 + 2 + 4 + \cdots + 2^{\,n-1}\) es la geométrica de la sesión 3. Son \(2^{n} - 1\) movimientos exactos, y además es el mínimo posible: ninguna estrategia lo hace con menos.</li>
+        <li class="fragment">Con 64 discos y un movimiento por segundo: unos 585 mil millones de años. La cota exponencial no es pesimismo teórico; es el conteo exacto.</li>
+      </ul>
+    </section>
+
+    <!-- ============ FIB EXPONENCIAL ============ -->
+    <section>
+      <span class="kicker">Ejercicios · Fibonacci ingenuo</span>
+      <h2>Cuando ninguna de las tres herramientas encaja</h2>
+      <ul>
+        <li class="fragment">\(T(n) = T(n-1) + T(n-2) + c\) no divide el tamaño, así que el Teorema Maestro queda fuera; y al desenrollarla no aparece un patrón limpio.</li>
+        <li class="fragment">La salida es <strong>encerrarla entre dos recurrencias que sí sabemos resolver</strong>, cambiando el término chico por el grande y al revés:
+          <div class="eq">\[ \underbrace{2T(n-2)}_{\text{cota inferior}} \;\le\; T(n) \;\le\; \underbrace{2T(n-1)}_{\text{cota superior}} \;\Longrightarrow\; 2^{\,n/2} \lesssim T(n) \lesssim 2^{\,n} \]</div>
+        </li>
+        <li class="fragment">Queda atrapada entre \(1.41^{\,n}\) y \(2^{\,n}\). El valor exacto es \(\varphi^{\,n}\) con \(\varphi \approx 1.618\), porque las llamadas obedecen la misma recurrencia que Fibonacci.</li>
+      </ul>
+    </section>
+
+    <!-- ============ FIB: EL COSTO REAL ============ -->
+    <section>
+      <span class="kicker">Ejercicios · Fibonacci ingenuo</span>
+      <h2>Lo que cuesta esa base 1.618</h2>
+      <ul>
+        <li class="fragment">El diagnóstico visual de la sesión 2 — subproblemas repetidos por todo el árbol — hoy tiene número: <code>fib(50)</code> ingenuo hace más de \(4 \times 10^{10}\) llamadas.</li>
+        <li class="fragment">Y todo eso para calcular 50 valores distintos. Cada uno se recalcula miles de millones de veces.</li>
+        <li class="fragment">Ese desperdicio es exactamente lo que elimina la técnica que sigue.</li>
+      </ul>
+    </section>
+
+    <!-- ============ QUIZ 3 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="c">
+        <p class="quiz-question">¿Por qué Hanói es \(\Theta(2^{n})\) si merge sort, que también hace dos llamadas, es \(\Theta(n \log n)\)?</p>
+        <button class="quiz-option" data-opt="a">Porque Hanói hace más trabajo propio en cada llamada.</button>
+        <button class="quiz-option" data-opt="b">Porque merge sort tiene mejor caso base.</button>
+        <button class="quiz-option" data-opt="c">Porque Hanói resta 1 al tamaño y merge sort lo divide entre 2: \(n\) niveles de duplicación contra \(\log n\).</button>
+        <div class="quiz-explain">
+          <strong>C.</strong> Ambos duplican las llamadas por nivel; la diferencia está en cuántos niveles
+          hay. Dividir entre 2 da \(\log_2 n\) niveles (\(2^{\log_2 n} = n\) hojas); restar 1 da \(n\) niveles (\(2^{n}\) hojas).
+          El trabajo propio de Hanói es constante — más chico que el de merge sort — y aun así pierde:
+          la profundidad manda.
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ DIVIDER MEMOIZACIÓN ============ -->
+    <section class="divider">
+      <h2>Memoización</h2>
+    </section>
+
+    <!-- ============ MEMO IDEA ============ -->
+    <section>
+      <span class="kicker">Memoización · La idea</span>
+      <h2>Calcular cada subproblema una sola vez</h2>
+      <ul>
+        <li class="fragment"><span class="term" data-term="memoizacion">Memoizar</span> es guardar el resultado de cada subproblema la primera vez que se calcula, y devolver el valor guardado en las llamadas siguientes.</li>
+        <li class="fragment">La recursión queda idéntica; solo se le antepone una consulta a la caché. Por eso es la optimización menos invasiva que existe: se agrega, no se rediseña.</li>
+        <li class="fragment">El costo pasa a ser <strong>número de subproblemas distintos × costo de combinar cada uno</strong>. En <code>fib</code>: \((n+1) \times O(1) = O(n)\).</li>
+      </ul>
+    </section>
+
+    <!-- ============ MEMO CÓDIGO ============ -->
+    <section>
+      <span class="kicker">Memoización · Implementación</span>
+      <h2><code>fib</code> con <code>std::unordered_map</code></h2>
+      <pre data-title="fib_memo.cpp"><code class="language-cpp" data-trim data-line-numbers="1-10|5-7|8-9">
+std::unordered_map&lt;int, long long&gt; cache;
+
+long long fib(int n) {
+    if (n &lt;= 1) return n;
+    auto it = cache.find(n);
+    if (it != cache.end())
+        return it-&gt;second;                // ya calculado: no se recalcula
+    long long r = fib(n - 1) + fib(n - 2);
+    cache[n] = r;                         // guardar antes de devolver
+    return r;
+}
+      </code></pre>
+      <ul>
+        <li class="fragment">Con claves enteras densas como aquí, un <code>std::vector</code> indexado por \(n\) es más simple y más rápido que el mapa.</li>
+      </ul>
+    </section>
+
+    <!-- ============ SVG MEMO ============ -->
+    <section>
+      <span class="kicker">Memoización · El árbol colapsa</span>
+      <h2><code>fib(5)</code>: los nodos repetidos se apagan</h2>
+      <svg viewBox="0 0 1100 420" style="width:100%; max-height:420px;">
+        <g class="anim-step" data-step="1">
+          <line class="svg-edge" x1="500" y1="76" x2="300" y2="120"/>
+          <line class="svg-edge" x1="500" y1="76" x2="720" y2="120"/>
+          <line class="svg-edge" x1="300" y1="171" x2="170" y2="215"/>
+          <line class="svg-edge" x1="300" y1="171" x2="410" y2="215"/>
+          <line class="svg-edge" x1="720" y1="171" x2="620" y2="215"/>
+          <line class="svg-edge" x1="720" y1="171" x2="820" y2="215"/>
+          <line class="svg-edge" x1="170" y1="266" x2="90" y2="310"/>
+          <line class="svg-edge" x1="170" y1="266" x2="240" y2="310"/>
+          <line class="svg-edge" x1="410" y1="266" x2="350" y2="310"/>
+          <line class="svg-edge" x1="410" y1="266" x2="470" y2="310"/>
+          <circle class="svg-node" cx="500" cy="50" r="26"/>
+          <text class="svg-label" x="500" y="58" text-anchor="middle" style="font-size:22px;">5</text>
+          <circle class="svg-node" cx="300" cy="145" r="26"/>
+          <text class="svg-label" x="300" y="153" text-anchor="middle" style="font-size:22px;">4</text>
+          <circle class="svg-node" cx="720" cy="145" r="26"/>
+          <text class="svg-label" x="720" y="153" text-anchor="middle" style="font-size:22px;">3</text>
+          <circle class="svg-node" cx="170" cy="240" r="26"/>
+          <text class="svg-label" x="170" y="248" text-anchor="middle" style="font-size:22px;">3</text>
+          <circle class="svg-node" cx="410" cy="240" r="26"/>
+          <text class="svg-label" x="410" y="248" text-anchor="middle" style="font-size:22px;">2</text>
+          <circle class="svg-node" cx="620" cy="240" r="26"/>
+          <text class="svg-label" x="620" y="248" text-anchor="middle" style="font-size:22px;">2</text>
+          <circle class="svg-node" cx="820" cy="240" r="26"/>
+          <text class="svg-label" x="820" y="248" text-anchor="middle" style="font-size:22px;">1</text>
+          <circle class="svg-node" cx="90" cy="335" r="26"/>
+          <text class="svg-label" x="90" y="343" text-anchor="middle" style="font-size:22px;">2</text>
+          <circle class="svg-node" cx="240" cy="335" r="26"/>
+          <text class="svg-label" x="240" y="343" text-anchor="middle" style="font-size:22px;">1</text>
+          <circle class="svg-node" cx="350" cy="335" r="26"/>
+          <text class="svg-label" x="350" y="343" text-anchor="middle" style="font-size:22px;">1</text>
+          <circle class="svg-node" cx="470" cy="335" r="26"/>
+          <text class="svg-label" x="470" y="343" text-anchor="middle" style="font-size:22px;">0</text>
+          <text class="svg-label" x="960" y="60" style="font-size:22px; font-weight:400;">árbol ingenuo:</text>
+          <text class="svg-label" x="960" y="90" style="font-size:22px; font-weight:400;">15 llamadas</text>
+        </g>
+
+        <g class="anim-step" data-step="2">
+          <rect x="920" y="130" width="160" height="70" rx="12" fill="none" stroke="#0b57d0" stroke-width="3"/>
+          <text x="1000" y="160" text-anchor="middle" fill="#0b57d0" style="font-size:22px; font-weight:700;">caché</text>
+          <text x="1000" y="188" text-anchor="middle" fill="#0b57d0" style="font-size:20px;">n → fib(n)</text>
+          <circle cx="620" cy="240" r="26" fill="#e8eaef" stroke="#d7dbe2" stroke-width="2"/>
+          <text x="620" y="248" text-anchor="middle" fill="#4b5260" style="font-size:22px;">2</text>
+          <circle cx="820" cy="240" r="26" fill="#e8eaef" stroke="#d7dbe2" stroke-width="2"/>
+          <text x="820" y="248" text-anchor="middle" fill="#4b5260" style="font-size:22px;">1</text>
+          <circle cx="170" cy="240" r="26" fill="#e8eaef" stroke="#d7dbe2" stroke-width="2"/>
+          <text x="170" y="248" text-anchor="middle" fill="#4b5260" style="font-size:22px;">3</text>
+          <circle cx="90" cy="335" r="26" fill="#e8eaef" stroke="#d7dbe2" stroke-width="2"/>
+          <text x="90" y="343" text-anchor="middle" fill="#4b5260" style="font-size:22px;">2</text>
+          <circle cx="240" cy="335" r="26" fill="#e8eaef" stroke="#d7dbe2" stroke-width="2"/>
+          <text x="240" y="343" text-anchor="middle" fill="#4b5260" style="font-size:22px;">1</text>
+          <path class="svg-edge" d="M 740 220 Q 840 160 915 160" stroke-dasharray="10 8"/>
+          <text class="svg-label" x="700" y="300" text-anchor="middle" style="font-size:20px; font-weight:400;">los grises se responden desde la caché</text>
+        </g>
+
+        <g class="anim-step" data-step="3">
+          <circle cx="500" cy="50" r="30" fill="none" stroke="#0b57d0" stroke-width="4"/>
+          <circle cx="300" cy="145" r="30" fill="none" stroke="#0b57d0" stroke-width="4"/>
+          <circle cx="720" cy="145" r="30" fill="none" stroke="#0b57d0" stroke-width="4"/>
+          <circle cx="410" cy="240" r="30" fill="none" stroke="#0b57d0" stroke-width="4"/>
+          <circle cx="350" cy="335" r="30" fill="none" stroke="#0b57d0" stroke-width="4"/>
+          <circle cx="470" cy="335" r="30" fill="none" stroke="#0b57d0" stroke-width="4"/>
+          <text x="550" y="410" text-anchor="middle" fill="#0b57d0" style="font-size:23px; font-weight:700;">solo los subproblemas distintos se calculan: n+1 evaluaciones, O(n)</text>
+        </g>
+      </svg>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+    </section>
+
+    <!-- ============ QUIZ 4 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="a">
+        <p class="quiz-question">¿Qué determina la complejidad de una recursión memoizada?</p>
+        <button class="quiz-option" data-opt="a">El número de subproblemas distintos multiplicado por el costo de resolver cada uno consultando la caché.</button>
+        <button class="quiz-option" data-opt="b">La profundidad de la pila de llamadas: baja a \(O(\log n)\).</button>
+        <button class="quiz-option" data-opt="c">Sigue siendo exponencial; la caché solo mejora la constante.</button>
+        <div class="quiz-explain">
+          <strong>A.</strong> Cada subproblema distinto se calcula una vez; el resto son consultas \(O(1)\).
+          En <code>fib</code> eso da \((n+1) \times O(1) = O(n)\) — un cambio de <em>exponente</em>, no de constante, al
+          contrario de la opción C. La profundidad de la pila sigue siendo \(O(n)\) en <code>fib</code>: la memoización
+          reduce el número de llamadas, no la longitud de la rama más profunda.
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ POR QUÉ IMPORTA ============ -->
+    <section>
+      <span class="kicker kicker-ai">Por qué importa hoy</span>
+      <h2>El <span class="term" data-term="all-reduce">all-reduce</span> que entrena a los LLM</h2>
+      <div class="box-ai" data-label="Dónde vive esto en sistemas de IA">
+        <p>Para sincronizar gradientes entre \(p\) GPUs, el all-reduce existe en dos variantes, y elegir entre ellas es análisis de recurrencias:</p>
+        <table>
+          <thead><tr><th>Variante</th><th>Pasos</th><th>Gana en</th></tr></thead>
+          <tbody>
+            <tr class="fragment"><td>En árbol</td><td>\(O(\log p)\)</td><td>latencia (mensajes chicos)</td></tr>
+            <tr class="fragment"><td>En anillo</td><td>\(2(p-1)\)</td><td>ancho de banda (mensajes grandes)</td></tr>
+          </tbody>
+        </table>
+        <ul>
+          <li class="fragment">El árbol es la forma de divide y vencerás: combinar por mitades en \(\log p\) rondas.</li>
+          <li class="fragment">El anillo da más pasos, pero cada GPU transmite en total una cantidad de datos casi óptima; por eso NCCL lo usa para los tensores grandes del entrenamiento.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============ CIERRE STL 1 ============ -->
+    <section>
+      <span class="kicker">Cierre STL</span>
+      <h2><code>std::stable_sort</code>: la recurrencia depende de la memoria</h2>
+      <ul>
+        <li class="fragment">En libstdc++, libc++ y MSVC, <code>stable_sort</code> es un merge sort adaptativo.</li>
+        <li class="fragment">Si consigue el buffer auxiliar de \(O(n)\), aplica la recurrencia de hoy: \(T(n) = 2T(n/2) + \Theta(n) \to O(n \log n)\).</li>
+        <li class="fragment">Si no hay memoria, fusiona in situ con rotaciones: la fusión pasa a \(\Theta(n \log n)\) por nivel y el total degrada a \(O(n \log^{2} n)\), donde \(\log^{2} n\) significa \((\log n)^{2}\).</li>
+        <li class="fragment">El estándar escribe ambas con \(O\) porque promete un techo; el análisis de hoy da la cota ajustada, \(\Theta\).</li>
+      </ul>
+    </section>
+
+    <!-- ============ CIERRE STL 2 ============ -->
+    <section>
+      <span class="kicker">Cierre STL</span>
+      <h2><code>std::sort</code> es <span class="term" data-term="introsort">introsort</span>: la profundidad como alarma</h2>
+      <ul>
+        <li class="fragment">Introsort arranca como quicksort y <strong>monitorea la profundidad de su propia recursión</strong>: si supera \(\approx 2\log_2 n\), cambia a heapsort; para tramos chicos remata con insertion sort.</li>
+        <li class="fragment">La lógica es puro análisis de recurrencias: una recursión de quicksort más profunda que \(\log n\) delata que las particiones están saliendo desbalanceadas — el camino al peor caso \(O(n^{2})\).</li>
+        <li class="fragment">Nada de esto lo exige el estándar (solo pide \(O(n \log n)\) peor caso desde C++11); es la decisión de implementación con la que las tres bibliotecas lo cumplen.</li>
+      </ul>
+    </section>
+
+    <!-- ============ RETO ============ -->
+    <section class="divider">
+      <h2>Reto en parejas</h2>
+      <p class="muted">25 minutos · driver y navigator · los roles rotan entre problemas</p>
+    </section>
+
+    <section>
+      <span class="kicker">Reto en parejas · Divide y vencerás + memoización</span>
+      <h2>LC 241 y LC 329</h2>
+      <div class="cols">
+        <div>
+          <h3>LC 241 · Different Ways to Add Parentheses — Media</h3>
+          <ul>
+            <li>Todos los resultados posibles de parentetizar una expresión: parte en cada operador y combina resultados de izquierda y derecha.</li>
+            <li>Divide y vencerás puro sobre la expresión.</li>
+            <li class="muted">Casos: "2-1-1" → [0, 2] · "2*3-4*5" → [−34, −14, −10, −10, 10]</li>
+          </ul>
+        </div>
+        <div>
+          <h3>LC 329 · Longest Increasing Path in a Matrix — Alta</h3>
+          <ul>
+            <li>DFS desde cada celda; sin memoizar es exponencial, con memoización por celda es O(m·n).</li>
+            <li>La técnica de hoy aplicada donde la diferencia se nota; puede terminarse fuera de clase.</li>
+            <li class="muted">Casos: [[9,9,4],[6,6,8],[2,1,1]] → 4 · [[3,4,5],[3,2,6],[2,2,1]] → 4 · [[1]] → 1</li>
+          </ul>
+        </div>
+      </div>
+      <p class="fragment">Los casos de prueba (normales y límite) vienen en el enunciado y se corren localmente. Entrega al LMS antes de la próxima sesión: se registra completado / no completado.</p>
+    </section>
+
+    <!-- ============ PRÓXIMA SESIÓN ============ -->
+    <section class="divider">
+      <h2>Próxima sesión:<br>Clasificación de algoritmos (P, NP, NP-completo)</h2>
+      <p class="muted">Recordatorio: la Act 1.2 (análisis de complejidad iterativa y recursiva) se entrega este domingo en el LMS.</p>
+    </section>
+
+    <!-- ============ REFERENCIAS ============ -->
+    <section>
+      <span class="kicker">Sesión 4</span>
+      <h2>Referencias y material para profundizar</h2>
+      <div class="refs cols">
+        <div>
+          <h3>Referencias</h3>
+          <ul>
+            <li><span class="ref-type">Libro</span> Cormen, T. et al. <em>Introduction to Algorithms</em>, 4.ª ed., MIT Press, 2022. Cap. 4 (recurrencias y Teorema Maestro) y cap. 14 (programación dinámica).</li>
+            <li><span class="ref-type">Libro</span> Weiss, M. A. <em>Data Structures and Algorithm Analysis in C++</em>, 4.ª ed., Pearson, 2014. Caps. 2 y 10 (análisis y divide y vencerás).</li>
+            <li><span class="ref-type">Libro</span> Stroustrup, B. <em>A Tour of C++</em>, 3.ª ed., Addison-Wesley, 2022. Cap. de contenedores (<code>unordered_map</code>).</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Para profundizar</h3>
+          <ul>
+            <li><span class="ref-type">Paper</span> Sergeev y Del Balso, <a href="https://arxiv.org/abs/1802.05799">Horovod</a> (arXiv:1802.05799) <span class="ref-nota">— el ring all-reduce del "por qué importa hoy", aplicado a entrenamiento distribuido.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://en.cppreference.com/w/cpp/algorithm/stable_sort">cppreference — std::stable_sort</a> <span class="ref-nota">— las dos cotas (con y sin memoria) escritas como garantía oficial.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://en.cppreference.com/w/cpp/algorithm/sort">cppreference — std::sort</a> <span class="ref-nota">— la garantía O(n log n) que introsort hace posible.</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script src="../js/curso-slides.js"></script>
+<script>
+  Reveal.initialize({
+    width: 1280,
+    height: 720,
+    margin: 0.06,
+    hash: true,
+    progress: true,
+    slideNumber: 'c/t',
+    controls: true,
+    transition: 'slide',
+    transitionSpeed: 'fast',
+    plugins: [ RevealHighlight ]
+  }).then(() => {
+    CursoSlides.init({
+      recurrencia: {
+        titulo: "Ecuación de recurrencia",
+        def: "Ecuación que define el costo \\(T(n)\\) de un algoritmo recursivo en función de su costo sobre entradas más pequeñas, por ejemplo \\[ T(n) = 2T(n/2) + cn \\] Se obtiene directamente del código (trabajo propio más llamadas internas) y se resuelve por sustitución, árbol de recursión o Teorema Maestro."
+      },
+      "arbol-recursion": {
+        titulo: "Árbol de recursión",
+        def: "Técnica de solución de recurrencias: dibujar las llamadas como árbol, anotar el costo propio de cada nodo, sumar por niveles y multiplicar por el número de niveles. Convierte la recurrencia en una sumatoria y da además la intuición de dónde se concentra el costo (raíz, niveles u hojas)."
+      },
+      "teorema-maestro": {
+        titulo: "Teorema Maestro",
+        def: "Receta para recurrencias de la forma \\[ T(n) = a\\,T(n/b) + f(n) \\] Se compara \\(f(n)\\) contra \\(n^{\\log_b a}\\): si \\(f\\) crece polinomialmente menos gana el término de las hojas (caso 1); si empatan aparece el factor \\(\\log n\\) (caso 2); si \\(f\\) crece polinomialmente más y cumple regularidad, gana \\(f\\) (caso 3). No cubre recurrencias con resta ni huecos como \\(f(n) = n \\log n\\) frente a \\(n\\)."
+      },
+      memoizacion: {
+        titulo: "Memoización",
+        def: "Guardar el resultado de cada subproblema la primera vez que se calcula (en un mapa o arreglo) y devolver el valor guardado en llamadas repetidas. La complejidad pasa a ser número de subproblemas distintos × costo de combinar cada uno. Es la forma <em>top-down</em> de la programación dinámica."
+      },
+      "all-reduce": {
+        titulo: "All-reduce",
+        def: "Operación colectiva de cómputo distribuido: combinar (por ejemplo sumar) un valor repartido entre \\(p\\) procesos y dejar el resultado en todos. En entrenamiento de redes sincroniza los gradientes entre GPUs. La variante en árbol usa \\(O(\\log p)\\) pasos (mejor latencia); la de anillo usa \\(2(p-1)\\) pasos pero es casi óptima en ancho de banda."
+      },
+      introsort: {
+        titulo: "Introsort",
+        def: "Algoritmo híbrido de ordenamiento (Musser, 1997): quicksort que vigila la profundidad de su recursión y, si excede \\(\\approx 2\\log_2 n\\), cambia a heapsort para garantizar \\(O(n \\log n)\\) en el peor caso; los tramos pequeños se rematan con insertion sort. Es la implementación típica de <code>std::sort</code>."
+      }
+    });
+  });
+</script>
+</body>
+</html>

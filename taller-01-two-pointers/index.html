@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Taller 1 — Patrones de LeetCode: two pointers</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+  <link rel="stylesheet" href="../css/theme-curso.css">
+</head>
+<body>
+<div class="reveal">
+  <div class="slides">
+
+    <!-- ============ PORTADA ============ -->
+    <section class="cover">
+      <span class="kicker">Estructuras de Datos y Algoritmos · Taller</span>
+      <h1>Patrones de LeetCode:<br>two&nbsp;pointers</h1>
+      <div class="cover-meta">
+        Taller 1 · 60 minutos<br>
+        Salvador Hinojosa
+      </div>
+    </section>
+
+    <!-- ============ AGENDA ============ -->
+    <section>
+      <span class="kicker">Taller 1 · Agenda</span>
+      <h2>Cómo vamos a trabajar hoy</h2>
+      <table>
+        <tbody>
+          <tr><td>5 min</td><td>Panorama: los patrones que se repiten</td></tr>
+          <tr><td>10 min</td><td>El patrón de dos punteros</td></tr>
+          <tr><td>20 min</td><td>Problema 1: pares que suman un objetivo</td></tr>
+          <tr><td>5 min</td><td>Recordatorio de <code>std::string</code></td></tr>
+          <tr><td>18 min</td><td>Problema 2: palíndromo</td></tr>
+          <tr><td>2 min</td><td>Cierre: cuándo aplica y cuándo no</td></tr>
+        </tbody>
+      </table>
+      <p class="muted">Los dos problemas los programas tú. Aquí solo va el razonamiento y los casos con los que vas a probar.</p>
+    </section>
+
+    <!-- ============ OBJETIVO ============ -->
+    <section>
+      <span class="kicker">Objetivo del taller</span>
+      <h2>Al terminar podrás…</h2>
+      <ul>
+        <li class="fragment">Reconocer, leyendo un enunciado, cuál de los patrones frecuentes aplica.</li>
+        <li class="fragment">Explicar por qué mover un índice permite descartar parejas sin revisarlas.</li>
+        <li class="fragment">Decir en una frase por qué tu ciclo termina, antes de programarlo.</li>
+        <li class="fragment">Armar una batería de casos de prueba que incluya los bordes, no solo el camino feliz.</li>
+      </ul>
+    </section>
+
+    <!-- ============ PANORAMA ============ -->
+    <section>
+      <span class="kicker">Panorama</span>
+      <h2>Los patrones que más se repiten</h2>
+      <table>
+        <thead><tr><th>Patrón</th><th>Cuándo aparece</th></tr></thead>
+        <tbody>
+          <tr class="fragment"><td>Dos punteros</td><td>Arreglo ordenado, o comparar desde los extremos</td></tr>
+          <tr class="fragment"><td>Ventana deslizante</td><td>Un pedazo seguido del arreglo o de la cadena</td></tr>
+          <tr class="fragment"><td>Tabla hash</td><td>"¿ya vi este valor?", contar repeticiones</td></tr>
+          <tr class="fragment"><td>Búsqueda binaria</td><td>Datos ordenados</td></tr>
+          <tr class="fragment"><td>Recorridos y recursión</td><td>Grafos, rejillas, probar todas las opciones</td></tr>
+        </tbody>
+      </table>
+      <p class="fragment muted">Hoy trabajamos el primero. Los demás van apareciendo a lo largo del curso.</p>
+    </section>
+
+    <!-- ============ DIVIDER TWO POINTERS ============ -->
+    <section class="divider">
+      <h2>El patrón de dos punteros</h2>
+    </section>
+
+    <!-- ============ TRES VARIANTES ============ -->
+    <section>
+      <span class="kicker">Dos punteros</span>
+      <h2><span class="term" data-term="dos-punteros">Dos índices</span> que se acercan</h2>
+      <ul>
+        <li class="fragment">Se usan dos variables que guardan posiciones: una empieza al principio del arreglo y la otra al final.</li>
+        <li class="fragment">En cada vuelta se mira la pareja que forman y se decide cuál de las dos mover. Se acercan hasta encontrarse.</li>
+        <li class="fragment">La ganancia: en lugar de probar todas las parejas, cada paso descarta varias de golpe. Hoy los dos problemas usan esta forma.</li>
+      </ul>
+      <p class="fragment muted">Hay otra variante, con los dos índices avanzando a distinta velocidad, que verás cuando lleguemos a listas ligadas.</p>
+    </section>
+
+    <!-- ============ SVG CONVERGENCIA ============ -->
+    <section>
+      <span class="kicker">Dos punteros · Cómo se mueve</span>
+      <h2>Buscar dos valores que sumen 9</h2>
+      <svg viewBox="0 0 1100 400" style="width:100%; max-height:400px;">
+        <!-- arreglo, siempre visible -->
+        <rect x="250" y="70" width="120" height="80" fill="#ffffff" stroke="#16181d" stroke-width="3"/>
+        <rect x="370" y="70" width="120" height="80" fill="#ffffff" stroke="#16181d" stroke-width="3"/>
+        <rect x="490" y="70" width="120" height="80" fill="#ffffff" stroke="#16181d" stroke-width="3"/>
+        <rect x="610" y="70" width="120" height="80" fill="#ffffff" stroke="#16181d" stroke-width="3"/>
+        <text x="310" y="125" text-anchor="middle" style="font-size:36px; font-weight:600;" fill="#16181d">2</text>
+        <text x="430" y="125" text-anchor="middle" style="font-size:36px; font-weight:600;" fill="#16181d">7</text>
+        <text x="550" y="125" text-anchor="middle" style="font-size:36px; font-weight:600;" fill="#16181d">11</text>
+        <text x="670" y="125" text-anchor="middle" style="font-size:36px; font-weight:600;" fill="#16181d">15</text>
+        <text x="250" y="52" style="font-size:22px;" fill="#4b5260">arreglo ordenado · objetivo = 9</text>
+
+        <g class="anim-step" data-step="1">
+          <text x="310" y="185" text-anchor="middle" fill="#0b57d0" style="font-size:26px; font-weight:700;">i</text>
+          <text x="670" y="185" text-anchor="middle" fill="#b3261e" style="font-size:26px; font-weight:700;">j</text>
+          <text x="250" y="240" fill="#16181d" style="font-size:26px;">2 + 15 = 17, se pasa del objetivo</text>
+          <text x="250" y="275" fill="#b3261e" style="font-size:26px; font-weight:600;">baja j</text>
+        </g>
+
+        <g class="anim-step" data-step="2">
+          <text x="550" y="185" text-anchor="middle" fill="#b3261e" style="font-size:26px; font-weight:700;">j</text>
+          <text x="620" y="240" fill="#16181d" style="font-size:26px;">2 + 11 = 13, sigue pasándose</text>
+          <text x="620" y="275" fill="#b3261e" style="font-size:26px; font-weight:600;">baja j otra vez</text>
+        </g>
+
+        <g class="anim-step" data-step="3">
+          <rect x="250" y="70" width="240" height="80" fill="#146c2e" opacity="0.18"/>
+          <text x="430" y="185" text-anchor="middle" fill="#146c2e" style="font-size:26px; font-weight:700;">j</text>
+          <text x="250" y="330" fill="#146c2e" style="font-size:28px; font-weight:600;">2 + 7 = 9 · encontrado en 3 pasos, no en 6 parejas</text>
+        </g>
+      </svg>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+    </section>
+
+    <!-- ============ INVARIANTE ============ -->
+    <section>
+      <span class="kicker">Dos punteros · Por qué es correcto</span>
+      <h2>Por qué se puede descartar</h2>
+      <div class="box-key">Si la suma se pasa del objetivo, el número de la derecha es demasiado grande para <em>cualquier</em> pareja que quede, porque los de la izquierda son todavía menores.</div>
+      <ul>
+        <li class="fragment">Por eso, al mover ese índice hacia la izquierda, tiras muchas parejas de una vez sin revisarlas.</li>
+        <li class="fragment">Esto solo vale si el arreglo está <strong>ordenado</strong>. Sin orden, que una suma se pase no dice nada de las demás.</li>
+        <li class="fragment">Ningún índice retrocede, así que el recorrido termina y cada elemento se mira una sola vez.</li>
+      </ul>
+    </section>
+
+    <!-- ============ QUIZ 1 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="c">
+        <p class="quiz-question">El arreglo llega <em>sin ordenar</em> y te piden dos posiciones cuyos valores sumen el objetivo. ¿Puedes usar dos índices que se acercan?</p>
+        <button class="quiz-option" data-opt="a">Sí, funciona igual: el orden no cambia el razonamiento.</button>
+        <button class="quiz-option" data-opt="b">No tal cual: sin orden, que la suma se pase no permite descartar nada.</button>
+        <button class="quiz-option" data-opt="c">Sí, pero solo si el arreglo tiene menos de diez elementos.</button>
+        <div class="quiz-explain">
+          <strong>B.</strong> Todo el patrón se apoya en que a la izquierda hay números menores. Sin esa
+          garantía, mover un índice puede tirar justo la pareja correcta. Ese caso se resuelve con otro
+          patrón de la lista, la tabla hash, y lo veremos más adelante en el curso.
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ DIVIDER PROBLEMA 1 ============ -->
+    <section class="divider">
+      <h2>Problema 1<br>Pares que suman un objetivo</h2>
+      <p class="muted">20 minutos · lo programas tú · LC 167</p>
+    </section>
+
+    <!-- ============ ENUNCIADO 1 ============ -->
+    <section>
+      <span class="kicker">Problema 1 · Enunciado</span>
+      <h2>Dos números que sumen el objetivo</h2>
+      <ul>
+        <li>Recibes un arreglo de enteros <strong>ordenado de menor a mayor</strong> y un valor objetivo.</li>
+        <li class="fragment">Devuelve las posiciones de los dos elementos que suman exactamente el objetivo, con índices que empiezan en 1.</li>
+        <li class="fragment">Se garantiza a lo más una respuesta, y no puedes usar el mismo elemento dos veces.</li>
+        <li class="fragment">Si no hay pareja, devuelve un vector vacío.</li>
+      </ul>
+      <pre><code class="language-cpp" data-trim>
+// El contrato que van a probar los casos:
+std::vector&lt;int&gt; dosSuma(std::vector&lt;int&gt; v, int objetivo);
+      </code></pre>
+    </section>
+
+    <!-- ============ PLAN 1 ============ -->
+    <section>
+      <span class="kicker">Problema 1 · Antes de teclear</span>
+      <h2>Contesta esto antes de abrir el editor</h2>
+      <ul>
+        <li class="fragment"><strong>¿Dónde arrancan los punteros?</strong> Uno en la primera posición y otro en la última, con un tipo que permita restar sin sorpresas.</li>
+        <li class="fragment"><strong>¿<code>i &lt; j</code> o <code>i &lt;= j</code>?</strong> Uno de los dos deja usar el mismo elemento dos veces.</li>
+        <li class="fragment"><strong>¿Qué haces en cada caso?</strong> Suma mayor, menor o igual al objetivo: tres ramas, y en cada una decides qué puntero mover.</li>
+        <li class="fragment"><strong>¿Qué devuelves?</strong> Índices basados en 1, no en 0. Es el error más común de este problema.</li>
+      </ul>
+    </section>
+
+    <!-- ============ CASOS 1 ============ -->
+    <section>
+      <span class="kicker">Problema 1 · Casos de prueba</span>
+      <h2>Con estos casos verificas tu solución</h2>
+      <ul>
+        <li class="fragment"><strong>Camino feliz.</strong> Arreglo 2, 7, 11, 15 con objetivo 9 → posiciones 1 y 2.</li>
+        <li class="fragment"><strong>La pareja está en los extremos.</strong> Arreglo 1, 2, 3, 9 con objetivo 10 → posiciones 1 y 4. Falla si mueves un puntero antes de comparar.</li>
+        <li class="fragment"><strong>La pareja está al centro.</strong> Arreglo 1, 3, 4, 8 con objetivo 7 → posiciones 2 y 3. Obliga a que ambos punteros se muevan.</li>
+        <li class="fragment"><strong>Mínimo posible.</strong> Arreglo 3, 3 con objetivo 6 → posiciones 1 y 2. Dos elementos iguales y solo una vuelta de ciclo.</li>
+      </ul>
+    </section>
+
+    <!-- ============ CASOS 1 BORDE ============ -->
+    <section>
+      <span class="kicker">Problema 1 · Casos de prueba</span>
+      <h2>Los que de verdad rompen soluciones</h2>
+      <ul>
+        <li class="fragment"><strong>Negativos.</strong> Arreglo −5, −2, 0, 4 con objetivo −7 → posiciones 1 y 2. Falla si supusiste que los valores son positivos.</li>
+        <li class="fragment"><strong>Sin respuesta.</strong> Arreglo 1, 2, 4 con objetivo 100 → vector vacío. Verifica que el ciclo termina en vez de salirse del arreglo.</li>
+        <li class="fragment"><strong>Solo se lograría repitiendo un elemento.</strong> Arreglo 1, 5, 8 con objetivo 10 → vector vacío. El 5 sumado consigo mismo daría 10, y eso no se vale. Aquí se cae quien escribió <code>i &lt;= j</code>.</li>
+      </ul>
+      <p class="fragment muted">Si falla uno, el nombre del caso te dice dónde mirar.</p>
+    </section>
+
+    <!-- ============ DIVIDER STRINGS ============ -->
+    <section class="divider">
+      <h2>Antes del palíndromo:<br>strings en C++</h2>
+    </section>
+
+    <!-- ============ STRINGS 1 ============ -->
+    <section>
+      <span class="kicker">Recordatorio · <code>std::string</code></span>
+      <h2>Una cadena se recorre como un arreglo</h2>
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-4|6-8">
+std::string s = "Anita";
+s.size();            // 5 — cuántos caracteres
+s[0];                // 'A' — un char, no una cadena
+s.back();            // 'a' — último carácter
+
+s == "Anita";        // compara contenido, no direcciones
+s.substr(1, 3);      // "nit" — desde la posición 1, tres caracteres
+s += "!";            // concatena al final
+      </code></pre>
+      <ul>
+        <li class="fragment">Las comillas dobles arman una cadena; las simples, un solo carácter. <code>s[0] == 'A'</code> compila, <code>s[0] == "A"</code> no.</li>
+      </ul>
+    </section>
+
+    <!-- ============ STRINGS 2 ============ -->
+    <section>
+      <span class="kicker">Recordatorio · <code>std::string</code></span>
+      <h2>Mayúsculas y dígitos</h2>
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-3|5-6">
+#include &lt;cctype&gt;
+std::isalnum(c);     // ¿es letra o dígito? útil para saltar espacios y signos
+std::tolower(c);     // 'A' → 'a'; los dígitos y símbolos quedan igual
+
+int n = s.size();    // cuántos caracteres tiene
+int j = n - 1;       // la última posición: las posiciones van de 0 a n-1
+      </code></pre>
+      <ul>
+        <li class="fragment">Guarda el tamaño en un <code>int</code> antes de restarle 1. Es una costumbre que evita un error raro cuando la cadena viene vacía.</li>
+      </ul>
+    </section>
+
+    <!-- ============ QUIZ 2 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="b">
+        <p class="quiz-question">Quieres comparar el primer carácter con el último. ¿Qué posición ocupa el último en una cadena de tamaño <code>n</code>?</p>
+        <button class="quiz-option" data-opt="a">La posición <code>n</code>.</button>
+        <button class="quiz-option" data-opt="b">La posición <code>n - 1</code>, porque la primera es la 0.</button>
+        <button class="quiz-option" data-opt="c">Depende de si la cadena trae espacios.</button>
+        <div class="quiz-explain">
+          <strong>B.</strong> Las posiciones van de 0 a <code>n - 1</code>. Leer la posición <code>n</code> se sale de la
+          cadena, y ese es el error que hace que un palíndromo funcione con unas entradas y truene con otras.
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ DIVIDER PROBLEMA 2 ============ -->
+    <section class="divider">
+      <h2>Problema 2<br>Palíndromo válido</h2>
+      <p class="muted">18 minutos · lo programas tú · LC 125</p>
+    </section>
+
+    <!-- ============ ENUNCIADO 2 ============ -->
+    <section>
+      <span class="kicker">Problema 2 · Enunciado</span>
+      <h2>¿La cadena se lee igual al derecho y al revés?</h2>
+      <ul>
+        <li>Recibes una cadena que puede traer espacios, signos y mayúsculas.</li>
+        <li class="fragment">Considera solo letras y dígitos, tratando mayúsculas y minúsculas como iguales.</li>
+        <li class="fragment">Devuelve verdadero si lo que queda se lee igual en ambos sentidos.</li>
+        <li class="fragment">La cadena vacía cuenta como palíndromo.</li>
+      </ul>
+      <pre><code class="language-cpp" data-trim>
+bool esPalindromo(std::string s);
+      </code></pre>
+    </section>
+
+    <!-- ============ PLAN 2 ============ -->
+    <section>
+      <span class="kicker">Problema 2 · Antes de teclear</span>
+      <h2>El mismo patrón, con dos cuidados extra</h2>
+      <ul>
+        <li class="fragment"><strong>Los punteros arrancan en los extremos</strong> y se acercan mientras <code>i &lt; j</code>. Hasta aquí es idéntico al problema anterior.</li>
+        <li class="fragment"><strong>Antes de comparar hay que saltar basura.</strong> Adelanta <code>i</code> mientras no apunte a algo alfanumérico y retrocede <code>j</code> igual. Esos saltos van dentro de ciclos propios.</li>
+        <li class="fragment"><strong>Cuidado con salirte.</strong> Cada ciclo de salto necesita también la condición <code>i &lt; j</code>: una cadena de puros signos los haría cruzarse.</li>
+        <li class="fragment"><strong>Compara en minúsculas.</strong> Si difieren, ya puedes responder que no; si coinciden, mueve los dos punteros.</li>
+      </ul>
+    </section>
+
+    <!-- ============ CASOS 2 ============ -->
+    <section>
+      <span class="kicker">Problema 2 · Casos de prueba</span>
+      <h2>Con estos casos verificas tu solución</h2>
+      <ul>
+        <li class="fragment"><strong>Camino feliz con ruido.</strong> "A man, a plan, a canal: Panama" → verdadero. Mezcla comas, espacios, dos puntos y mayúsculas.</li>
+        <li class="fragment"><strong>Negativo claro.</strong> "race a car" → falso. La diferencia aparece a media cadena.</li>
+        <li class="fragment"><strong>Mínimos.</strong> "aa" → verdadero y "ab" → falso. Dos caracteres, una sola comparación.</li>
+        <li class="fragment"><strong>Impar con centro.</strong> "aba" → verdadero. Verifica que el carácter de en medio no se compara consigo mismo de más.</li>
+      </ul>
+    </section>
+
+    <!-- ============ CASOS 2 BORDE ============ -->
+    <section>
+      <span class="kicker">Problema 2 · Casos de prueba</span>
+      <h2>Los que de verdad rompen soluciones</h2>
+      <ul>
+        <li class="fragment"><strong>Cadena vacía.</strong> "" → verdadero. El ciclo no debe entrar ni una vez.</li>
+        <li class="fragment"><strong>Un solo espacio.</strong> " " → verdadero. Los saltos de basura tienen que frenarse antes de salirse del rango.</li>
+        <li class="fragment"><strong>Pura puntuación.</strong> ".,!" → verdadero. Los dos punteros se cruzan sin comparar nada.</li>
+        <li class="fragment"><strong>Letra contra dígito.</strong> "0P" → falso. Comprueba que estás comparando los caracteres y no haciendo cuentas con ellos.</li>
+        <li class="fragment"><strong>Dígitos.</strong> "12321" → verdadero y "12345" → falso. Confirma que los números también cuentan como alfanuméricos.</li>
+      </ul>
+    </section>
+
+    <!-- ============ CIERRE ============ -->
+    <section>
+      <span class="kicker">Taller 1 · Cierre</span>
+      <h2>Cuándo aplica y cuándo no</h2>
+      <ul>
+        <li class="fragment"><strong>Aplica</strong> cuando el arreglo está ordenado, o cuando el problema compara los extremos, como el palíndromo.</li>
+        <li class="fragment"><strong>No aplica</strong> si los datos están desordenados: ahí mover un índice puede tirar la respuesta correcta.</li>
+        <li class="fragment">Antes de teclear, di en voz alta por qué es seguro mover cada índice. Si no puedes, todavía no es momento de programar.</li>
+      </ul>
+    </section>
+
+    <!-- ============ REFERENCIAS ============ -->
+    <section>
+      <span class="kicker">Taller 1</span>
+      <h2>Referencias y material para profundizar</h2>
+      <div class="refs cols">
+        <div>
+          <h3>Referencias</h3>
+          <ul>
+            <li><span class="ref-type">Libro</span> Weiss, M. A. <em>Data Structures and Algorithm Analysis in C++</em>, 4.ª ed., Pearson, 2014. Cap. 1 (repaso de C++ y arreglos).</li>
+            <li><span class="ref-type">Web</span> <a href="https://en.cppreference.com/w/cpp/string/basic_string">cppreference — <code>std::string</code></a> <span class="ref-nota">— la lista completa de operaciones sobre cadenas.</span></li>
+          </ul>
+        </div>
+        <div>
+          <h3>Para practicar</h3>
+          <ul>
+            <li><span class="ref-type">Web</span> <a href="https://leetcode.com/problems/two-sum-ii-input-array-is-sorted/">LC 167 · Two Sum II</a> <span class="ref-nota">— el problema 1 de hoy, con sus casos oficiales.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://leetcode.com/problems/valid-palindrome/">LC 125 · Valid Palindrome</a> <span class="ref-nota">— el problema 2.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://leetcode.com/problem-list/two-pointers/">LeetCode · lista de problemas de dos punteros</a> <span class="ref-nota">— para seguir practicando el patrón de hoy.</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script src="../js/curso-slides.js"></script>
+<script>
+  Reveal.initialize({
+    width: 1280,
+    height: 720,
+    margin: 0.06,
+    hash: true,
+    progress: true,
+    slideNumber: 'c/t',
+    controls: true,
+    transition: 'slide',
+    transitionSpeed: 'fast',
+    plugins: [ RevealHighlight ]
+  }).then(() => {
+    CursoSlides.init({
+      "dos-punteros": {
+        titulo: "Dos punteros",
+        def: "Técnica que recorre una secuencia con dos índices en lugar de uno. En la forma que vemos hoy, uno arranca al principio y otro al final, y en cada vuelta se decide cuál mover hasta que se encuentran. Sirve cuando los datos están ordenados o cuando el problema compara los extremos."
+      }
+    });
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sesión 2 — Recursión</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+  <link rel="stylesheet" href="../css/theme-curso.css">
+</head>
+<body>
+<div class="reveal">
+  <div class="slides">
+
+    <!-- ============ PORTADA ============ -->
+    <section class="cover">
+      <span class="kicker">Estructuras de Datos y Algoritmos · Bloque 1</span>
+      <h1>Recursión</h1>
+      <div class="cover-meta">
+        Sesión 2 · Semana 1<br>
+        Salvador Hinojosa
+      </div>
+    </section>
+
+    <!-- ============ AGENDA ============ -->
+    <section>
+      <span class="kicker">Sesión 2 · Agenda</span>
+      <h2>Qué vamos a ver hoy</h2>
+      <table>
+        <tbody>
+          <tr><td>20 min</td><td>2.1 Definición y anatomía de la recursión</td></tr>
+          <tr><td>30 min</td><td>Cómo el programa recuerda las llamadas pendientes</td></tr>
+          <tr><td>35 min</td><td>2.2 Recursión en tres problemas</td></tr>
+          <tr><td>10 min</td><td>Cierre STL</td></tr>
+          <tr><td>25 min</td><td>Reto en parejas: Pow(x,n) y N-reinas</td></tr>
+        </tbody>
+      </table>
+      <p class="muted">Al final del deck hay material extra de autoestudio que no se cubre en clase.</p>
+    </section>
+
+    <!-- ============ OBJETIVO ============ -->
+    <section>
+      <span class="kicker">Objetivo de hoy</span>
+      <h2>Al salir de esta sesión podrás…</h2>
+      <ul>
+        <li class="fragment">Identificar <span class="term" data-term="caso-base">caso base</span>, caso recursivo y avance hacia el caso base en una función dada.</li>
+        <li class="fragment">Reconocer cuándo un problema contiene copias más pequeñas de sí mismo.</li>
+        <li class="fragment">Trazar qué llamadas quedan pendientes durante una recursión y predecir cuántas se acumulan.</li>
+        <li class="fragment">Resolver un problema de búsqueda con <span class="term" data-term="backtracking">backtracking</span>: decidir, explorar, deshacer.</li>
+      </ul>
+    </section>
+
+    <!-- ============ DIVIDER 2.1 ============ -->
+    <section class="divider">
+      <h2>2.1 Definición de recursión</h2>
+    </section>
+
+    <!-- ============ 2.1 ANATOMÍA ============ -->
+    <section>
+      <span class="kicker">2.1 · Definición de recursión</span>
+      <h2>Anatomía de una función recursiva</h2>
+      <p>Una función recursiva se llama a sí misma sobre una versión más pequeña del problema. Para que termine, necesita tres piezas:</p>
+      <ul>
+        <li class="fragment"><strong><span class="term" data-term="caso-base">Caso base</span></strong> — la entrada que se resuelve directamente, sin llamarse a sí misma.</li>
+        <li class="fragment"><strong>Caso recursivo</strong> — la entrada se resuelve combinando el resultado de la misma función sobre un subproblema.</li>
+        <li class="fragment"><strong>Avance hacia el caso base</strong> — cada llamada acerca el argumento al caso base. Sin esta pieza, la recursión no termina.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 2.1 FACTORIAL ============ -->
+    <section>
+      <span class="kicker">2.1 · Definición de recursión</span>
+      <h2>Las tres piezas en <code>factorial</code></h2>
+      <pre data-title="factorial.cpp"><code class="language-cpp" data-trim data-line-numbers="1-4|2|3|3">
+long long factorial(int n) {
+    if (n &lt;= 1) return 1;          // caso base
+    return n * factorial(n - 1);   // caso recursivo
+}
+      </code></pre>
+      <ul>
+        <li class="fragment">El caso base responde <code>n &lt;= 1</code> sin ayuda de nadie.</li>
+        <li class="fragment">El caso recursivo delega el subproblema <code>factorial(n - 1)</code> y combina con una multiplicación.</li>
+        <li class="fragment">El avance está en el <code>n - 1</code>: cada llamada reduce <code>n</code>, así que el caso base se alcanza en <code>n</code> pasos.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 2.1 HIPÓTESIS RECURSIVA ============ -->
+    <section>
+      <span class="kicker">2.1 · Definición de recursión</span>
+      <h2>La <span class="term" data-term="hipotesis-recursiva">hipótesis recursiva</span></h2>
+      <p>Para escribir el caso recursivo, asume que la llamada interna ya funciona para entradas más pequeñas y concéntrate en combinar su resultado.</p>
+      <ul>
+        <li class="fragment">Al escribir <code>n * factorial(n - 1)</code> no rastreas las llamadas internas: asumes que <code>factorial(n - 1)</code> devuelve <code>(n-1)!</code> y verificas que multiplicar por <code>n</code> produce <code>n!</code>.</li>
+        <li class="fragment">Es el mismo esquema de la inducción matemática: un caso base demostrado y un paso que usa la hipótesis.</li>
+        <li class="fragment">Intentar seguir mentalmente todas las llamadas anidadas es el error de novato más común. La traza completa se usa para depurar un caso concreto; para diseñar la función basta la hipótesis.</li>
+      </ul>
+    </section>
+
+    <!-- ============ QUIZ 1 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="b">
+        <p class="quiz-question">Una función tiene caso base y caso recursivo, pero en una de sus ramas el argumento no se acerca al caso base. ¿Qué pasa al ejecutarla?</p>
+        <button class="quiz-option" data-opt="a">El compilador detecta la falta de avance y marca un error.</button>
+        <button class="quiz-option" data-opt="b">Puede encadenar llamadas sin fin hasta agotar la memoria y abortar en tiempo de ejecución.</button>
+        <button class="quiz-option" data-opt="c">Termina, pero devuelve un resultado incorrecto.</button>
+        <div class="quiz-explain">
+          <strong>B.</strong> El compilador no verifica la terminación: <code>f(n - 2)</code> con caso base
+          <code>n == 0</code> compila sin quejas y, llamada con <code>n</code> impar, brinca el caso base
+          para siempre. El programa aborta cuando se queda sin espacio para guardar las llamadas
+          pendientes — el tema del siguiente bloque.
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ DIVIDER PILA ============ -->
+    <section class="divider">
+      <h2>Cómo el programa recuerda<br>las llamadas pendientes</h2>
+    </section>
+
+    <!-- ============ PILA: APILAR (NUEVO) ============ -->
+    <section>
+      <span class="kicker">2.1 · Las llamadas pendientes</span>
+      <h2>Una llamada que espera a otra</h2>
+      <p>Cuando una función llama a otra, la primera queda a medias: tiene que retomar en el punto exacto donde se quedó. El programa anota ese punto y lo guarda.</p>
+      <svg viewBox="0 0 1100 360" style="width:100%; max-height:340px;">
+        <line x1="110" y1="336" x2="600" y2="336" stroke="#16181d" stroke-width="4"/>
+
+        <g class="anim-step" data-step="1">
+          <rect class="svg-node" x="140" y="266" width="420" height="60" rx="10"/>
+          <text class="svg-label" x="350" y="303" text-anchor="middle" style="font-size:23px;">principal() · llamó a A y espera</text>
+        </g>
+
+        <g class="anim-step" data-step="2">
+          <rect class="svg-node" x="140" y="198" width="420" height="60" rx="10"/>
+          <text class="svg-label" x="350" y="235" text-anchor="middle" style="font-size:23px;">A() · llamó a B y espera</text>
+        </g>
+
+        <g class="anim-step" data-step="3">
+          <rect class="svg-node-hl" x="140" y="130" width="420" height="60" rx="10"/>
+          <text class="svg-label" x="350" y="167" text-anchor="middle" style="font-size:23px;">B() · ejecutándose ahora</text>
+          <text class="svg-label" x="640" y="150" style="font-size:23px; font-weight:400;">Cada llamada nueva se anota</text>
+          <text class="svg-label" x="640" y="182" style="font-size:23px; font-weight:400;">encima de la anterior.</text>
+          <text class="svg-label" x="640" y="214" style="font-size:23px; font-weight:400;">Solo la de arriba está</text>
+          <text class="svg-label" x="640" y="246" style="font-size:23px; font-weight:400;">corriendo; las de abajo esperan.</text>
+        </g>
+
+        <g class="anim-step" data-step="4">
+          <line x1="600" y1="160" x2="600" y2="300" stroke="#0b57d0" stroke-width="4" marker-end="url(#flecha-abajo)"/>
+          <text x="640" y="292" fill="#0b57d0" style="font-size:23px; font-weight:700;">Al terminar B se quita su anotación</text>
+          <text x="640" y="324" fill="#0b57d0" style="font-size:23px; font-weight:700;">y A retoma justo donde se quedó.</text>
+        </g>
+
+        <defs>
+          <marker id="flecha-abajo" markerWidth="10" markerHeight="10" refX="5" refY="8" orient="auto">
+            <path d="M0,0 L5,9 L10,0 Z" fill="#0b57d0"/>
+          </marker>
+        </defs>
+      </svg>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+    </section>
+
+    <!-- ============ PILA: NOMBRE Y MARCOS ============ -->
+    <section>
+      <span class="kicker">2.1 · Las llamadas pendientes</span>
+      <h2>La <span class="term" data-term="pila-llamadas">pila de llamadas</span> y sus marcos</h2>
+      <ul>
+        <li class="fragment">Esa forma de guardar y recuperar —<span class="term" data-term="apilar">lo último que se guarda es lo primero que se recupera</span>— se llama <em>apilar</em>, y la zona de memoria donde ocurre es la <strong>pila de llamadas</strong>.</li>
+        <li class="fragment">Cada llamada activa ocupa ahí un <strong>marco</strong>: sus parámetros, sus variables locales y el punto al que debe regresar.</li>
+        <li class="fragment">Si una recursión llega a <code>d</code> llamadas encadenadas, hay <code>d</code> marcos guardados al mismo tiempo. La memoria que consume la recursión es proporcional a esa profundidad.</li>
+        <li class="fragment muted">En el Bloque 2 construiremos una Pila como estructura de datos propia. Hoy solo necesitamos saber cómo se comporta.</li>
+      </ul>
+    </section>
+
+    <!-- ============ PILA: SVG FACTORIAL ============ -->
+    <section>
+      <span class="kicker">2.1 · Las llamadas pendientes</span>
+      <h2><code>factorial(5)</code> en cámara lenta</h2>
+      <svg viewBox="0 0 1100 420" style="width:100%; max-height:420px;">
+        <line x1="140" y1="402" x2="540" y2="402" stroke="#16181d" stroke-width="4"/>
+        <text class="svg-label" x="340" y="418" text-anchor="middle" style="font-size:20px; font-weight:400;">los marcos se acumulan hacia arriba</text>
+
+        <g class="anim-step" data-step="1">
+          <rect class="svg-node" x="170" y="334" width="340" height="60" rx="10"/>
+          <text class="svg-label" x="340" y="371" text-anchor="middle" style="font-size:24px;">factorial(5) · espera 5 · f(4)</text>
+        </g>
+
+        <g class="anim-step" data-step="2">
+          <rect class="svg-node" x="170" y="268" width="340" height="60" rx="10"/>
+          <text class="svg-label" x="340" y="305" text-anchor="middle" style="font-size:24px;">factorial(4) · espera 4 · f(3)</text>
+          <rect class="svg-node" x="170" y="202" width="340" height="60" rx="10"/>
+          <text class="svg-label" x="340" y="239" text-anchor="middle" style="font-size:24px;">factorial(3) · espera 3 · f(2)</text>
+        </g>
+
+        <g class="anim-step" data-step="3">
+          <rect class="svg-node" x="170" y="136" width="340" height="60" rx="10"/>
+          <text class="svg-label" x="340" y="173" text-anchor="middle" style="font-size:24px;">factorial(2) · espera 2 · f(1)</text>
+          <rect class="svg-node" x="170" y="70" width="340" height="60" rx="10"/>
+          <text class="svg-label" x="340" y="107" text-anchor="middle" style="font-size:24px;">factorial(1)</text>
+        </g>
+        <g class="anim-step" data-step="3" data-step-off="5">
+          <text class="svg-label" x="600" y="200" style="font-size:24px; font-weight:400;">5 marcos guardados a la vez:</text>
+          <text class="svg-label" x="600" y="232" style="font-size:24px; font-weight:400;">cada uno con su n y su</text>
+          <text class="svg-label" x="600" y="264" style="font-size:24px; font-weight:400;">punto de retorno</text>
+        </g>
+
+        <g class="anim-step" data-step="4" data-step-off="5">
+          <rect class="svg-node-hl" x="170" y="70" width="340" height="60" rx="10" fill="none"/>
+          <text x="600" y="100" fill="#0b57d0" style="font-size:24px; font-weight:700;">caso base: devuelve 1</text>
+          <text x="600" y="132" fill="#0b57d0" style="font-size:24px; font-weight:700;">sin crear otro marco</text>
+        </g>
+
+        <g class="anim-step" data-step="5">
+          <text class="svg-label" x="580" y="84" style="font-size:24px; font-weight:400;">factorial(1) devuelve 1</text>
+          <text class="svg-label" x="580" y="150" style="font-size:24px; font-weight:400;">factorial(2) devuelve 2 · 1 = 2</text>
+          <text class="svg-label" x="580" y="216" style="font-size:24px; font-weight:400;">factorial(3) devuelve 3 · 2 = 6</text>
+          <text class="svg-label" x="580" y="282" style="font-size:24px; font-weight:400;">factorial(4) devuelve 4 · 6 = 24</text>
+          <text x="580" y="348" fill="#0b57d0" style="font-size:24px; font-weight:700;">factorial(5) devuelve 5 · 24 = 120</text>
+          <text class="svg-label" x="580" y="400" style="font-size:20px; font-weight:400;">se resuelven de arriba hacia abajo, en orden inverso al de llamada</text>
+        </g>
+      </svg>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+    </section>
+
+    <!-- ============ PILA: FIB CÓDIGO ============ -->
+    <section>
+      <span class="kicker">2.1 · Las llamadas pendientes</span>
+      <h2>Dos llamadas por nivel: <code>fib</code></h2>
+      <pre data-title="fib.cpp"><code class="language-cpp" data-trim data-line-numbers="1-4|3">
+long long fib(int n) {
+    if (n &lt;= 1) return n;
+    return fib(n - 1) + fib(n - 2);   // dos subproblemas por llamada
+}
+      </code></pre>
+      <ul>
+        <li class="fragment"><code>factorial(5)</code> produce una sola cadena de llamadas. <code>fib(5)</code> produce una <span class="term" data-term="ramificacion">ramificación</span>: cada llamada abre dos nuevas, y cada una de esas otras dos.</li>
+        <li class="fragment">Las dos no ocurren a la vez: primero se resuelve por completo <code>fib(n - 1)</code>, con todo lo que abra, y hasta entonces empieza <code>fib(n - 2)</code>.</li>
+      </ul>
+    </section>
+
+    <!-- ============ PILA: SVG FIB ============ -->
+    <section>
+      <span class="kicker">2.1 · Las llamadas pendientes</span>
+      <h2>El mapa de llamadas de <code>fib(5)</code></h2>
+      <svg viewBox="0 0 1100 420" style="width:100%; max-height:420px;">
+        <g class="anim-step" data-step="1">
+          <line class="svg-edge" x1="550" y1="76" x2="320" y2="120"/>
+          <line class="svg-edge" x1="550" y1="76" x2="790" y2="120"/>
+          <circle class="svg-node" cx="550" cy="50" r="26"/>
+          <text class="svg-label" x="550" y="58" text-anchor="middle" style="font-size:22px;">5</text>
+          <circle class="svg-node" cx="320" cy="145" r="26"/>
+          <text class="svg-label" x="320" y="153" text-anchor="middle" style="font-size:22px;">4</text>
+          <circle class="svg-node" cx="790" cy="145" r="26"/>
+          <text class="svg-label" x="790" y="153" text-anchor="middle" style="font-size:22px;">3</text>
+        </g>
+
+        <g class="anim-step" data-step="2">
+          <line class="svg-edge" x1="320" y1="171" x2="180" y2="215"/>
+          <line class="svg-edge" x1="320" y1="171" x2="450" y2="215"/>
+          <line class="svg-edge" x1="790" y1="171" x2="680" y2="215"/>
+          <line class="svg-edge" x1="790" y1="171" x2="900" y2="215"/>
+          <circle class="svg-node" cx="180" cy="240" r="26"/>
+          <text class="svg-label" x="180" y="248" text-anchor="middle" style="font-size:22px;">3</text>
+          <circle class="svg-node" cx="450" cy="240" r="26"/>
+          <text class="svg-label" x="450" y="248" text-anchor="middle" style="font-size:22px;">2</text>
+          <circle class="svg-node" cx="680" cy="240" r="26"/>
+          <text class="svg-label" x="680" y="248" text-anchor="middle" style="font-size:22px;">2</text>
+          <circle class="svg-node" cx="900" cy="240" r="26"/>
+          <text class="svg-label" x="900" y="248" text-anchor="middle" style="font-size:22px;">1</text>
+        </g>
+
+        <g class="anim-step" data-step="3">
+          <line class="svg-edge" x1="180" y1="266" x2="90" y2="310"/>
+          <line class="svg-edge" x1="180" y1="266" x2="265" y2="310"/>
+          <line class="svg-edge" x1="450" y1="266" x2="390" y2="310"/>
+          <line class="svg-edge" x1="450" y1="266" x2="510" y2="310"/>
+          <line class="svg-edge" x1="680" y1="266" x2="620" y2="310"/>
+          <line class="svg-edge" x1="680" y1="266" x2="740" y2="310"/>
+          <circle class="svg-node" cx="90" cy="335" r="26"/>
+          <text class="svg-label" x="90" y="343" text-anchor="middle" style="font-size:22px;">2</text>
+          <circle class="svg-node" cx="265" cy="335" r="26"/>
+          <text class="svg-label" x="265" y="343" text-anchor="middle" style="font-size:22px;">1</text>
+          <circle class="svg-node" cx="390" cy="335" r="26"/>
+          <text class="svg-label" x="390" y="343" text-anchor="middle" style="font-size:22px;">1</text>
+          <circle class="svg-node" cx="510" cy="335" r="26"/>
+          <text class="svg-label" x="510" y="343" text-anchor="middle" style="font-size:22px;">0</text>
+          <circle class="svg-node" cx="620" cy="335" r="26"/>
+          <text class="svg-label" x="620" y="343" text-anchor="middle" style="font-size:22px;">1</text>
+          <circle class="svg-node" cx="740" cy="335" r="26"/>
+          <text class="svg-label" x="740" y="343" text-anchor="middle" style="font-size:22px;">0</text>
+        </g>
+
+        <g class="anim-step" data-step="4">
+          <circle cx="790" cy="145" r="26" fill="#cfe0f8" stroke="#0b57d0" stroke-width="3"/>
+          <text x="790" y="153" text-anchor="middle" fill="#16181d" style="font-size:22px; font-weight:600;">3</text>
+          <circle cx="180" cy="240" r="26" fill="#cfe0f8" stroke="#0b57d0" stroke-width="3"/>
+          <text x="180" y="248" text-anchor="middle" fill="#16181d" style="font-size:22px; font-weight:600;">3</text>
+          <circle cx="450" cy="240" r="26" fill="#9dc0f0" stroke="#0b57d0" stroke-width="3"/>
+          <text x="450" y="248" text-anchor="middle" fill="#16181d" style="font-size:22px; font-weight:600;">2</text>
+          <circle cx="680" cy="240" r="26" fill="#9dc0f0" stroke="#0b57d0" stroke-width="3"/>
+          <text x="680" y="248" text-anchor="middle" fill="#16181d" style="font-size:22px; font-weight:600;">2</text>
+          <circle cx="90" cy="335" r="26" fill="#9dc0f0" stroke="#0b57d0" stroke-width="3"/>
+          <text x="90" y="343" text-anchor="middle" fill="#16181d" style="font-size:22px; font-weight:600;">2</text>
+          <text x="900" y="60" fill="#0b57d0" style="font-size:23px; font-weight:700;">fib(3): 2 veces</text>
+          <text x="900" y="92" fill="#0b57d0" style="font-size:23px; font-weight:700;">fib(2): 3 veces</text>
+          <text x="900" y="124" fill="#0b57d0" style="font-size:23px; font-weight:700;">fib(1): 5 veces</text>
+        </g>
+
+        <g class="anim-step" data-step="5">
+          <text class="svg-label" x="550" y="404" text-anchor="middle" style="font-size:23px; font-weight:400;">Cada valor repetido se vuelve a calcular desde cero: nadie guarda el resultado anterior.</text>
+        </g>
+      </svg>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+    </section>
+
+    <!-- ============ PILA: CUÁNTAS LLAMADAS ============ -->
+    <section>
+      <span class="kicker">2.1 · Las llamadas pendientes</span>
+      <h2>Cuántas llamadas hace <code>fib(n)</code> en total</h2>
+      <table>
+        <thead><tr><th><code>n</code></th><th>Llamadas totales</th><th>Marcos guardados a la vez</th></tr></thead>
+        <tbody>
+          <tr class="fragment"><td>10</td><td>177</td><td>10</td></tr>
+          <tr class="fragment"><td>20</td><td>21 891</td><td>20</td></tr>
+          <tr class="fragment"><td>30</td><td>2 692 537</td><td>30</td></tr>
+          <tr class="fragment"><td>50</td><td>40 730 022 147</td><td>50</td></tr>
+        </tbody>
+      </table>
+      <ul>
+        <li class="fragment">Sumar 10 a <code>n</code> multiplica el número de llamadas por más de 100. Con <code>n = 50</code> el programa no termina en un tiempo razonable.</li>
+        <li class="fragment">La memoria se mantiene chica porque solo hay una cadena de llamadas viva a la vez. El problema es el tiempo, no el espacio.</li>
+        <li class="fragment muted">En la sesión 3 le pondremos nombre y notación a esta forma de crecer; en la sesión 4 veremos cómo evitar el trabajo repetido.</li>
+      </ul>
+    </section>
+
+    <!-- ============ PILA: OVERFLOW ============ -->
+    <section>
+      <span class="kicker">2.1 · Las llamadas pendientes</span>
+      <h2>El <span class="term" data-term="stack-overflow">desbordamiento de pila</span></h2>
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-7|6|7">
+int suma(int n) {              // suma 1 + 2 + ... + n
+    if (n == 0) return 0;
+    return n + suma(n - 1);
+}
+
+suma(10);        // bien: 10 marcos
+suma(10000000);  // aborta: diez millones de marcos no caben
+      </code></pre>
+      <ul>
+        <li class="fragment">La pila tiene un tamaño fijo, entre 1 y 8 MB. Cada marco consume decenas de bytes; una cadena de millones de llamadas la agota.</li>
+        <li class="fragment"><code>suma(n)</code> encadena <code>n</code> llamadas. Un algoritmo que parte el problema a la mitad llega mucho antes al caso base: un millón de elementos toma 20 pasos.</li>
+      </ul>
+    </section>
+
+    <!-- ============ QUIZ 2 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="c">
+        <p class="quiz-question">Al calcular <code>fib(6)</code> con la versión ingenua, ¿cuántas veces se evalúa <code>fib(2)</code>?</p>
+        <button class="quiz-option" data-opt="a">1 vez: el compilador guarda el resultado y lo reutiliza.</button>
+        <button class="quiz-option" data-opt="b">2 veces: una por cada rama del primer nivel.</button>
+        <button class="quiz-option" data-opt="c">5 veces: las repeticiones se acumulan en cada nivel.</button>
+        <div class="quiz-explain">
+          <strong>C.</strong> Nada guarda resultados por ti: cada aparición de <code>fib(2)</code> en el mapa de
+          llamadas se calcula desde cero. El número de apariciones crece siguiendo la propia sucesión de
+          Fibonacci, y por eso la versión ingenua se vuelve impracticable tan rápido. En la sesión 4
+          eliminaremos ese trabajo repetido guardando los resultados ya calculados.
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ DIVIDER 2.2 ============ -->
+    <section class="divider">
+      <h2>2.2 Recursión en tres problemas</h2>
+    </section>
+
+    <!-- ============ 2.2 FILESYSTEM ============ -->
+    <section>
+      <span class="kicker">2.2 · Caso 1: sistema de archivos</span>
+      <h2>Recorrer carpetas dentro de carpetas</h2>
+      <pre data-title="listar.cpp"><code class="language-cpp" data-trim data-line-numbers="1-7|4-5">
+void listar(const fs::path&amp; dir, int nivel) {
+    for (const auto&amp; e : fs::directory_iterator(dir)) {
+        imprimir(e.path(), nivel);
+        if (e.is_directory())
+            listar(e.path(), nivel + 1);   // el subdirectorio es el subproblema
+    }
+}
+      </code></pre>
+      <ul>
+        <li class="fragment">Una carpeta contiene archivos y otras carpetas, que contienen archivos y otras carpetas. El dato está definido en términos de sí mismo y la función copia esa forma.</li>
+        <li class="fragment">Caso base implícito: una carpeta sin subcarpetas no genera más llamadas. La cadena llega tan hondo como el anidamiento, unos pocos niveles en la práctica.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 2.2 EXPRESIONES SVG ============ -->
+    <section>
+      <span class="kicker">2.2 · Caso 2: expresiones anidadas</span>
+      <h2>Evaluar <code>(2 + (3 * 4)) * 5</code></h2>
+      <p>Para evaluar la expresión completa hay que evaluar primero lo que está dentro de los paréntesis, y eso de adentro es otra expresión igual de válida, solo que más corta.</p>
+      <svg viewBox="0 0 1100 300" style="width:100%; max-height:280px;">
+        <g class="anim-step" data-step="1">
+          <text class="svg-label" x="60" y="52" style="font-size:30px;">( 2 + ( 3 * 4 ) ) * 5</text>
+          <text class="svg-label" x="560" y="52" style="font-size:24px; font-weight:400;">no es un número: hay que entrar</text>
+        </g>
+        <g class="anim-step" data-step="2">
+          <text class="svg-label" x="60" y="112" style="font-size:30px;">( 2 + <tspan fill="#0b57d0">( 3 * 4 )</tspan> ) * 5</text>
+          <text x="560" y="112" fill="#0b57d0" style="font-size:24px; font-weight:700;">el paréntesis interior es el subproblema</text>
+        </g>
+        <g class="anim-step" data-step="3">
+          <text class="svg-label" x="60" y="172" style="font-size:30px;">( 2 + <tspan fill="#0b57d0">12</tspan> ) * 5</text>
+          <text class="svg-label" x="560" y="172" style="font-size:24px; font-weight:400;">3 y 4 son números: caso base</text>
+        </g>
+        <g class="anim-step" data-step="4">
+          <text class="svg-label" x="60" y="232" style="font-size:30px;"><tspan fill="#0b57d0">14</tspan> * 5</text>
+          <text class="svg-label" x="560" y="232" style="font-size:24px; font-weight:400;">se resuelve el paréntesis exterior</text>
+        </g>
+        <g class="anim-step" data-step="5">
+          <text x="60" y="292" fill="#0b57d0" style="font-size:30px; font-weight:700;">70</text>
+          <text x="560" y="292" fill="#0b57d0" style="font-size:24px; font-weight:700;">se aplica el último operador</text>
+        </g>
+      </svg>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+    </section>
+
+    <!-- ============ 2.2 EXPRESIONES CÓDIGO ============ -->
+    <section>
+      <span class="kicker">2.2 · Caso 2: expresiones anidadas</span>
+      <h2>Una función por cada nivel de paréntesis</h2>
+      <pre data-title="evaluar.cpp"><code class="language-cpp" data-trim data-line-numbers="1-9|2|4,6|8">
+int evaluar(const std::string&amp; s, int&amp; i) {
+    if (s[i] != '(') return leerNumero(s, i);  // caso base: un número
+    ++i;                                       // entrar al paréntesis
+    int izq = evaluar(s, i);                   // adentro hay otra expresión
+    char op = s[i++];
+    int der = evaluar(s, i);                   // y otra más
+    ++i;                                       // salir del paréntesis
+    return aplicar(op, izq, der);
+}
+      </code></pre>
+      <ul>
+        <li class="fragment">Cada par de paréntesis abre una llamada y la cierra al terminar: el anidamiento del texto y el de las llamadas coinciden.</li>
+        <li class="fragment">Con ciclos habría que llevar a mano qué operación quedó pendiente en cada nivel. La recursión deja ese registro en la pila de llamadas.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 2.2 N-REINAS ============ -->
+    <section>
+      <span class="kicker">2.2 · Caso 3: N-reinas</span>
+      <h2><span class="term" data-term="backtracking">Backtracking</span>: decidir, explorar, deshacer</h2>
+      <pre data-title="nreinas.cpp"><code class="language-cpp" data-trim data-line-numbers="1-8|2|4|5-7">
+void resolver(int fila) {
+    if (fila == n) { soluciones++; return; }   // caso base: tablero completo
+    for (int col = 0; col &lt; n; ++col) {
+        if (!valida(fila, col)) continue;      // poda: esta columna es imposible
+        colocar(fila, col);
+        resolver(fila + 1);                    // explorar con la reina puesta
+        quitar(fila, col);                     // deshacer y probar otra columna
+    }
+}
+      </code></pre>
+      <ul>
+        <li class="fragment">Cada llamada decide una fila. Las decisiones ya tomadas quedan registradas en la cadena de llamadas pendientes.</li>
+        <li class="fragment">La poda descarta ramas completas antes de explorarlas: con <code>n = 8</code> probar todas las asignaciones daría 8⁸ ≈ 16 millones de tableros, y el backtracking visita unos dos mil.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 2.2 ESQUEMA COMÚN ============ -->
+    <section>
+      <span class="kicker">2.2 · Recursión en tres problemas</span>
+      <h2>Los tres casos comparten el esquema</h2>
+      <table>
+        <thead><tr><th>Problema</th><th>Caso base</th><th>Subproblema</th><th>Combinación</th></tr></thead>
+        <tbody>
+          <tr class="fragment"><td>Carpetas</td><td>carpeta sin subcarpetas</td><td>cada subcarpeta</td><td>concatenar listados</td></tr>
+          <tr class="fragment"><td>Expresiones</td><td>número suelto</td><td>lo que hay entre paréntesis</td><td>aplicar el operador</td></tr>
+          <tr class="fragment"><td>N-reinas</td><td>tablero completo</td><td>tablero con una fila más decidida</td><td>sumar soluciones / deshacer</td></tr>
+        </tbody>
+      </table>
+      <p class="fragment box-key">Los tres problemas tienen la misma propiedad: el dato contiene copias más pequeñas de sí mismo. Cuando la reconoces, la función recursiva se escribe casi sola.</p>
+    </section>
+
+    <!-- ============ QUIZ 3 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="c">
+        <p class="quiz-question">¿Qué distingue al backtracking de generar todas las combinaciones completas y filtrarlas al final?</p>
+        <button class="quiz-option" data-opt="a">Nada: backtracking es el nombre técnico de la fuerza bruta.</button>
+        <button class="quiz-option" data-opt="b">El backtracking guarda cada estado visitado para no repetirlo.</button>
+        <button class="quiz-option" data-opt="c">El backtracking abandona una rama en cuanto viola una restricción, deshace la última decisión y prueba otra.</button>
+        <div class="quiz-explain">
+          <strong>C.</strong> La poda actúa <em>durante</em> la construcción: una reina mal puesta en la fila 2
+          descarta de golpe todas las asignaciones de las filas 3 a 8, sin generarlas. La opción B describe
+          guardar resultados ya calculados para no repetirlos, una técnica distinta que veremos en la sesión 4.
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ POR QUÉ IMPORTA HOY ============ -->
+    <section>
+      <span class="kicker kicker-ai">Por qué importa hoy</span>
+      <h2>Datos anidados en todas partes</h2>
+      <div class="box-ai" data-label="Dónde vive esto en sistemas de IA">
+        <div class="cols">
+          <div>
+            <pre><code class="language-cpp" data-trim>
+// La respuesta JSON de un LLM viene anidada:
+void recorrer(const json&amp; j) {
+    if (j.is_object() || j.is_array())
+        for (const auto&amp; hijo : j)
+            recorrer(hijo);        // cada parte es otro JSON
+    else
+        procesar(j);               // caso base: valor suelto
+}
+            </code></pre>
+          </div>
+          <ul>
+            <li class="fragment">Un LLM devuelve JSON con objetos dentro de objetos y listas dentro de listas. Recorrerlo completo es el Caso 1 con otro nombre.</li>
+            <li class="fragment">Convertir ese texto en datos usables consiste en entrar y salir de niveles anidados, igual que en el Caso 2.</li>
+            <li class="fragment">Un agente que planifica en varios pasos prueba una acción, explora a dónde lleva y retrocede cuando no funciona — el esquema del Caso 3.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ CIERRE STL ============ -->
+    <section>
+      <span class="kicker">Cierre STL</span>
+      <h2>Recorridos y permutaciones ya empaquetados</h2>
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-3|5-8">
+for (const auto&amp; e : fs::recursive_directory_iterator("datos/"))
+    if (e.path().extension() == ".json")
+        procesar(e.path());
+
+std::sort(v.begin(), v.end());
+do {
+    procesar(v);                       // cada permutación, en orden
+} while (std::next_permutation(v.begin(), v.end()));
+      </code></pre>
+      <ul>
+        <li class="fragment"><code>recursive_directory_iterator</code> hace el recorrido del Caso 1 sin que escribas la recursión. Por dentro suele llevar su propia lista de carpetas pendientes en vez de llamarse a sí mismo.</li>
+        <li class="fragment"><code>std::next_permutation</code> genera todas las permutaciones con un ciclo, sin llamadas anidadas. Le falta la poda, así que sirve para recorrer todo el espacio pero no sustituye al backtracking de N-reinas.</li>
+      </ul>
+    </section>
+
+    <!-- ============ RETO ============ -->
+    <section class="divider">
+      <h2>Reto en parejas</h2>
+      <p class="muted">25 minutos · driver y navigator · los roles rotan entre problemas</p>
+    </section>
+
+    <section>
+      <span class="kicker">Reto en parejas · Recursión y backtracking</span>
+      <h2>LC 50 y LC 51</h2>
+      <div class="cols">
+        <div>
+          <h3>LC 50 · Pow(x, n) — Media</h3>
+          <ul>
+            <li>Calcula xⁿ con <code>n</code> entero, posiblemente negativo.</li>
+            <li>Multiplicar <code>x</code> por sí mismo <code>n</code> veces excede el límite de tiempo del caso grande.</li>
+            <li>Pista: xⁿ se arma a partir de x<sup>n/2</sup>, así cada llamada reduce <code>n</code> a la mitad.</li>
+            <li class="muted">Casos: (2, 10) → 1024 · (2, −2) → 0.25 · (1.0000000001, 2147483647) → ≈ 1.2397</li>
+          </ul>
+        </div>
+        <div>
+          <h3>LC 51 · N-Queens — Alta</h3>
+          <ul>
+            <li>Devuelve <em>todas</em> las configuraciones válidas de n reinas.</li>
+            <li>Parte del esqueleto de backtracking de hoy; puede quedar abierto y terminarse fuera de clase.</li>
+            <li class="muted">Casos: n=1 → 1 solución · n=4 → 2 · n=8 → 92</li>
+          </ul>
+        </div>
+      </div>
+      <p class="fragment">Los casos de prueba vienen en el enunciado y se corren localmente. Entrega al LMS antes de la próxima sesión.</p>
+    </section>
+
+    <!-- ============ PRÓXIMA SESIÓN ============ -->
+    <section class="divider">
+      <h2>Próxima sesión:<br>Análisis de algoritmos iterativos</h2>
+      <p class="muted">Ahí le pondremos nombre y notación a "crece muy rápido".</p>
+    </section>
+
+    <!-- ============ DIVIDER MATERIAL EXTRA ============ -->
+    <section class="divider">
+      <h2>Material extra</h2>
+      <p class="muted">Autoestudio · no se cubre en clase · no entra en las evaluaciones de esta semana</p>
+    </section>
+
+    <!-- ============ EXTRA: COLA DEFINICIÓN ============ -->
+    <section>
+      <span class="kicker">Material extra · autoestudio</span>
+      <h2>La <span class="term" data-term="recursion-cola">recursión de cola</span></h2>
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-4|6-9|3,8">
+long long factorial(int n) {
+    if (n &lt;= 1) return 1;
+    return n * factorial(n - 1);      // pendiente: multiplicar al regresar
+}
+
+long long fact(int n, long long acum) {
+    if (n &lt;= 1) return acum;
+    return fact(n - 1, n * acum);     // nada pendiente después de la llamada
+}
+      </code></pre>
+      <ul>
+        <li class="fragment">En la primera versión el marco tiene que sobrevivir a la llamada interna, porque le queda una multiplicación por hacer con el valor que regrese.</li>
+        <li class="fragment">En la segunda, el resultado de la llamada interna se devuelve tal cual y el acumulador carga el trabajo ya hecho. El marco actual no guarda nada útil, así que podría reutilizarse.</li>
+      </ul>
+    </section>
+
+    <!-- ============ EXTRA: C++ NO GARANTIZA ============ -->
+    <section>
+      <span class="kicker">Material extra · autoestudio</span>
+      <h2>C++ no garantiza esa optimización</h2>
+      <ul>
+        <li class="fragment">Un compilador <em>puede</em> convertir la recursión de cola en un ciclo (con <code>-O2</code>, GCC y Clang suelen hacerlo), pero el estándar no lo exige.</li>
+        <li class="fragment">La corrección de tu programa no puede depender de esa optimización: en <code>-O0</code>, con destructores pendientes o con llamadas indirectas, la conversión no ocurre y la pila crece igual.</li>
+        <li class="fragment">Regla práctica: si la cadena de llamadas puede crecer con el tamaño de la entrada sin un tope chico, conviértela tú a un ciclo con un acumulador.</li>
+        <li class="fragment">La recursión se queda donde el número de llamadas encadenadas está acotado por la forma del dato: carpetas, expresiones anidadas, backtracking.</li>
+      </ul>
+    </section>
+
+    <!-- ============ EXTRA: QUIZ ============ -->
+    <section>
+      <span class="kicker">Material extra · checkpoint</span>
+      <div class="quiz" data-correct="b">
+        <p class="quiz-question">¿Cuál de estas llamadas es recursión de cola?</p>
+        <button class="quiz-option" data-opt="a"><code>return n * fact(n - 1);</code></button>
+        <button class="quiz-option" data-opt="b"><code>return fact(n - 1, n * acum);</code></button>
+        <button class="quiz-option" data-opt="c"><code>return fact(n - 1) + fact(n - 2);</code></button>
+        <div class="quiz-explain">
+          <strong>B.</strong> La llamada recursiva es la última operación y su valor se devuelve tal cual.
+          En A queda una multiplicación pendiente después de la llamada, y en C quedan otra llamada y una
+          suma. En ambos casos el marco tiene que sobrevivir, así que no son de cola.
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ EXTRA: LAMBDAS ============ -->
+    <section>
+      <span class="kicker">Material extra · autoestudio</span>
+      <h2>Lambdas recursivas con <span class="term" data-term="std-function"><code>std::function</code></span></h2>
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-4|1|2">
+std::function&lt;long long(int)&gt; fact = [&amp;](int n) -&gt; long long {
+    return n &lt;= 1 ? 1 : n * fact(n - 1);
+};
+fact(10);   // 3628800
+      </code></pre>
+      <ul>
+        <li class="fragment">Una lambda es una función anónima escrita en el lugar donde se usa. Al no tener nombre, no puede llamarse a sí misma.</li>
+        <li class="fragment"><code>std::function</code> le da ese nombre: la variable <code>fact</code> queda capturada por referencia y la lambda la usa para llamarse.</li>
+        <li class="fragment">Ese nombre tiene precio: cada llamada pasa por una indirección que impide que el compilador incruste el código. Para código que se ejecuta millones de veces conviene una función normal.</li>
+      </ul>
+    </section>
+
+    <!-- ============ REFERENCIAS ============ -->
+    <section>
+      <span class="kicker">Sesión 2</span>
+      <h2>Referencias y material para profundizar</h2>
+      <div class="refs cols">
+        <div>
+          <h3>Referencias</h3>
+          <ul>
+            <li><span class="ref-type">Libro</span> Weiss, M. A. <em>Data Structures and Algorithm Analysis in C++</em>, 4.ª ed., Pearson, 2014. Cap. 1.3 (recursión).</li>
+            <li><span class="ref-type">Libro</span> Cormen, T. et al. <em>Introduction to Algorithms</em>, 4.ª ed., MIT Press, 2022. Caps. 2 y 4 (diseño recursivo y divide y vencerás).</li>
+            <li><span class="ref-type">Libro</span> Stroustrup, B. <em>A Tour of C++</em>, 3.ª ed., Addison-Wesley, 2022. Cap. de funciones y lambdas.</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Para profundizar</h3>
+          <ul>
+            <li><span class="ref-type">Web</span> <a href="https://pythontutor.com/">Python Tutor</a> <span class="ref-nota">— visualiza las llamadas pendientes de tu propia función, paso a paso (soporta C++).</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://en.cppreference.com/w/cpp/filesystem/recursive_directory_iterator">cppreference — recursive_directory_iterator</a> <span class="ref-nota">— el recorrido del Caso 1 en la biblioteca estándar.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://en.cppreference.com/w/cpp/utility/functional/function">cppreference — std::function</a> <span class="ref-nota">— para el material extra sobre lambdas recursivas.</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script src="../js/curso-slides.js"></script>
+<script>
+  Reveal.initialize({
+    width: 1280,
+    height: 720,
+    margin: 0.06,
+    hash: true,
+    progress: true,
+    slideNumber: 'c/t',
+    controls: true,
+    transition: 'slide',
+    transitionSpeed: 'fast',
+    plugins: [ RevealHighlight ]
+  }).then(() => {
+    CursoSlides.init({
+      "caso-base": {
+        titulo: "Caso base",
+        def: "Entrada de una función recursiva que se resuelve directamente, sin nuevas llamadas. Toda recursión necesita al menos uno, y todas las cadenas de llamadas deben alcanzarlo: es la condición de terminación."
+      },
+      "hipotesis-recursiva": {
+        titulo: "Hipótesis recursiva (leap of faith)",
+        def: "Técnica de diseño: al escribir el caso recursivo se asume que la llamada interna ya es correcta para entradas más pequeñas, y solo se verifica que la combinación produce el resultado esperado. Es el paso inductivo de una demostración por inducción, aplicado a código."
+      },
+      apilar: {
+        titulo: "Apilar y desapilar (LIFO)",
+        def: "Forma de guardar datos en la que el último elemento guardado es el primero que se recupera (<em>Last In, First Out</em>). Solo se puede tomar el elemento de encima. En el Bloque 2 construiremos una estructura de datos Pila con este comportamiento; aquí aparece como el mecanismo que usa el programa para recordar sus llamadas pendientes."
+      },
+      "pila-llamadas": {
+        titulo: "Pila de llamadas (call stack)",
+        def: "Región de memoria donde cada llamada activa ocupa un <em>marco</em> con sus parámetros, variables locales y punto de retorno. Los marcos se guardan al llamar y se descartan al retornar, siempre empezando por el de encima. Su tamaño total es fijo: una cadena de llamadas demasiado larga la desborda."
+      },
+      ramificacion: {
+        titulo: "Ramificación de llamadas",
+        def: "Situación en la que una llamada genera varias llamadas nuevas, cada una de las cuales vuelve a generar varias. Dibujado, el conjunto de todas las llamadas forma una figura que se abre hacia abajo. Esa figura tiene nombre propio —<em>árbol</em>— y se estudia formalmente en el Bloque 2; por ahora basta con verla como el mapa de qué llamó a qué."
+      },
+      backtracking: {
+        titulo: "Backtracking",
+        def: "Búsqueda recursiva que construye una solución por decisiones parciales: si una decisión viola una restricción, se <em>deshace</em> (backtrack) y se prueba la siguiente opción. La poda descarta conjuntos completos de candidatos sin llegar a generarlos."
+      },
+      "stack-overflow": {
+        titulo: "Desbordamiento de pila (stack overflow)",
+        def: "Error en tiempo de ejecución que ocurre cuando la pila de llamadas agota su memoria, típicamente por una recursión demasiado profunda o sin avance hacia el caso base. El sistema aborta el programa (en Linux, con <code>SIGSEGV</code>)."
+      },
+      "recursion-cola": {
+        titulo: "Recursión de cola (tail recursion)",
+        def: "Recursión donde la llamada a sí misma es la última operación y su valor se devuelve sin trabajo pendiente. Un compilador puede convertirla en un ciclo reutilizando el marco, pero el estándar de C++ no lo garantiza: no bases la corrección en esa optimización."
+      },
+      "std-function": {
+        titulo: "std::function",
+        def: "Envoltorio de la biblioteca estándar que puede almacenar cualquier invocable con una firma dada. Permite que una lambda se llame a sí misma dándole un nombre, a cambio de una indirección por llamada que impide que el compilador incruste el código."
+      }
+    });
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,469 @@
+/* ============================================================
+   THEME-CURSO — Estructuras de Datos y Algoritmos
+   Tema claro, minimalista, alto contraste para proyección.
+   Se carga DESPUÉS de reveal.css. No requiere tema base de Reveal.
+   ============================================================ */
+
+/* ---------- Design tokens ---------- */
+:root {
+  /* Color: 1 tinta + 1 acento + 2 semánticos. Nada más. */
+  --c-bg: #ffffff;
+  --c-ink: #16181d;        /* texto principal — contraste 16:1 sobre bg */
+  --c-ink-soft: #4b5260;   /* texto secundario — contraste 7.5:1 */
+  --c-accent: #0b57d0;     /* azul: énfasis, links, términos */
+  --c-accent-bg: #e8f0fe;
+  --c-ok: #146c2e;         /* verde: respuesta correcta */
+  --c-ok-bg: #e6f4ea;
+  --c-err: #b3261e;        /* rojo: respuesta incorrecta */
+  --c-err-bg: #fce8e6;
+  --c-line: #d7dbe2;       /* bordes y separadores */
+  --c-code-bg: #f4f5f7;
+  --c-ai: #6d28d9;         /* violeta: exclusivo de conexiones con IA */
+  --c-ai-bg: #f4effc;
+
+  --font-sans: "Inter", -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", "SF Mono", Consolas, monospace;
+
+  --radius: 10px;
+}
+
+/* ---------- Base ---------- */
+.reveal-viewport { background: var(--c-bg); }
+
+.reveal {
+  font-family: var(--font-sans);
+  font-size: 34px;               /* base sobre lienzo 1280×720 — todo el tema escala desde aquí */
+  color: var(--c-ink);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+.reveal .slides section {
+  text-align: left;              /* minimalista: todo alineado a la izquierda */
+  padding: 0 20px;
+}
+
+/* ---------- Tipografía ---------- */
+.reveal h1, .reveal h2, .reveal h3 {
+  color: var(--c-ink);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  text-transform: none;
+  margin-bottom: 0.6em;
+  line-height: 1.15;
+}
+.reveal h1 { font-size: 1.9em; }
+.reveal h2 { font-size: 1.35em; }
+.reveal h3 { font-size: 1.05em; color: var(--c-ink-soft); }
+
+.reveal p, .reveal li { line-height: 1.5; }
+.reveal ul, .reveal ol { margin-left: 1em; }
+.reveal li { margin-bottom: 0.4em; }
+.reveal li::marker { color: var(--c-accent); }
+
+.reveal strong { font-weight: 700; }
+.reveal em { color: var(--c-accent); font-style: normal; font-weight: 600; }
+
+.reveal a { color: var(--c-accent); text-decoration: none; border-bottom: 2px solid currentColor; }
+
+.reveal .muted { color: var(--c-ink-soft); font-size: 0.8em; }
+
+/* Kicker: etiqueta pequeña sobre el título (nº de tema, bloque) */
+.reveal .kicker {
+  display: block;
+  font-size: 0.55em;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--c-accent);
+  margin-bottom: 1em;
+}
+
+/* Portada */
+.reveal section.cover { text-align: left; }
+.reveal section.cover h1 { font-size: 2.3em; max-width: 12em; }
+.reveal section.cover .cover-meta {
+  color: var(--c-ink-soft);
+  font-size: 0.65em;
+  margin-top: 2.5em;
+  border-top: 3px solid var(--c-ink);
+  padding-top: 0.8em;
+  display: inline-block;
+}
+
+/* Slide de sección (separador de tema) */
+.reveal section.divider h2 {
+  font-size: 1.9em;
+  border-left: 10px solid var(--c-accent);
+  padding-left: 0.5em;
+}
+
+/* ---------- Código ---------- */
+:root {
+  --c-code-panel: #14161d;     /* panel oscuro: el código destaca sobre el slide claro */
+  --c-code-head: #1f232d;
+  --c-code-head-ink: #8b93a5;
+}
+
+.reveal code {
+  font-family: var(--font-mono);
+  background: var(--c-code-bg);
+  color: var(--c-ink);
+  padding: 0.08em 0.3em;
+  border-radius: 6px;
+  font-size: 0.92em;
+}
+
+/* Bloques de código: panel oscuro a lo ancho del slide */
+.reveal pre {
+  position: relative;   /* ancla los clones absolutos de data-line-numbers */
+  width: 100%;
+  margin: 0.5em 0;
+  background: var(--c-code-panel);
+  border: none;
+  border-radius: 14px;
+  box-shadow: 0 8px 28px rgba(20, 22, 29, 0.18);
+  font-size: 0.72em;             /* ~24px proyectado */
+  line-height: 1.55;
+  overflow: hidden;
+}
+
+/* Barra de título opcional: <pre data-title="pila.hpp"> */
+.reveal pre[data-title]::before {
+  content: attr(data-title);
+  display: block;
+  background: var(--c-code-head);
+  color: var(--c-code-head-ink);
+  font-family: var(--font-mono);
+  font-size: 0.68em;
+  padding: 0.55em 1.3em;
+  border-bottom: 1px solid #2a2f3b;
+}
+
+.reveal pre code {
+  background: transparent;
+  color: #e8eaf0;
+  padding: 1em 1.3em;
+  max-height: 560px;
+}
+
+/* Resaltado de líneas de Reveal (data-line-numbers):
+   las líneas activas mantienen su color; el resto se atenúa */
+.reveal .hljs.has-highlights tr:not(.highlight-line) { opacity: 0.25; }
+
+/* En vez de apilar los pasos como capas absolutas (se desalinean con la
+   barra de título), se muestra únicamente el paso activo, en flujo normal */
+.reveal pre code.fragment:not(.current-fragment) { display: none; }
+.reveal pre code.current-fragment { position: static !important; display: block; }
+.reveal pre:has(> code.current-fragment) > code:first-child:not(.current-fragment) { display: none; }
+
+/* ---------- Tablas ---------- */
+.reveal table { border-collapse: collapse; font-size: 0.75em; margin: 0.5em 0; }
+.reveal th {
+  border-bottom: 3px solid var(--c-ink);
+  font-weight: 700; text-align: left; padding: 0.4em 0.8em;
+}
+.reveal td { border-bottom: 1px solid var(--c-line); padding: 0.4em 0.8em; }
+
+/* ---------- Ecuaciones (KaTeX) ---------- */
+/* KaTeX se carga desde curso-slides.js solo si el deck tiene ecuaciones.
+   Escribir \( … \) en línea y \[ … \] en bloque; usar .eq / .eq-key
+   para las ecuaciones que van separadas del texto. */
+.reveal .katex { font-size: 1.02em; }
+
+/* Ecuación en bloque: aire propio, centrada respecto al slide */
+.reveal .eq { margin: 0.55em 0; text-align: center; }
+.reveal .eq .katex { font-size: 1.15em; }
+
+/* Ecuación destacada: la definición o identidad central del slide.
+   Es el equivalente de .box-key para matemáticas — máx. una por slide. */
+.reveal .eq-key {
+  border-left: 8px solid var(--c-accent);
+  background: var(--c-accent-bg);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: 0.7em 0.9em;
+  margin: 0.8em 0;
+  text-align: center;
+}
+.reveal .eq-key .katex { font-size: 1.2em; }
+
+/* Dentro de listas: no romper el interlineado del bullet */
+.reveal li .katex-display,
+.reveal li .eq { margin: 0.35em 0; }
+
+/* En celdas de tabla la ecuación se alinea con el texto, no al centro */
+.reveal td .eq, .reveal th .eq { text-align: left; margin: 0; }
+
+/* Ficha del glosario: las definiciones también admiten ecuaciones */
+.reveal-viewport .glossary-card .katex-display { margin: 0.5em 0; }
+
+/* ---------- Cajas ---------- */
+/* Caja de idea clave: úsala una vez por slide como máximo */
+.reveal .box-key {
+  border-left: 8px solid var(--c-accent);
+  background: var(--c-accent-bg);
+  padding: 0.6em 0.9em;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  margin: 0.8em 0;
+  font-weight: 600;
+}
+
+/* Caja de conexión con IA: distingue el "dónde vive esto en sistemas
+   de IA reales" del contenido básico del curso. Violeta exclusivo. */
+.reveal .box-ai {
+  position: relative;
+  border: 3px solid var(--c-ai);
+  background: var(--c-ai-bg);
+  border-radius: var(--radius);
+  padding: 1em 0.9em 0.6em;
+  margin: 1em 0 0.8em;
+  font-size: 0.85em;
+}
+.reveal .box-ai::before {
+  content: "🤖 " attr(data-label);
+  position: absolute;
+  top: -0.85em; left: 0.7em;
+  background: var(--c-ai);
+  color: #ffffff;
+  font-size: 0.55em;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 0.3em 0.8em;
+  border-radius: 999px;
+}
+.reveal .box-ai:not([data-label])::before { content: "🤖 Conexión con IA"; }
+.reveal .box-ai .term { color: var(--c-ai); border-bottom-color: var(--c-ai); }
+.reveal .box-ai .term:hover { background: #e9defa; }
+.reveal .box-ai em { color: var(--c-ai); }
+.reveal .box-ai li::marker { color: var(--c-ai); }
+
+/* Kicker violeta para slides dedicados por completo a la conexión IA */
+.reveal .kicker-ai { color: var(--c-ai); }
+
+/* Dos columnas */
+.reveal .cols { display: flex; gap: 1.2em; align-items: flex-start; }
+.reveal .cols > * { flex: 1; min-width: 0; }
+
+/* ---------- Términos clicables (glosario) ---------- */
+.reveal .term {
+  color: var(--c-accent);
+  border-bottom: 3px dotted var(--c-accent);
+  cursor: pointer;
+  font-weight: 600;
+}
+.reveal .term:hover { background: var(--c-accent-bg); }
+
+/* Modal de definición */
+.glossary-overlay {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(22, 24, 29, 0.55);
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px;
+}
+.glossary-card {
+  background: var(--c-bg);
+  color: var(--c-ink);
+  max-width: 700px; width: 100%;
+  max-height: 80vh; overflow-y: auto;
+  border-radius: var(--radius);
+  border-top: 8px solid var(--c-accent);
+  padding: 28px 32px;
+  font-size: 24px; line-height: 1.55;
+  font-family: var(--font-sans);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+.glossary-card h4 { margin: 0 0 0.5em; font-size: 1.25em; color: var(--c-accent); }
+.glossary-card p { margin: 0 0 0.6em; }
+.glossary-card code { font-family: var(--font-mono); background: var(--c-code-bg); padding: 0.1em 0.3em; border-radius: 4px; }
+.glossary-card .glossary-close {
+  margin-top: 0.8em;
+  border: 2px solid var(--c-ink); background: none;
+  font: inherit; font-weight: 600;
+  padding: 0.35em 1em; border-radius: 8px; cursor: pointer;
+}
+.glossary-card .glossary-close:hover { background: var(--c-ink); color: var(--c-bg); }
+
+/* ---------- Quiz ---------- */
+.reveal .quiz { margin-top: 0.2em; }
+.reveal .quiz .quiz-question { font-weight: 700; margin-bottom: 0.5em; font-size: 0.95em; }
+
+.reveal .quiz-option {
+  display: flex; align-items: center; gap: 0.6em;
+  width: 100%;
+  text-align: left;
+  font: inherit; font-size: 0.78em;
+  color: var(--c-ink);
+  background: var(--c-bg);
+  border: 3px solid var(--c-line);
+  border-radius: var(--radius);
+  padding: 0.45em 0.8em;
+  margin-bottom: 0.4em;
+  cursor: pointer;
+  min-height: 52px;              /* touch target cómodo en móvil */
+  transition: border-color 0.15s, background 0.15s;
+}
+.reveal .quiz-option:hover:not(:disabled) { border-color: var(--c-accent); }
+
+.reveal .quiz-option .opt-letter {
+  flex: none;
+  width: 1.6em; height: 1.6em;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  border: 3px solid currentColor;
+  font-weight: 700; font-size: 0.8em;
+}
+
+.reveal .quiz-option.is-correct {
+  border-color: var(--c-ok); background: var(--c-ok-bg); color: var(--c-ok);
+  font-weight: 600;
+}
+.reveal .quiz-option.is-wrong {
+  border-color: var(--c-err); background: var(--c-err-bg); color: var(--c-err);
+}
+.reveal .quiz-option:disabled { cursor: default; }
+.reveal .quiz.answered .quiz-option:not(.is-correct):not(.is-wrong) { opacity: 0.45; }
+
+.reveal .quiz-explain {
+  display: none;
+  border-left: 8px solid var(--c-ok);
+  background: var(--c-ok-bg);
+  padding: 0.5em 0.9em;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  font-size: 0.7em;
+  margin-top: 0.5em;
+}
+.reveal .quiz.answered .quiz-explain { display: block; animation: rise 0.35s ease; }
+
+/* ---------- Solución oculta (auto-estudio) ----------
+   <div class="solucion" data-label="Ver solución">…contenido…</div>
+   El JS envuelve el contenido y antepone el botón. */
+.reveal .solucion { margin-top: 0.5em; }
+.reveal .solucion-toggle {
+  font: inherit; font-size: 0.72em; font-weight: 600;
+  color: var(--c-accent);
+  background: var(--c-bg);
+  border: 3px solid var(--c-accent);
+  border-radius: var(--radius);
+  padding: 0.4em 1em;
+  min-height: 52px;
+  cursor: pointer;
+}
+.reveal .solucion-toggle:hover { background: var(--c-accent-bg); }
+.reveal .solucion-body { display: none; }
+.reveal .solucion.open .solucion-body { display: block; animation: rise 0.35s ease; }
+.reveal .solucion.open .solucion-toggle { color: var(--c-ink-soft); border-color: var(--c-line); }
+
+/* ---------- Checklist de salida ----------
+   <ul class="checklist" data-deck="v00"><li>…</li></ul>
+   Cada punto se marca al hacer clic; el avance se guarda en el navegador. */
+.reveal .checklist { list-style: none; margin-left: 0; font-size: 0.78em; }
+.reveal .checklist li {
+  display: flex; align-items: flex-start; gap: 0.6em;
+  border: 3px solid var(--c-line);
+  border-radius: var(--radius);
+  padding: 0.4em 0.8em;
+  margin-bottom: 0.4em;
+  min-height: 52px;
+  cursor: pointer;
+}
+.reveal .checklist li::marker { content: ""; }
+.reveal .checklist li::before {
+  content: "";
+  flex: none;
+  width: 1.1em; height: 1.1em;
+  margin-top: 0.22em;
+  border: 3px solid var(--c-ink-soft);
+  border-radius: 5px;
+}
+.reveal .checklist li.done { border-color: var(--c-ok); background: var(--c-ok-bg); color: var(--c-ok); }
+.reveal .checklist li.done::before {
+  content: "✓";
+  display: flex; align-items: center; justify-content: center;
+  border-color: var(--c-ok); background: var(--c-ok); color: #fff;
+  font-size: 0.8em; font-weight: 700;
+}
+.reveal .checklist .cl-ref { color: var(--c-ink-soft); font-size: 0.85em; margin-left: auto; white-space: nowrap; }
+.reveal .checklist li.done .cl-ref { color: var(--c-ok); }
+
+/* ---------- Panel de resultado del diagnóstico ---------- */
+.reveal .score-panel { font-size: 0.8em; }
+.reveal .score-panel .score-num { font-size: 2.2em; font-weight: 700; color: var(--c-accent); line-height: 1; }
+.reveal .score-panel .score-msg { margin: 0.4em 0 0.7em; }
+.reveal .score-panel ul { font-size: 0.85em; margin-left: 1em; }
+.reveal .score-panel .score-pend { color: var(--c-ink-soft); }
+
+/* ---------- Animaciones didácticas ---------- */
+@keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes pulse-once { 0% { transform: scale(1); } 40% { transform: scale(1.06); } 100% { transform: scale(1); } }
+
+/* Fragments extra sobre los de Reveal */
+.reveal .fragment.pulse.visible { animation: pulse-once 0.6s ease; }
+.reveal .fragment.mark.visible {
+  background: var(--c-accent-bg);
+  box-shadow: 0 0 0 6px var(--c-accent-bg);
+  border-radius: 4px;
+}
+.reveal .fragment.tachar.visible { text-decoration: line-through; opacity: 0.45; }
+
+/* Diagramas SVG animados por pasos: .anim-step se muestra con fragments.
+   El JS sincroniza los pasos con los fragments del slide. */
+.reveal svg .anim-step { opacity: 0; transition: opacity 0.4s ease; }
+.reveal svg .anim-step.on { opacity: 1; }
+.reveal svg text { font-family: var(--font-sans); }
+.reveal svg .svg-node { fill: var(--c-bg); stroke: var(--c-ink); stroke-width: 3; }
+.reveal svg .svg-node-hl { fill: var(--c-accent-bg); stroke: var(--c-accent); stroke-width: 4; }
+.reveal svg .svg-edge { stroke: var(--c-ink); stroke-width: 3; fill: none; }
+.reveal svg .svg-label { fill: var(--c-ink); font-size: 26px; font-weight: 600; }
+
+/* ---------- Referencias y material para profundizar ---------- */
+.reveal .refs { font-size: 0.62em; line-height: 1.45; }
+.reveal .refs h3 {
+  font-size: 1em; color: var(--c-ink);
+  border-bottom: 3px solid var(--c-ink);
+  padding-bottom: 0.3em; margin-bottom: 0.7em;
+}
+.reveal .refs ul { list-style: none; margin-left: 0; }
+.reveal .refs li {
+  margin-bottom: 0.7em;
+  padding-left: 1em;
+  text-indent: -1em;         /* sangría francesa */
+}
+.reveal .refs li::marker { content: ""; }
+.reveal .refs .ref-type {
+  display: inline-block;
+  text-indent: 0;
+  font-size: 0.75em; font-weight: 600;
+  color: var(--c-ink-soft);
+  border: 2px solid var(--c-line);
+  border-radius: 999px;
+  padding: 0.05em 0.6em;
+  margin-right: 0.4em;
+  vertical-align: middle;
+}
+.reveal .refs a { border-bottom-width: 1px; }
+.reveal .refs em { color: var(--c-ink); font-style: italic; font-weight: 400; }
+.reveal .refs .ref-nota { color: var(--c-ink-soft); }
+
+/* ---------- Progreso y controles ---------- */
+.reveal .progress { color: var(--c-accent); height: 6px; }
+.reveal .controls { color: var(--c-accent); }
+.reveal .slide-number {
+  background: none; color: var(--c-ink-soft);
+  font-family: var(--font-sans); font-size: 20px;
+  right: 20px; bottom: 14px;
+}
+
+/* ---------- Móvil ---------- */
+@media (max-width: 760px) {
+  .reveal .cols { flex-direction: column; gap: 0.4em; }
+  .glossary-card { font-size: 18px; padding: 20px; }
+  .reveal pre { font-size: 0.7em; }
+}
+
+/* ---------- Impresión / PDF ---------- */
+@media print {
+  .reveal .quiz-explain { display: block; }
+  .reveal .solucion-body { display: block; }
+  .reveal .solucion-toggle { display: none; }
+}

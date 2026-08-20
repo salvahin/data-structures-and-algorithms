@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sesión 3 — Análisis de algoritmos iterativos</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+  <link rel="stylesheet" href="../css/theme-curso.css">
+</head>
+<body>
+<div class="reveal">
+  <div class="slides">
+
+    <!-- ============ PORTADA ============ -->
+    <section class="cover">
+      <span class="kicker">Estructuras de Datos y Algoritmos · Bloque 1</span>
+      <h1>Análisis de algoritmos iterativos</h1>
+      <div class="cover-meta">
+        Sesión 3 · Semana 2<br>
+        Salvador Hinojosa
+      </div>
+    </section>
+
+    <!-- ============ AGENDA ============ -->
+    <section>
+      <span class="kicker">Sesión 3 · Agenda</span>
+      <h2>Qué vamos a ver hoy</h2>
+      <table>
+        <tbody>
+          <tr><td>10 min</td><td>Por qué medir con reloj no basta</td></tr>
+          <tr><td>30 min</td><td>3.1.1 Preliminares: sumatorias y logaritmos</td></tr>
+          <tr><td>30 min</td><td>3.1.2 Contar operaciones: el <span class="term" data-term="modelo-ram">modelo de costo</span></td></tr>
+          <tr><td>35 min</td><td>3.1.3 Notación asintótica: O, Ω, Θ</td></tr>
+          <tr><td>10 min</td><td>Ejercicio: cinco fragmentos</td></tr>
+          <tr><td>5 min</td><td>Cierre STL</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ============ OBJETIVO ============ -->
+    <section>
+      <span class="kicker">Objetivo de hoy</span>
+      <h2>Al salir de esta sesión podrás…</h2>
+      <ul>
+        <li class="fragment">Contar las operaciones elementales de un ciclo simple, anidado o de paso variable.</li>
+        <li class="fragment">Enunciar las definiciones formales de <span class="term" data-term="o-grande">O</span>, <span class="term" data-term="omega">Ω</span> y <span class="term" data-term="theta">Θ</span> y usarlas sin los errores típicos.</li>
+        <li class="fragment">Expresar el costo de un algoritmo como función de \(n\) y decir con qué función sencilla crece.</li>
+        <li class="fragment">Distinguir el efecto de la constante del efecto del exponente al comparar dos algoritmos.</li>
+      </ul>
+    </section>
+
+    <!-- ============ POR QUÉ NO RELOJ ============ -->
+    <section>
+      <span class="kicker">3.1 · Análisis de algoritmos</span>
+      <h2>Por qué medir con reloj no basta</h2>
+      <ul>
+        <li class="fragment">El mismo programa tarda distinto según la máquina, el compilador, las banderas de optimización y lo que más corra en ese momento.</li>
+        <li class="fragment">Una medición con \(n = 10^{3}\) no predice qué pasa con \(n = 10^{7}\): necesitas saber <em>cómo crece</em> el costo con la entrada.</li>
+        <li class="fragment">El análisis cuenta operaciones como función de n. Es independiente de la máquina y predice el comportamiento antes de ejecutar.</li>
+        <li class="fragment">Medir sigue siendo útil — al final de la sesión veremos cómo hacerlo bien con <code>&lt;chrono&gt;</code> — pero la medición confirma el análisis, y sin análisis no sabes qué esperar de la medición.</li>
+      </ul>
+    </section>
+
+    <!-- ============ DIVIDER 3.1.1 ============ -->
+    <section class="divider">
+      <h2>3.1.1 Preliminares matemáticos</h2>
+    </section>
+
+    <!-- ============ ANATOMÍA DE LA SUMATORIA ============ -->
+    <section>
+      <span class="kicker">3.1.1 · Preliminares matemáticos</span>
+      <h2>Cómo se lee el símbolo de sumatoria</h2>
+      <svg viewBox="0 0 1100 400" style="width:100%; max-height:400px;">
+        <!-- La sumatoria, siempre visible -->
+        <text x="150" y="215" style="font-size:120px; font-weight:400;" fill="#16181d">Σ</text>
+        <text x="152" y="285" style="font-size:34px;" fill="#16181d">i = 1</text>
+        <text x="176" y="115" style="font-size:34px;" fill="#16181d">n</text>
+        <text x="255" y="215" style="font-size:52px;" fill="#16181d">i<tspan dy="-18" style="font-size:32px;">2</tspan></text>
+
+        <g class="anim-step" data-step="1">
+          <path class="svg-edge" d="M 190 300 Q 210 345 300 345" stroke="#0b57d0" stroke-width="3"/>
+          <text x="315" y="355" fill="#0b57d0" style="font-size:26px; font-weight:600;">el índice arranca en 1</text>
+        </g>
+
+        <g class="anim-step" data-step="2">
+          <path class="svg-edge" d="M 205 100 Q 240 60 320 60" stroke="#0b57d0" stroke-width="3"/>
+          <text x="335" y="70" fill="#0b57d0" style="font-size:26px; font-weight:600;">y llega hasta n (inclusive)</text>
+        </g>
+
+        <g class="anim-step" data-step="3">
+          <path class="svg-edge" d="M 285 240 Q 300 300 380 300" stroke="#b3261e" stroke-width="3"/>
+          <text x="395" y="310" fill="#b3261e" style="font-size:26px; font-weight:600;">el término que se suma</text>
+        </g>
+
+        <g class="anim-step" data-step="4">
+          <line x1="700" y1="60" x2="700" y2="340" stroke="#d7dbe2" stroke-width="3"/>
+          <text x="740" y="150" fill="#16181d" style="font-size:28px; font-weight:600;">Con n = 4 queda:</text>
+          <text x="740" y="210" fill="#16181d" style="font-size:34px;">1 + 4 + 9 + 16 = 30</text>
+          <text x="740" y="265" fill="#4b5260" style="font-size:24px;">un término por cada i</text>
+        </g>
+      </svg>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <p class="fragment">Una sumatoria es un ciclo escrito en matemáticas: el índice \(i\) es el contador, los límites son la cabecera del <code>for</code> y el término general es el cuerpo.</p>
+    </section>
+
+    <!-- ============ SUMATORIAS ============ -->
+    <section>
+      <span class="kicker">3.1.1 · Preliminares matemáticos</span>
+      <h2>Sumatorias: el costo de un ciclo es una suma</h2>
+      <ul>
+        <li class="fragment">Analizar un ciclo es evaluar una sumatoria: si el cuerpo cuesta \(c(i)\) en la vuelta \(i\), el ciclo cuesta \(\sum_{i=1}^{n} c(i)\).</li>
+        <li class="fragment"><strong>Constante</strong> (el cuerpo no depende de \(i\)): \(\sum_{i=1}^{n} c = c\,n\).</li>
+        <li class="fragment"><strong>Aritmética:</strong> aparece cada vez que un ciclo interno depende del externo.
+          <div class="eq">\[ \sum_{i=1}^{n} i \;=\; \frac{n(n+1)}{2} \]</div>
+        </li>
+        <li class="fragment">Al desarrollarla, \(\frac{n(n+1)}{2} = \frac{n^{2}}{2} + \frac{n}{2}\), el segundo término pesa cada vez menos: con \(n = 1000\) aporta el 0.1 %. Al primero lo llamamos <span class="term" data-term="termino-dominante">término dominante</span>, y es el que da la forma del crecimiento: \(n^{2}\).</li>
+      </ul>
+    </section>
+
+    <!-- ============ LOGARITMOS ============ -->
+    <section>
+      <span class="kicker">3.1.1 · Preliminares matemáticos</span>
+      <h2>Logaritmos: contar cuántas veces se puede dividir</h2>
+      <ul>
+        <li class="fragment">\(\log_2 n\) responde una pregunta concreta: ¿cuántas veces divido \(n\) entre 2 hasta llegar a 1? Por eso aparece en todo algoritmo que descarta la mitad.</li>
+        <li class="fragment">Crece muy despacio. Mil veces más datos, diez pasos más:
+          <div class="eq">\[ \log_2 10^{3} \approx 10 \qquad \log_2 10^{6} \approx 20 \qquad \log_2 10^{9} \approx 30 \]</div>
+        </li>
+        <li class="fragment">Cambiar de base multiplica por una constante, así que en notación asintótica la base no importa:
+          <div class="eq">\[ \log_2 n \;=\; \frac{\log_{10} n}{\log_{10} 2} \]</div>
+        </li>
+      </ul>
+    </section>
+
+    <!-- ============ GEOMÉTRICAS ============ -->
+    <section>
+      <span class="kicker">3.1.1 · Preliminares matemáticos</span>
+      <h2>Series geométricas e inducción</h2>
+      <ul>
+        <li class="fragment"><strong>Geométrica creciente:</strong> la suma completa vale menos que el doble del último término — el último nivel domina.
+          <div class="eq">\[ 1 + 2 + 4 + \cdots + 2^{k} \;=\; \sum_{i=0}^{k} 2^{i} \;=\; 2^{k+1} - 1 \]</div>
+        </li>
+        <li class="fragment"><strong>Geométrica decreciente</strong> (razón \(r &lt; 1\)): un costo que se reduce a la mitad en cada paso suma, en total, una constante por el primer término.
+          <div class="eq">\[ \sum_{i=0}^{\infty} r^{i} \;=\; \frac{1}{1-r} \]</div>
+        </li>
+        <li class="fragment"><strong>Inducción:</strong> la herramienta para demostrar que una fórmula vale para <em>toda</em> \(n\), no solo para los casos que probaste a mano — caso base más paso inductivo. Es el mismo esquema de la hipótesis recursiva de la sesión pasada, y la usaremos en la sesión 4 para verificar soluciones de recurrencias.</li>
+      </ul>
+    </section>
+
+    <!-- ============ QUIZ 1 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="a">
+        <p class="quiz-question">Un ciclo divide \(n\) entre 2 en cada vuelta hasta llegar a 1. Con \(n = 1\,048\,576 = 2^{20}\), ¿cuántas vueltas da?</p>
+        <button class="quiz-option" data-opt="a">20 vueltas.</button>
+        <button class="quiz-option" data-opt="b">524 288 vueltas.</button>
+        <button class="quiz-option" data-opt="c">1024 vueltas.</button>
+        <div class="quiz-explain">
+          <strong>A.</strong> El número de vueltas es \(\log_2 n = 20\). La opción B es \(n/2\) (dividir <em>una</em> vez),
+          y C es \(\sqrt{n}\) — dos confusiones frecuentes. Dividir repetidamente entre 2 llega a 1 en pasos
+          logarítmicos, y esa es la razón de que \(\log n\) aparezca en búsqueda binaria, árboles y heaps.
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ DIVIDER 3.1.2 ============ -->
+    <section class="divider">
+      <h2>3.1.2 Contar operaciones</h2>
+    </section>
+
+    <!-- ============ MODELO ============ -->
+    <section>
+      <span class="kicker">3.1.2 · Contar operaciones</span>
+      <h2>El <span class="term" data-term="modelo-ram">modelo de costo uniforme</span></h2>
+      <ul>
+        <li class="fragment">Convención: cada operación elemental — asignación, comparación, suma, acceso <code>v[i]</code> — cuesta 1 paso.</li>
+        <li class="fragment">Es una simplificación deliberada: en el hardware real una suma y un acceso a memoria no cuestan lo mismo, pero difieren en una constante, y la notación asintótica va a absorber las constantes.</li>
+        <li class="fragment">Con el modelo fijo, el costo de un algoritmo es una función \(T(n)\): número de pasos para una entrada de tamaño \(n\).</li>
+      </ul>
+    </section>
+
+    <!-- ============ CICLO SIMPLE ============ -->
+    <section>
+      <span class="kicker">3.1.2 · Contar operaciones</span>
+      <h2>Ciclo simple: contar línea por línea</h2>
+      <pre data-title="suma.cpp"><code class="language-cpp" data-trim data-line-numbers="1-5|1|2|3|1-5">
+int total = 0;                     // 1
+for (int i = 0; i &lt; n; ++i)        // 1 + (n+1) + n
+    total += v[i];                 // 2n  (acceso + suma-asignación)
+return total;                      // 1
+// T(n) = 4n + 4
+      </code></pre>
+      <ul>
+        <li class="fragment">La comparación <code>i &lt; n</code> se evalúa \(n+1\) veces (la última falla); el incremento, \(n\) veces.</li>
+        <li class="fragment">El conteo exacto depende de qué contamos como "una operación"; la forma <em>lineal</em> no depende de esa convención.
+          <div class="eq">\[ T(n) \;=\; 1 + \bigl(1 + (n{+}1) + n\bigr) + 2n + 1 \;=\; 4n + 4 \]</div>
+        </li>
+      </ul>
+    </section>
+
+    <!-- ============ CICLOS ANIDADOS ============ -->
+    <section>
+      <span class="kicker">3.1.2 · Contar operaciones</span>
+      <h2>Ciclos anidados: multiplicar y sumar</h2>
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-4|6-9">
+// Anidado completo: el cuerpo corre n · n veces
+for (int i = 0; i &lt; n; ++i)
+    for (int j = 0; j &lt; n; ++j)
+        cuenta += m[i][j];               // n² ejecuciones
+
+// Anidado triangular: j arranca en i+1
+for (int i = 0; i &lt; n; ++i)
+    for (int j = i + 1; j &lt; n; ++j)
+        comparar(v[i], v[j]);            // n(n-1)/2 ejecuciones
+      </code></pre>
+      <ul>
+        <li class="fragment">En el triangular, el cuerpo corre la sumatoria aritmética del bloque anterior:
+          <div class="eq">\[ \sum_{i=0}^{n-1} (n-1-i) \;=\; (n-1) + (n-2) + \cdots + 1 \;=\; \frac{n(n-1)}{2} \]</div>
+        </li>
+        <li class="fragment">\(\dfrac{n(n-1)}{2} \approx \dfrac{n^{2}}{2}\): la mitad del anidado completo, pero crece igual — como \(n^{2}\).</li>
+      </ul>
+    </section>
+
+    <!-- ============ TRIANGULAR DIBUJADO ============ -->
+    <section>
+      <span class="kicker">3.1.2 · Contar operaciones</span>
+      <h2>El ciclo triangular, dibujado</h2>
+      <svg viewBox="0 0 1100 400" style="width:100%; max-height:400px;">
+        <!-- Rejilla n × n (aquí n = 8): siempre visible -->
+        <g stroke="#d7dbe2" stroke-width="2">
+          <line x1="90" y1="40" x2="90" y2="312"/><line x1="124" y1="40" x2="124" y2="312"/>
+          <line x1="158" y1="40" x2="158" y2="312"/><line x1="192" y1="40" x2="192" y2="312"/>
+          <line x1="226" y1="40" x2="226" y2="312"/><line x1="260" y1="40" x2="260" y2="312"/>
+          <line x1="294" y1="40" x2="294" y2="312"/><line x1="328" y1="40" x2="328" y2="312"/>
+          <line x1="362" y1="40" x2="362" y2="312"/>
+          <line x1="90" y1="40" x2="362" y2="40"/><line x1="90" y1="74" x2="362" y2="74"/>
+          <line x1="90" y1="108" x2="362" y2="108"/><line x1="90" y1="142" x2="362" y2="142"/>
+          <line x1="90" y1="176" x2="362" y2="176"/><line x1="90" y1="210" x2="362" y2="210"/>
+          <line x1="90" y1="244" x2="362" y2="244"/><line x1="90" y1="278" x2="362" y2="278"/>
+          <line x1="90" y1="312" x2="362" y2="312"/>
+        </g>
+        <text class="svg-label" x="90" y="345" style="font-size:25px; font-weight:400;">cada celda = una vuelta</text>
+        <text class="svg-label" x="90" y="28" style="font-size:25px; font-weight:400;">j →</text>
+        <text class="svg-label" x="52" y="60" style="font-size:25px; font-weight:400;">i</text>
+        <text class="svg-label" x="52" y="88" style="font-size:25px; font-weight:400;">↓</text>
+
+        <!-- Paso 1: el anidado completo llena el cuadrado -->
+        <g class="anim-step" data-step="1">
+          <rect x="90" y="40" width="272" height="272" fill="#4b5260" opacity="0.18"/>
+          <text x="430" y="80" fill="#16181d" style="font-size:30px; font-weight:600;">Anidado completo</text>
+          <text x="430" y="122" fill="#4b5260" style="font-size:28px;">las 8 × 8 = 64 celdas</text>
+        </g>
+
+        <!-- Paso 2: la diagonal y la mitad que sí visita el triangular -->
+        <g class="anim-step" data-step="2">
+          <rect x="90" y="40" width="34" height="34" fill="#4b5260" opacity="0.3"/>
+          <rect x="124" y="74" width="34" height="34" fill="#4b5260" opacity="0.3"/>
+          <rect x="158" y="108" width="34" height="34" fill="#4b5260" opacity="0.3"/>
+          <rect x="192" y="142" width="34" height="34" fill="#4b5260" opacity="0.3"/>
+          <rect x="226" y="176" width="34" height="34" fill="#4b5260" opacity="0.3"/>
+          <rect x="260" y="210" width="34" height="34" fill="#4b5260" opacity="0.3"/>
+          <rect x="294" y="244" width="34" height="34" fill="#4b5260" opacity="0.3"/>
+          <rect x="328" y="278" width="34" height="34" fill="#4b5260" opacity="0.3"/>
+          <rect x="124" y="40"  width="238" height="34" fill="#0b57d0" opacity="0.35"/>
+          <rect x="158" y="74"  width="204" height="34" fill="#0b57d0" opacity="0.35"/>
+          <rect x="192" y="108" width="170" height="34" fill="#0b57d0" opacity="0.35"/>
+          <rect x="226" y="142" width="136" height="34" fill="#0b57d0" opacity="0.35"/>
+          <rect x="260" y="176" width="102" height="34" fill="#0b57d0" opacity="0.35"/>
+          <rect x="294" y="210" width="68"  height="34" fill="#0b57d0" opacity="0.35"/>
+          <rect x="328" y="244" width="34"  height="34" fill="#0b57d0" opacity="0.35"/>
+          <text x="430" y="180" fill="#0b57d0" style="font-size:30px; font-weight:600;">Triangular: solo j &gt; i</text>
+          <text x="430" y="222" fill="#4b5260" style="font-size:28px;">en gris, la diagonal que nunca se visita</text>
+        </g>
+
+        <!-- Paso 3: cuántas celdas aporta cada fila -->
+        <g class="anim-step" data-step="3">
+          <text x="378" y="63"  fill="#0b57d0" style="font-size:24px; font-weight:600;">7</text>
+          <text x="378" y="97"  fill="#0b57d0" style="font-size:24px; font-weight:600;">6</text>
+          <text x="378" y="131" fill="#0b57d0" style="font-size:24px; font-weight:600;">5</text>
+          <text x="378" y="165" fill="#0b57d0" style="font-size:24px; font-weight:600;">4</text>
+          <text x="378" y="199" fill="#0b57d0" style="font-size:24px; font-weight:600;">3</text>
+          <text x="378" y="233" fill="#0b57d0" style="font-size:24px; font-weight:600;">2</text>
+          <text x="378" y="267" fill="#0b57d0" style="font-size:24px; font-weight:600;">1</text>
+          <text x="378" y="301" fill="#0b57d0" style="font-size:24px; font-weight:600;">0</text>
+          <text x="430" y="280" fill="#16181d" style="font-size:28px;">7 + 6 + 5 + 4 + 3 + 2 + 1 + 0 = 28</text>
+        </g>
+
+        <!-- Paso 4: el argumento general -->
+        <g class="anim-step" data-step="4">
+          <rect x="424" y="298" width="600" height="82" fill="#e8f0fe" stroke="#0b57d0" stroke-width="3" rx="10"/>
+          <text x="444" y="330" fill="#16181d" style="font-size:25px; font-weight:600;">Dos triángulos iguales llenan el cuadrado</text>
+          <text x="444" y="362" fill="#16181d" style="font-size:25px; font-weight:600;">sin la diagonal: 2S = n² − n → S = n(n−1)/2</text>
+        </g>
+      </svg>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+    </section>
+
+    <!-- ============ PASO VARIABLE ============ -->
+    <section>
+      <span class="kicker">3.1.2 · Contar operaciones</span>
+      <h2>Paso variable: cuando i no avanza de uno en uno</h2>
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-3|5-8">
+// i se duplica: 1, 2, 4, 8, ..., n  →  log₂ n vueltas
+for (int i = 1; i &lt; n; i *= 2)
+    procesar(i);
+
+// combinación: ciclo externo log n, interno n
+for (int paso = n; paso &gt; 0; paso /= 2)
+    for (int i = 0; i &lt; n; ++i)
+        comparar(i, i + paso);           // n · log₂ n ejecuciones
+      </code></pre>
+      <ul>
+        <li class="fragment">Multiplicar o dividir el índice produce ciclos logarítmicos; la pregunta correcta es "¿cuántas vueltas hasta salir?", no "¿de cuánto en cuánto va?".
+          <div class="eq">\[ i = 2^{k} &lt; n \;\Longrightarrow\; k &lt; \log_2 n \]</div>
+        </li>
+        <li class="fragment">El patrón \(n \log n\) del segundo fragmento reaparecerá en merge sort y en <code>std::sort</code>.</li>
+      </ul>
+    </section>
+
+    <!-- ============ QUIZ 2 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="b">
+        <p class="quiz-question">En el ciclo triangular (<code>j</code> arranca en <code>i+1</code>), ¿cuántas veces corre el cuerpo y cómo crece?</p>
+        <button class="quiz-option" data-opt="a">Crece como \(n \log n\), porque \(j\) empieza cada vez más adelante.</button>
+        <button class="quiz-option" data-opt="b">\(n(n-1)/2\) veces: crece como \(n^2\), la mitad del anidado completo.</button>
+        <button class="quiz-option" data-opt="c">Crece como \(n\), porque en promedio el ciclo interno da pocas vueltas.</button>
+        <div class="quiz-explain">
+          <strong>B.</strong> El cuerpo corre \((n-1) + (n-2) + \cdots + 1 = n(n-1)/2\) veces. Dividir entre 2
+          cambia la constante, no la forma: sigue siendo cuadrático. "Empezar más adelante" recorta
+          términos de la suma pero el promedio del ciclo interno sigue siendo \(\sim n/2\) — de ahí el error
+          de las opciones A y C.
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ DIVIDER 3.1.3 ============ -->
+    <section class="divider">
+      <h2>3.1.3 Notación asintótica</h2>
+    </section>
+
+    <!-- ============ VOCABULARIO ============ -->
+    <section>
+      <span class="kicker">3.1.3 · Notación asintótica</span>
+      <h2>El vocabulario que viene ahora</h2>
+      <table>
+        <thead><tr><th>Palabra o símbolo</th><th>Se lee</th><th>Qué quiere decir aquí</th></tr></thead>
+        <tbody>
+          <tr class="fragment"><td><span class="term" data-term="cota">cota superior</span></td><td>"techo"</td><td>Algo que el costo nunca rebasa</td></tr>
+          <tr class="fragment"><td><span class="term" data-term="asintotico">asintótico</span></td><td>"cuando \(n\) se hace grande"</td><td>Ignoramos los tamaños chicos a propósito</td></tr>
+          <tr class="fragment"><td>\(\exists\, c &gt; 0\)</td><td>"existe una constante \(c\) positiva"</td><td>Basta con hallar <em>una</em> que sirva</td></tr>
+          <tr class="fragment"><td>\(\forall\, n \ge n_0\)</td><td>"para toda \(n\) desde \(n_0\) en adelante"</td><td>De ese tamaño en adelante, sin excepciones</td></tr>
+          <tr class="fragment"><td>\(A \iff B\)</td><td>"\(A\) si y solo si \(B\)"</td><td>Las dos dicen lo mismo: puedes cambiar una por la otra en cualquier dirección</td></tr>
+          <tr class="fragment"><td>\(A \Longrightarrow B\)</td><td>"si \(A\), entonces \(B\)"</td><td>De \(A\) se concluye \(B\); al revés no está dicho</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ============ DEFINICIÓN O ============ -->
+    <section>
+      <span class="kicker">3.1.3 · Notación asintótica</span>
+      <h2>La definición formal de <span class="term" data-term="o-grande">O grande</span></h2>
+      <div class="eq-key">
+        \[ f(n) = O\bigl(g(n)\bigr) \iff \exists\, c &gt; 0,\; n_0 \;:\; f(n) \le c \cdot g(n) \quad \forall\, n \ge n_0 \]
+      </div>
+      <ul>
+        <li class="fragment">En palabras: a partir de cierto tamaño, \(f\) queda por debajo de un múltiplo fijo de \(g\). Es una <strong><span class="term" data-term="cota">cota superior</span></strong> sobre el crecimiento: un techo que el costo ya no rebasa.</li>
+        <li class="fragment">Ejemplo, con \(c = 6\) y \(n_0 = 2\):
+          <div class="eq">\[ 4n + 4 \le 6n \quad \forall\, n \ge 2 \;\Longrightarrow\; 4n + 4 = O(n) \]</div>
+        </li>
+        <li class="fragment">La \(c\) absorbe constantes y la \(n_0\) descarta tamaños chicos: ambas hacen que la etiqueta hable solo del crecimiento.</li>
+      </ul>
+    </section>
+
+    <!-- ============ O DIBUJADA ============ -->
+    <section>
+      <span class="kicker">3.1.3 · Notación asintótica</span>
+      <h2>La misma definición, dibujada</h2>
+      <svg viewBox="0 0 1100 400" style="width:100%; max-height:400px;">
+        <line x1="80" y1="330" x2="1050" y2="330" stroke="#16181d" stroke-width="3"/>
+        <line x1="80" y1="330" x2="80" y2="30" stroke="#16181d" stroke-width="3"/>
+        <text class="svg-label" x="1042" y="362" text-anchor="end" style="font-size:22px; font-weight:400;">n</text>
+        <text class="svg-label" x="46" y="44" style="font-size:22px; font-weight:400;">T(n)</text>
+
+        <g class="anim-step" data-step="1">
+          <path d="M 80 268 L 940 94" fill="none" stroke="#16181d" stroke-width="4"/>
+          <text x="950" y="98" fill="#16181d" style="font-size:22px; font-weight:600;">f(n) = 3n+40</text>
+          <text x="120" y="70" fill="#16181d" style="font-size:26px; font-weight:600;">1. f es el costo real que contaste.</text>
+        </g>
+
+        <g class="anim-step" data-step="2">
+          <path d="M 80 330 L 940 272" fill="none" stroke="#4b5260" stroke-width="4"/>
+          <text x="950" y="276" fill="#4b5260" style="font-size:22px; font-weight:600;">g(n) = n</text>
+          <text x="120" y="110" fill="#4b5260" style="font-size:26px; font-weight:600;">2. g es la función simple de comparación.</text>
+        </g>
+
+        <g class="anim-step" data-step="3">
+          <path d="M 80 330 L 940 40" fill="none" stroke="#0b57d0" stroke-width="4"/>
+          <text x="950" y="44" fill="#0b57d0" style="font-size:22px; font-weight:600;">c·g(n) = 5n</text>
+          <text x="120" y="150" fill="#0b57d0" style="font-size:26px; font-weight:600;">3. La estiras con c = 5.</text>
+        </g>
+
+        <g class="anim-step" data-step="4">
+          <rect x="540" y="20" width="400" height="310" fill="#0b57d0" opacity="0.08"/>
+          <line x1="540" y1="330" x2="540" y2="175" stroke="#b3261e" stroke-width="3" stroke-dasharray="10 8"/>
+          <circle cx="540" cy="175" r="9" fill="#b3261e"/>
+          <text x="540" y="362" text-anchor="middle" fill="#b3261e" style="font-size:24px; font-weight:600;">n₀ = 20</text>
+          <text x="600" y="66" fill="#0b57d0" style="font-size:26px; font-weight:600;">aquí f ya no cruza a c·g</text>
+        </g>
+
+      </svg>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <p class="fragment">Con \(c = 5\) y \(n_0 = 20\): \(3n + 40 \le 5n\) para toda \(n \ge 20\), es decir \(3n + 40 = O(n)\). Antes de \(n_0\) la curva de \(f\) va por arriba de \(c\,g\), y la definición lo permite: solo exige que a partir de algún punto deje de hacerlo.</p>
+    </section>
+
+    <!-- ============ PARA QUÉ SIRVEN c Y n0 ============ -->
+    <section>
+      <span class="kicker">3.1.3 · Notación asintótica</span>
+      <h2>Para qué te sirve encontrar \(c\) y \(n_0\)</h2>
+      <p>En el día a día escribes solo la etiqueta; la pareja es lo que la sostiene.</p>
+      <ul>
+        <li class="fragment"><strong>Es la prueba.</strong> Decir "esto es \(O(n)\)" sin exhibir una pareja es una conjetura; con ella, queda demostrado.</li>
+        <li class="fragment"><strong>\(c\) marca qué es negociable.</strong> Compilador, caché y costo por operación mueven \(c\) y dejan igual la forma del crecimiento: ahí está la frontera entre optimizar y cambiar de algoritmo.</li>
+        <li class="fragment"><strong>\(n_0\) es la letra chica.</strong> Por debajo de ese tamaño la notación calla, y por eso <code>std::sort</code> cambia a inserción en tramos cortos.</li>
+        <li class="fragment"><strong>Lo usas la próxima sesión:</strong> verificar una recurrencia por sustitución es proponer una cota y demostrarla con una \(c\) concreta.</li>
+      </ul>
+    </section>
+
+    <!-- ============ EJEMPLO RESUELTO c y n0 ============ -->
+    <section>
+      <span class="kicker">3.1.3 · Ejemplo resuelto</span>
+      <h2>Cómo se elige \(c\) y \(n_0\) en la práctica</h2>
+      <p>Una vez, para justificar la etiqueta: el ciclo simple de hace rato es \(O(n)\).</p>
+      <ul>
+        <li class="fragment"><strong>1. Escribe la desigualdad.</strong> Con \(T(n) = 4n + 4\), buscas \(c\) y \(n_0\) tales que \(4n + 4 \le c\,n\) desde \(n_0\).</li>
+        <li class="fragment"><strong>2. Prueba una \(c\) mayor que el coeficiente</strong> y despeja \(n\). Con \(c = 6\):
+          <div class="eq">\[ 4n + 4 \le 6n \iff 4 \le 2n \iff n \ge 2 \]</div>
+        </li>
+        <li class="fragment"><strong>3. El umbral es lo que quedó:</strong> \(n_0 = 2\). En el límite: \(T(2) = 12 = 6 \cdot 2\).</li>
+      </ul>
+      <p class="fragment muted">La pareja no es única: con \(c = 5\) vale desde \(n_0 = 4\); con \(c = 8\), desde \(n_0 = 1\). Mientras más justa la \(c\), más tarde arranca el umbral.</p>
+    </section>
+
+    <!-- ============ CUANDO LA INTUICIÓN FALLA ============ -->
+    <section>
+      <span class="kicker">3.1.3 · Notación asintótica</span>
+      <h2>Dos casos que la intuición no resuelve</h2>
+      <p>Con \(4n + 4\) nadie necesita la definición. Con estos dos, sí — y se parecen entre sí.</p>
+      <ul>
+        <li class="fragment">¿Es \(2^{\,n+1} = O(2^{n})\)? <strong>Sí.</strong> \(2^{\,n+1} = 2 \cdot 2^{n}\), así que \(c = 2\) sirve desde \(n_0 = 1\): la constante absorbe el factor.</li>
+        <li class="fragment">¿Es \(2^{\,2n} = O(2^{n})\)? <strong>No.</strong> \(2^{\,2n} = (2^{n})^{2}\), y el cociente entre ambas es \(2^{n}\), que crece sin límite. Ninguna \(c\) fija alcanza.
+          <div class="eq">\[ \frac{2^{\,2n}}{2^{n}} = 2^{n} \longrightarrow \infty \]</div>
+        </li>
+        <li class="fragment">Se ven casi igual y la respuesta es opuesta. Cuando el caso no es evidente, la definición es lo único que decide.</li>
+      </ul>
+    </section>
+
+    <!-- ============ OMEGA Y THETA ============ -->
+    <section>
+      <span class="kicker">3.1.3 · Notación asintótica</span>
+      <h2><span class="term" data-term="omega">Ω</span> acota por abajo, <span class="term" data-term="theta">Θ</span> ajusta</h2>
+      <table>
+        <thead><tr><th>Notación</th><th>Definición</th><th>Se lee</th></tr></thead>
+        <tbody>
+          <tr class="fragment"><td>\(f = O(g)\)</td><td>\(f(n) \le c\,g(n)\) desde \(n_0\)</td><td>\(f\) no crece más rápido que \(g\)</td></tr>
+          <tr class="fragment"><td>\(f = \Omega(g)\)</td><td>\(f(n) \ge c\,g(n)\) desde \(n_0\)</td><td>\(f\) no crece más despacio que \(g\)</td></tr>
+          <tr class="fragment"><td>\(f = \Theta(g)\)</td><td>\(O(g)\) y \(\Omega(g)\) a la vez</td><td>\(f\) crece exactamente como \(g\)</td></tr>
+        </tbody>
+      </table>
+      <div class="eq fragment">\[ c_1 n^{2} \;\le\; 3n^{2} + 50n \;\le\; c_2 n^{2} \quad \forall\, n \ge n_0 \;\Longrightarrow\; 3n^{2} + 50n = \Theta(n^{2}) \]</div>
+      <ul>
+        <li class="fragment">\(\Theta\) es la afirmación más fuerte: acota por arriba y por abajo. Si puedes decir \(\Theta\), decir solo \(O\) informa menos.</li>
+        <li class="fragment">Todo esto habla de crecimiento, no de segundos: \(\Theta(n^{2})\) dice que al duplicar \(n\) el costo se cuadruplica.</li>
+      </ul>
+    </section>
+
+    <!-- ============ ERRORES FRECUENTES ============ -->
+    <section>
+      <span class="kicker">3.1.3 · Notación asintótica</span>
+      <h2>Tres errores frecuentes</h2>
+      <ul>
+        <li class="fragment"><strong>"O significa peor caso."</strong> Son cosas independientes: el peor caso es <em>qué entrada</em> analizas; \(O\), \(\Omega\) y \(\Theta\) son <em>cotas sobre la función</em> resultante. Se puede dar la \(\Theta\) del mejor caso y la \(O\) del promedio.</li>
+        <li class="fragment"><strong>"Es \(O(2n)\)".</strong> La constante ya está absorbida por la \(c\) de la definición; escribirla sugiere que la notación distingue algo que no distingue.
+          <div class="eq">\[ O(2n) = O(n) \qquad O(n^{2} + n) = O(n^{2}) \]</div>
+        </li>
+        <li class="fragment"><strong>"Las constantes no importan".</strong> No aparecen en la notación, pero en la práctica deciden: para las \(n\) de tu problema, una \(O(n^{2})\) con constante chica puede ganarle a una \(O(n \log n)\) con constante grande. La gráfica siguiente lo muestra.</li>
+      </ul>
+    </section>
+
+    <!-- ============ SVG CURVAS ============ -->
+    <section>
+      <span class="kicker">3.1.3 · Notación asintótica</span>
+      <h2>Cómo crecen las curvas</h2>
+      <svg viewBox="0 0 1100 420" style="width:100%; max-height:420px;">
+        <line x1="70" y1="380" x2="1060" y2="380" stroke="#16181d" stroke-width="3"/>
+        <line x1="70" y1="380" x2="70" y2="30" stroke="#16181d" stroke-width="3"/>
+        <text class="svg-label" x="1050" y="410" text-anchor="end" style="font-size:22px; font-weight:400;">n</text>
+        <text class="svg-label" x="40" y="45" style="font-size:22px; font-weight:400;">T(n)</text>
+
+        <g class="anim-step" data-step="1">
+          <path d="M 70 380 L 1010 300" fill="none" stroke="#4b5260" stroke-width="4"/>
+          <text x="1020" y="300" fill="#4b5260" style="font-size:24px; font-weight:600;">n</text>
+        </g>
+
+        <g class="anim-step" data-step="2">
+          <path d="M 70 380 Q 500 350 1010 240" fill="none" stroke="#0b57d0" stroke-width="4"/>
+          <text x="1020" y="240" fill="#0b57d0" style="font-size:24px; font-weight:600;">n log n</text>
+        </g>
+
+        <g class="anim-step" data-step="3">
+          <path d="M 70 380 Q 540 380 1010 90" fill="none" stroke="#0b57d0" stroke-width="4" stroke-dasharray="2 0"/>
+          <text x="1020" y="90" fill="#0b57d0" style="font-size:24px; font-weight:600;">n²</text>
+        </g>
+
+        <g class="anim-step" data-step="4">
+          <path d="M 70 380 C 450 378 700 360 800 40" fill="none" stroke="#b3261e" stroke-width="4"/>
+          <text x="812" y="40" fill="#b3261e" style="font-size:24px; font-weight:600;">2ⁿ  (sale de la gráfica)</text>
+        </g>
+
+        <g class="anim-step" data-step="5">
+          <path d="M 70 380 Q 500 260 1010 130" fill="none" stroke="#4b5260" stroke-width="3" stroke-dasharray="14 10"/>
+          <text x="700" y="180" fill="#4b5260" style="font-size:21px; font-weight:600;">n log n · constante grande</text>
+          <path d="M 70 380 Q 540 380 1010 230" fill="none" stroke="#0b57d0" stroke-width="3" stroke-dasharray="14 10"/>
+          <text x="820" y="290" fill="#0b57d0" style="font-size:21px; font-weight:600;">n² · constante chica</text>
+          <circle cx="880" cy="205" r="10" fill="none" stroke="#b3261e" stroke-width="4"/>
+          <text x="560" y="415" fill="#b3261e" style="font-size:22px; font-weight:600;">antes del cruce gana la n²; después, siempre la n log n</text>
+        </g>
+      </svg>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+    </section>
+
+    <!-- ============ CONSTANTE VS EXPONENTE ============ -->
+    <section>
+      <span class="kicker">3.1.3 · Notación asintótica</span>
+      <h2>Constante y exponente son palancas distintas</h2>
+      <ul>
+        <li class="fragment">Mejorar la <strong>constante</strong> (mejor caché, menos trabajo por iteración, paralelismo) desplaza la curva hacia abajo y mueve el punto de cruce.</li>
+        <li class="fragment">Mejorar el <strong>exponente</strong> (otro algoritmo) cambia la forma de la curva: a partir de algún n, gana contra cualquier constante.</li>
+        <li class="fragment">Truco de lectura: en escala log-log toda potencia \(n^{k}\) es una recta de pendiente \(k\). Dos implementaciones del mismo algoritmo son rectas paralelas; dos algoritmos distintos tienen pendientes distintas.
+          <div class="eq">\[ T(n) = c\,n^{k} \;\Longrightarrow\; \log T = k \log n + \log c \]</div>
+        </li>
+      </ul>
+    </section>
+
+    <!-- ============ QUIZ 3 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="b">
+        <p class="quiz-question">Un algoritmo es \(O(n^{2})\). ¿Cuál afirmación es necesariamente cierta?</p>
+        <button class="quiz-option" data-opt="a">En el peor caso ejecuta exactamente \(n^{2}\) operaciones.</button>
+        <button class="quiz-option" data-opt="b">Desde algún \(n_0\), su costo queda por debajo de \(c\,n^{2}\) para alguna constante \(c\).</button>
+        <button class="quiz-option" data-opt="c">Es más lento que cualquier algoritmo \(O(n \log n)\), para toda entrada.</button>
+        <div class="quiz-explain">
+          <strong>B.</strong> Eso es exactamente la definición: \(O\) da una cota superior con constante y umbral.
+          No dice "exactamente \(n^{2}\)" (podría incluso ser \(O(n)\): la cota no tiene que ser ajustada), y no
+          ordena algoritmos para entradas concretas — con \(n\) chico o constantes favorables, el \(O(n^{2})\)
+          puede ganar, como vimos en la gráfica.
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ EJEMPLO RESUELTO INTEGRADOR ============ -->
+    <section>
+      <span class="kicker">Ejemplo resuelto</span>
+      <h2>Del código a la Θ, paso a paso</h2>
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-2|4-6">
+for (int i = 0; i &lt; n; ++i)          // bloque 1
+    v[i] = i;
+
+for (int i = 0; i &lt; n; ++i)          // bloque 2
+    for (int j = 0; j &lt; n; ++j)
+        m[i][j] = v[i] * v[j];
+      </code></pre>
+      <ul>
+        <li class="fragment"><strong>1. Cuenta cada bloque por separado.</strong> El primero da \(n\) vueltas; el segundo, \(n \cdot n\).</li>
+        <li class="fragment"><strong>2. Suma los bloques</strong> (van uno después del otro, no anidados): \(T(n) = a\,n + b\,n^{2}\).</li>
+        <li class="fragment"><strong>3. Quédate con el término dominante y concluye.</strong> Para \(n\) grande \(b\,n^{2}\) supera a \(a\,n\) valgan lo que valgan \(a\) y \(b\), así que \(T(n) = \Theta(n^{2})\): el bloque 1 no cambia nada.</li>
+      </ul>
+    </section>
+
+    <!-- ============ EJERCICIO 5 FRAGMENTOS ============ -->
+    <section>
+      <span class="kicker">Ejercicio en clase</span>
+      <h2>Cinco fragmentos: den la Θ y justifiquen</h2>
+      <pre><code class="language-cpp" data-trim>
+// A                                  // B
+for (i = 0; i &lt; n; i += 2) f();      for (i = 1; i &lt; n; i *= 3) f();
+
+// C                                  // D
+for (i = 0; i &lt; n; ++i)              for (i = 0; i &lt; n; ++i)
+  for (j = 0; j &lt; 100; ++j) f();       for (j = n; j &gt; 1; j /= 2) f();
+
+// E
+for (i = 0; i &lt; n; ++i)
+  for (j = 0; j &lt; i * i; ++j) f();
+      </code></pre>
+      <p class="muted">Misma receta que el ejemplo anterior: cuenta las vueltas, escríbelas como sumatoria, quédate con el término dominante y concluye con \(\Theta\). La justificación vale más que la letra griega.</p>
+    </section>
+
+    <!-- ============ POR QUÉ IMPORTA 1 ============ -->
+    <section>
+      <span class="kicker kicker-ai">Por qué importa hoy</span>
+      <h2>La atención de un Transformer es \(O(n^{2})\)</h2>
+      <div class="box-ai" data-label="Dónde vive esto en sistemas de IA">
+        <ul>
+          <li class="fragment">En el bloque de atención, cada token del contexto se compara con todos los demás: \(n\) tokens \(\to n^{2}\) comparaciones. Es el ciclo anidado completo de hoy, en tamaño industrial.</li>
+          <li class="fragment">Esa sola cota explica por qué las ventanas de contexto crecieron tan lento: duplicar el contexto cuadruplica el costo <em>del bloque de atención</em>.
+            <div class="eq">\[ T(2n) = c\,(2n)^{2} = 4\,c\,n^{2} = 4\,T(n) \]</div>
+          </li>
+          <li class="fragment">El costo total del modelo crece menos que eso, porque tiene términos lineales en \(n\) que dominan hasta que \(n\) es grande — el mismo juego de término dominante que hicimos con \(n(n+1)/2\).</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============ POR QUÉ IMPORTA 2 ============ -->
+    <section>
+      <span class="kicker kicker-ai">Por qué importa hoy</span>
+      <h2>FlashAttention mejora la constante</h2>
+      <div class="box-ai" data-label="Constante vs. exponente, en producción">
+        <ul>
+          <li class="fragment"><span class="term" data-term="flashattention">FlashAttention</span> hace la atención varias veces más rápida <strong>sin cambiar la \(O(n^{2})\) de cómputo</strong>: reorganiza los accesos para reducir el tráfico con la memoria de la GPU y baja la memoria extra de \(O(n^{2})\) a \(O(n)\).</li>
+          <li class="fragment">La atención dispersa y la atención lineal sí atacan el exponente: cambian el algoritmo para no comparar todo contra todo.</li>
+          <li class="fragment">Leer correctamente un paper de eficiencia exige la distinción de hoy: ¿mejoró la constante o mejoró el exponente? La respuesta decide si la mejora aguanta cuando n se multiplica por 100.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============ QUIZ 4 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="c">
+        <p class="quiz-question">FlashAttention acelera la atención en la práctica. En términos de hoy, ¿qué mejoró?</p>
+        <button class="quiz-option" data-opt="a">El exponente: la atención pasa de \(O(n^{2})\) a \(O(n \log n)\).</button>
+        <button class="quiz-option" data-opt="b">Nada medible: si la cota sigue siendo \(O(n^{2})\), el tiempo real es el mismo.</button>
+        <button class="quiz-option" data-opt="c">La constante: reduce el tráfico a memoria y la memoria extra; el número de multiplicaciones sigue siendo cuadrático.</button>
+        <div class="quiz-explain">
+          <strong>C.</strong> El cómputo sigue siendo \(\Theta(n^{2})\); lo que cambió es cuánto cuesta cada unidad de
+          ese cómputo (menos idas a memoria lenta). La opción B comete el error inverso al de "\(O(2n)\)":
+          la notación ignora constantes, pero el reloj no — una constante 5 veces menor son GPUs 5 veces
+          más baratas.
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ CIERRE STL 1 ============ -->
+    <section>
+      <span class="kicker">Cierre STL</span>
+      <h2>El estándar especifica complejidad, no implementación</h2>
+      <table>
+        <thead><tr><th>Operación</th><th>Garantía del estándar</th></tr></thead>
+        <tbody>
+          <tr class="fragment"><td><code>std::sort</code></td><td>\(O(n \log n)\) peor caso (desde C++11; antes, solo promedio)</td></tr>
+          <tr class="fragment"><td><code>std::map::find</code></td><td>\(O(\log n)\)</td></tr>
+          <tr class="fragment"><td><code>std::unordered_map::find</code></td><td>\(O(1)\) promedio · \(O(n)\) peor caso</td></tr>
+        </tbody>
+      </table>
+      <p class="fragment">Las garantías usan exactamente la notación de hoy, con sus matices: la de <code>unordered_map</code> separa promedio y peor caso, y elegir entre <code>map</code> y <code>unordered_map</code> exige leer ambas.</p>
+    </section>
+
+    <!-- ============ CIERRE STL 2 ============ -->
+    <section>
+      <span class="kicker">Cierre STL</span>
+      <h2>Medir bien con <code>&lt;chrono&gt;</code></h2>
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-5|1,3|5">
+auto t0 = std::chrono::steady_clock::now();
+ordenar(v);
+auto t1 = std::chrono::steady_clock::now();
+
+auto ms = std::chrono::duration_cast&lt;std::chrono::milliseconds&gt;(t1 - t0);
+      </code></pre>
+      <ul>
+        <li class="fragment"><span class="term" data-term="steady-clock"><code>steady_clock</code></span> es monotónico: sirve para medir intervalos. <code>system_clock</code> puede saltar (ajustes de hora) y no sirve para esto.</li>
+        <li class="fragment">Compila con <code>-O2</code>. Medir un binario <code>-O0</code> no dice nada útil: el optimizador cambia las constantes por completo, y a veces elimina el código que creías medir.</li>
+        <li class="fragment">Repite la medición con varios n y compara la <em>forma</em> del crecimiento contra tu análisis, no un solo número.</li>
+      </ul>
+    </section>
+
+    <!-- ============ PRÓXIMA SESIÓN ============ -->
+    <section class="divider">
+      <h2>Próxima sesión:<br>Análisis de algoritmos recursivos</h2>
+      <p class="muted">Recordatorio: la Act 1.2 (análisis de complejidad iterativa y recursiva) se entrega este domingo en el LMS.</p>
+    </section>
+
+    <!-- ============ REFERENCIAS ============ -->
+    <section>
+      <span class="kicker">Sesión 3</span>
+      <h2>Referencias y material para profundizar</h2>
+      <div class="refs cols">
+        <div>
+          <h3>Referencias</h3>
+          <ul>
+            <li><span class="ref-type">Libro</span> Weiss, M. A. <em>Data Structures and Algorithm Analysis in C++</em>, 4.ª ed., Pearson, 2014. Cap. 2 (análisis de algoritmos).</li>
+            <li><span class="ref-type">Libro</span> Cormen, T. et al. <em>Introduction to Algorithms</em>, 4.ª ed., MIT Press, 2022. Cap. 3 (notación asintótica) y apéndice A (sumatorias).</li>
+            <li><span class="ref-type">Libro</span> Graham, R., Knuth, D. y Patashnik, O. <em>Concrete Mathematics</em>, 2.ª ed., Addison-Wesley, 1994. Cap. 2 (sumatorias).</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Para profundizar</h3>
+          <ul>
+            <li><span class="ref-type">Paper</span> Dao et al., <a href="https://arxiv.org/abs/2205.14135">FlashAttention</a> (arXiv:2205.14135) <span class="ref-nota">— el ejemplo de "mejorar la constante" que vimos hoy, de primera mano.</span></li>
+            <li><span class="ref-type">Paper</span> Vaswani et al., <a href="https://arxiv.org/abs/1706.03762">Attention Is All You Need</a> (arXiv:1706.03762) <span class="ref-nota">— la O(n²) original del Transformer, en la sección del mecanismo de atención.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://en.cppreference.com/w/cpp/chrono">cppreference — &lt;chrono&gt;</a> <span class="ref-nota">— relojes y duraciones para medir como en el cierre.</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script src="../js/curso-slides.js"></script>
+<script>
+  Reveal.initialize({
+    width: 1280,
+    height: 720,
+    margin: 0.06,
+    hash: true,
+    progress: true,
+    slideNumber: 'c/t',
+    controls: true,
+    transition: 'slide',
+    transitionSpeed: 'fast',
+    plugins: [ RevealHighlight ]
+  }).then(() => {
+    CursoSlides.init({
+      "o-grande": {
+        titulo: "Notación O grande",
+        def: "\\[ f(n) = O(g(n)) \\iff \\exists\\, c &gt; 0,\\; n_0 : f(n) \\le c\\,g(n)\\;\\; \\forall\\, n \\ge n_0 \\] Cota <em>superior</em> sobre el crecimiento de \\(f\\): a partir de cierto tamaño, \\(f\\) queda por debajo de un múltiplo fijo de \\(g\\). No implica que la cota sea ajustada ni se refiere por sí sola al peor caso."
+      },
+      omega: {
+        titulo: "Notación Ω (omega)",
+        def: "\\[ f(n) = \\Omega(g(n)) \\iff \\exists\\, c &gt; 0,\\; n_0 : f(n) \\ge c\\,g(n)\\;\\; \\forall\\, n \\ge n_0 \\] Cota <em>inferior</em>: \\(f\\) crece al menos tan rápido como \\(g\\). Se usa, por ejemplo, para afirmar que todo ordenamiento por comparación necesita \\(\\Omega(n \\log n)\\) comparaciones."
+      },
+      theta: {
+        titulo: "Notación Θ (theta)",
+        def: "\\[ f(n) = \\Theta(g(n)) \\iff c_1\\,g(n) \\le f(n) \\le c_2\\,g(n)\\;\\; \\forall\\, n \\ge n_0 \\] Es \\(O(g)\\) y \\(\\Omega(g)\\) a la vez: la cota <em>ajustada</em>, la afirmación más informativa cuando se conoce el crecimiento exacto."
+      },
+      cota: {
+        titulo: "Cota (superior e inferior)",
+        def: "Una cota es un límite que otra cantidad no rebasa. Una <em>cota superior</em> del costo es un techo: una función que, multiplicada por una constante, queda por encima de \\(T(n)\\) de cierto tamaño en adelante. Una <em>cota inferior</em> es el piso: queda por debajo. Decir \\(T(n) = O(n^2)\\) es poner un techo; no afirma que el costo llegue a ese techo."
+      },
+      asintotico: {
+        titulo: "Asintótico",
+        def: "Se refiere a lo que ocurre cuando \\(n\\) crece sin límite. Un análisis asintótico ignora a propósito los tamaños chicos y las constantes, porque lo que decide si un programa escala es la <em>forma</em> del crecimiento. Viene de <em>asíntota</em>: la curva a la que otra se acerca cuando el argumento se va al infinito."
+      },
+      "termino-dominante": {
+        titulo: "Término dominante",
+        def: "En una suma de términos, el que crece más rápido y termina imponiéndose sobre los demás. En \\(\\frac{n^2}{2} + \\frac{n}{2}\\) el dominante es \\(\\frac{n^2}{2}\\): con \\(n = 1000\\) aporta el 99.9 % del total. Por eso el análisis asintótico se queda solo con él."
+      },
+      "modelo-ram": {
+        titulo: "Modelo de costo uniforme (modelo RAM)",
+        def: "Convención de análisis: cada operación elemental (asignación, comparación, aritmética, acceso a un elemento) cuesta 1 paso y la memoria se accede en tiempo constante. Simplifica el hardware real, pero las diferencias son constantes que la notación asintótica absorbe."
+      },
+      flashattention: {
+        titulo: "FlashAttention",
+        def: "Implementación de la atención (Dao et al., 2022) que reorganiza el cálculo por bloques para minimizar el tráfico entre la memoria principal de la GPU y su memoria rápida. Reduce la memoria extra de \\(O(n^2)\\) a \\(O(n)\\) y acelera varias veces el reloj, sin cambiar el cómputo \\(\\Theta(n^2)\\): mejora la constante, no el exponente."
+      },
+      "steady-clock": {
+        titulo: "std::chrono::steady_clock",
+        def: "Reloj monotónico de la biblioteca estándar: nunca retrocede ni salta, por lo que es el indicado para medir intervalos de tiempo. <code>system_clock</code>, en cambio, sigue la hora del sistema y puede ajustarse a mitad de la medición."
+      }
+    });
+  });
+</script>
+</body>
+</html>
