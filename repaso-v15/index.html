@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Repaso R15 — Herencia</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+  <link rel="stylesheet" href="../css/theme-curso.css">
+</head>
+<body>
+<div class="reveal">
+  <div class="slides">
+
+    <!-- ============ 1 · PORTADA ============ -->
+    <section class="cover">
+      <span class="kicker">Repaso de C++ y POO · Módulo 2 · Programación orientada a objetos</span>
+      <h1>Herencia</h1>
+      <div class="cover-meta">
+        R15 · Auto-estudio · 20 minutos<br>
+        Estructuras de Datos y Algoritmos
+      </div>
+    </section>
+
+    <!-- ============ 2 · OBJETIVO ============ -->
+    <section>
+      <span class="kicker">R15 · Objetivo</span>
+      <h2>Al terminar esta sesión podrás…</h2>
+      <ul>
+        <li class="fragment">Declarar una clase derivada y llamar al constructor de la base desde la lista de inicialización.</li>
+        <li class="fragment">Elegir entre <code>private</code>, <code>protected</code> y <code>public</code> sabiendo qué ve cada uno.</li>
+        <li class="fragment">Predecir el orden de construcción y destrucción en una jerarquía de tres niveles.</li>
+        <li class="fragment">Justificar cuándo usar herencia y cuándo contener un objeto en su lugar.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 3 · ARRANQUE ============ -->
+    <section>
+      <span class="kicker">R15 · Punto de partida</span>
+      <h2>La primera derivada que escribes no compila</h2>
+      <pre data-title="personal.cpp"><code class="language-cpp" data-trim data-line-numbers="1-5|7-11">
+class Persona {
+    std::string nombre_;
+public:
+    Persona(const std::string&amp; n) : nombre_(n) {}
+};
+
+class Empleado : public Persona {
+    double sueldo_;
+public:
+    Empleado(const std::string&amp; n, double s) : sueldo_(s) {}
+};
+      </code></pre>
+      <pre><code class="language-plaintext" data-trim>
+error: no matching function for call to 'Persona::Persona()'
+note: candidate: 'Persona::Persona(const string&amp;)'
+note:   candidate expects 1 argument, 0 provided
+      </code></pre>
+    </section>
+
+    <!-- ============ 4 · BASE Y DERIVADA ============ -->
+    <section>
+      <span class="kicker">R15 · Base y derivada</span>
+      <h2>La derivada contiene a la base</h2>
+      <pre data-title="personal.h"><code class="language-cpp" data-trim data-line-numbers="1-6|8-10|12-13">
+class Persona {                    // base
+    std::string nombre_;
+public:
+    Persona(const std::string&amp; n) : nombre_(n) {}
+    std::string nombre() const { return nombre_; }
+};
+
+class Empleado : public Persona {  // derivada
+    double sueldo_;                // + el constructor del slide 5
+};
+
+Empleado e("Ana", 1000);
+e.nombre();      // método que Empleado no declaró
+      </code></pre>
+      <p class="fragment">Un <code>Empleado</code> lleva dentro un <span class="term" data-term="subobjeto">subobjeto <code>Persona</code></span> completo, con sus campos y sus métodos, y añade <code>sueldo_</code>. Por eso <code>e.nombre()</code> funciona sin que <code>Empleado</code> escriba nada.</p>
+    </section>
+
+    <!-- ============ 5 · CONSTRUCTOR BASE ============ -->
+    <section>
+      <span class="kicker">R15 · Constructores</span>
+      <h2>La base se construye desde la lista de inicialización</h2>
+      <pre data-title="personal.h"><code class="language-cpp" data-trim data-line-numbers="1-7|4|5">
+class Empleado : public Persona {
+    double sueldo_;
+public:
+    Empleado(const std::string&amp; n, double s)
+        : Persona(n),        // 1. el subobjeto base
+          sueldo_(s) { }     // 2. los miembros propios
+};
+      </code></pre>
+      <ul>
+        <li class="fragment">El nombre de la base va primero en la lista, antes que cualquier miembro. Es la única forma de pasarle argumentos.</li>
+        <li class="fragment">Si omites <code>Persona(n)</code>, el compilador intenta el constructor por omisión de la base. Cuando la base no lo tiene, sale el error del arranque.</li>
+        <li class="fragment">El cuerpo del constructor derivado corre cuando la base ya está construida, así que ahí dentro puedes usar sus métodos.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 6 · CHECKPOINT 1 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="c">
+        <p class="quiz-question"><code>Base</code> solo tiene <code>Base(int)</code>. Escribes <code>Derivada(int x) : campo_(x) { }</code> y el compilador pide <code>Base::Base()</code>. ¿Cuál es el arreglo?</p>
+        <button class="quiz-option" data-opt="a">Asignar los campos de la base dentro del cuerpo del constructor derivado</button>
+        <button class="quiz-option" data-opt="b">Declarar los campos de <code>Base</code> como <code>protected</code></button>
+        <button class="quiz-option" data-opt="c">Escribir <code>Derivada(int x) : Base(x), campo_(x) { }</code></button>
+        <div class="quiz-explain"><strong>C.</strong> Sin una llamada explícita, el compilador usa el constructor por omisión de la base, que aquí no existe. Nombrarla en la lista de inicialización resuelve el error. La opción A llega tarde: para cuando el cuerpo se ejecuta la base ya tuvo que quedar construida. La B cambia la visibilidad de los campos y no aporta un constructor.</div>
+      </div>
+    </section>
+
+    <!-- ============ 7 · PROTECTED ============ -->
+    <section>
+      <span class="kicker">R15 · Acceso</span>
+      <h2><code>protected</code>: visible para las derivadas</h2>
+      <pre data-title="personal.h"><code class="language-cpp" data-trim data-line-numbers="1-6|8-14">
+class Persona {
+private:
+    int edad_ = 0;           // ni siquiera la derivada lo ve
+protected:
+    std::string nombre_;     // la derivada sí
+};
+
+class Empleado : public Persona {
+public:
+    void saludar() const {
+        std::cout &lt;&lt; "Soy " &lt;&lt; nombre_ &lt;&lt; '\n';  // compila
+        // std::cout &lt;&lt; edad_;                    // error: privado
+    }
+};
+      </code></pre>
+      <p class="fragment"><code>protected</code> se comporta como <code>private</code> frente al código de fuera y como <code>public</code> frente a las clases derivadas. Cuando un método público de la base ya te da el dato, prefiérelo: <code>protected</code> ata las derivadas a los nombres de los campos y cambiarlos después rompe todas.</p>
+    </section>
+
+    <!-- ============ 8 · ORDEN DE CONSTRUCCIÓN ============ -->
+    <section>
+      <span class="kicker">R15 · Orden de construcción</span>
+      <h2>Se construye de arriba hacia abajo</h2>
+      <svg viewBox="0 0 1120 330">
+        <g class="anim-step" data-step="1">
+          <rect class="svg-node" x="50" y="40" width="330" height="70" rx="10"/>
+          <text class="svg-label" x="215" y="83" text-anchor="middle">Persona</text>
+          <rect class="svg-node" x="50" y="130" width="330" height="70" rx="10"/>
+          <text class="svg-label" x="215" y="173" text-anchor="middle">Empleado</text>
+          <rect class="svg-node" x="50" y="220" width="330" height="70" rx="10"/>
+          <text class="svg-label" x="215" y="263" text-anchor="middle">Gerente</text>
+          <text class="svg-label" x="440" y="30" style="font-size:22px;fill:#4b5260">Gerente g("Ana", 1000, 5);</text>
+        </g>
+        <g class="anim-step" data-step="2">
+          <rect class="svg-node-hl" x="50" y="40" width="330" height="70" rx="10"/>
+          <text class="svg-label" x="215" y="83" text-anchor="middle">Persona</text>
+          <path class="svg-edge" d="M400 75 H 470"/>
+          <text class="svg-label" x="490" y="85">1. Persona(n)</text>
+        </g>
+        <g class="anim-step" data-step="3">
+          <rect class="svg-node-hl" x="50" y="130" width="330" height="70" rx="10"/>
+          <text class="svg-label" x="215" y="173" text-anchor="middle">Empleado</text>
+          <path class="svg-edge" d="M400 165 H 470"/>
+          <text class="svg-label" x="490" y="175">2. Empleado(n, s)</text>
+        </g>
+        <g class="anim-step" data-step="4">
+          <rect class="svg-node-hl" x="50" y="220" width="330" height="70" rx="10"/>
+          <text class="svg-label" x="215" y="263" text-anchor="middle">Gerente</text>
+          <path class="svg-edge" d="M400 255 H 470"/>
+          <text class="svg-label" x="490" y="265">3. Gerente(n, s, e)</text>
+        </g>
+      </svg>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <p class="fragment">Cada constructor corre con su base ya terminada, así que puede apoyarse en ella sin verificar nada.</p>
+    </section>
+
+    <!-- ============ 9 · ORDEN DE DESTRUCCIÓN ============ -->
+    <section>
+      <span class="kicker">R15 · Orden de destrucción</span>
+      <h2>Se destruye en el orden inverso</h2>
+      <pre data-title="orden.cpp"><code class="language-cpp" data-trim>
+int main() {
+    std::cout &lt;&lt; "--- inicio ---\n";
+    { Gerente g("Ana", 1000, 5); }   // vive dentro del bloque
+    std::cout &lt;&lt; "--- fin ---\n";
+}
+      </code></pre>
+      <pre><code class="language-plaintext" data-trim>
+--- inicio ---
+Persona(Ana)   Empleado   Gerente
+~Gerente       ~Empleado  ~Persona
+--- fin ---
+      </code></pre>
+      <p class="fragment">La salida real trae una línea por mensaje; aquí van agrupadas por fase. La destrucción invierte la construcción: primero <code>~Gerente</code>, que libera lo que <code>Gerente</code> pidió, y al final <code>~Persona</code>. Ninguna clase destruye recursos que otra todavía pueda estar usando.</p>
+    </section>
+
+    <!-- ============ 10 · CHECKPOINT 2 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="a">
+        <p class="quiz-question">Con <code>Persona</code> → <code>Empleado</code> → <code>Gerente</code>, ¿qué imprime <code>{ Gerente g; }</code> si cada constructor y cada destructor escriben su nombre?</p>
+        <button class="quiz-option" data-opt="a">Persona, Empleado, Gerente, ~Gerente, ~Empleado, ~Persona</button>
+        <button class="quiz-option" data-opt="b">Gerente, Empleado, Persona, ~Persona, ~Empleado, ~Gerente</button>
+        <button class="quiz-option" data-opt="c">Persona, Empleado, Gerente, ~Persona, ~Empleado, ~Gerente</button>
+        <div class="quiz-explain"><strong>A.</strong> La construcción va de la base a la derivada y la destrucción recorre el camino de regreso. La opción B invierte la construcción: el constructor de <code>Gerente</code> no puede empezar antes de que exista su parte <code>Persona</code>. La C construye bien pero destruye en el mismo orden, lo que dejaría a <code>~Gerente</code> trabajando sobre una base ya destruida.</div>
+      </div>
+    </section>
+
+    <!-- ============ 11 · QUÉ NO SE HEREDA ============ -->
+    <section>
+      <span class="kicker">R15 · Qué se hereda</span>
+      <h2>Tres cosas que no pasan a la derivada</h2>
+      <table>
+        <thead><tr><th>Elemento</th><th>¿Se hereda?</th><th>Qué ocurre</th></tr></thead>
+        <tbody>
+          <tr class="fragment"><td>Métodos y campos</td><td>Sí</td><td>La derivada los usa según su nivel de acceso</td></tr>
+          <tr class="fragment"><td>Constructores</td><td>No</td><td>La derivada escribe los suyos y llama a los de la base</td></tr>
+          <tr class="fragment"><td>Destructor</td><td>No</td><td>El de la base se ejecuta siempre, al final</td></tr>
+          <tr class="fragment"><td><code>operator=</code> y <code>friend</code></td><td>No</td><td>La amistad no se transfiere; <code>operator=</code> se redefine si hace falta</td></tr>
+        </tbody>
+      </table>
+      <p class="fragment">La derivada sí puede reutilizar el <code>operator=</code> de la base llamándolo por su nombre: <code>Persona::operator=(otro);</code> dentro del suyo.</p>
+    </section>
+
+    <!-- ============ 12 · HERENCIA O COMPOSICIÓN ============ -->
+    <section>
+      <span class="kicker">R15 · Herencia o composición</span>
+      <h2>Heredar o contener</h2>
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-2|4-5|7-13">
+class Auto : public Motor { };   // "un auto es un motor": falso
+class Auto { Motor motor_; };    // "un auto tiene un motor"
+
+// heredar: Pila queda con toda la interfaz de vector
+class Pila : public std::vector&lt;int&gt; { };  // insert(), erase()
+
+// contener: Pila expone solo lo suyo
+class Pila {
+    std::vector&lt;int&gt; datos_;
+public:
+    void push(int x) { datos_.push_back(x); }
+    int tope() const { return datos_.back(); }
+};
+      </code></pre>
+      <p class="fragment">Con <span class="term" data-term="composicion">composición</span>, <code>Pila</code> decide qué operaciones ofrece. Heredando de <code>std::vector</code>, cualquiera puede llamar <code>insert()</code> en medio y romper el orden de entrada y salida que la pila promete.</p>
+    </section>
+
+    <!-- ============ 13 · CUÁNDO NO HEREDAR ============ -->
+    <section>
+      <span class="kicker">R15 · Criterio</span>
+      <h2>Cuándo no heredar</h2>
+      <ul>
+        <li class="fragment">Cuando la frase "un X es un Y" no se sostiene en todos los lugares donde se usa Y. La <span class="term" data-term="upcast">conversión implícita a la base</span> permite que una derivada aparezca donde se espera la base, así que el compromiso vale para toda la interfaz.</li>
+        <li class="fragment">Cuando solo quieres tres métodos de la otra clase. Contén un objeto y expón esos tres; lo demás queda fuera del alcance de quien use tu clase.</li>
+        <li class="fragment">Cuando la base tiene invariantes que la derivada puede violar sin darse cuenta, como el orden interno de un contenedor.</li>
+      </ul>
+      <div class="box-key">La pregunta que decide: ¿el código que recibe una <code>Base&amp;</code> puede trabajar con tu derivada sin enterarse de la diferencia?</div>
+    </section>
+
+    <!-- ============ 14 · CHECKPOINT 3 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="b">
+        <p class="quiz-question">Necesitas una clase <code>Bitacora</code> que guarde mensajes y ya tienes <code>ListaEnlazada</code> con <code>insertar</code> y <code>recorrer</code>. ¿Qué conviene?</p>
+        <button class="quiz-option" data-opt="a">Heredar de <code>ListaEnlazada</code>, así <code>Bitacora</code> reutiliza el código sin escribirlo</button>
+        <button class="quiz-option" data-opt="b">Contener una <code>ListaEnlazada</code> como campo y exponer solo <code>registrar</code> y <code>volcar</code></button>
+        <button class="quiz-option" data-opt="c">Heredar y volver privados los métodos de la base que no quieras exponer</button>
+        <div class="quiz-explain"><strong>B.</strong> Una bitácora no es una lista enlazada: usa una para almacenar. Con composición la lista queda como detalle interno y puedes cambiarla por un <code>vector</code> sin tocar a nadie. La opción A hereda para reutilizar código, que es la trampa de esta sesión: expone toda la interfaz de la lista a quien use la bitácora. La C intenta tapar el problema, y de paso deja de cumplirse "una bitácora es una lista", con lo que la herencia ya no tiene sentido.</div>
+      </div>
+    </section>
+
+    <!-- ============ 15 · TRAMPAS ============ -->
+    <section>
+      <span class="kicker">R15 · Trampas comunes</span>
+      <h2>Tres formas de complicarse con la herencia</h2>
+      <ul>
+        <li class="fragment">Heredar para no repetir código. La herencia establece que la derivada sirve en todo contexto donde sirva la base; reutilizar el cuerpo de dos métodos no requiere ese compromiso.</li>
+        <li class="fragment">Olvidar la llamada al constructor base y recibir un error que menciona un constructor que nunca escribiste.</li>
+        <li class="fragment">Poner todos los campos en <code>protected</code> por si acaso. Cada campo protegido es un nombre que las derivadas van a usar y que ya no puedes renombrar ni quitar.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 16 · EJERCICIO ============ -->
+    <section>
+      <span class="kicker">R15 · Ejercicio</span>
+      <h2>Rastrea el orden en tres niveles</h2>
+      <ol>
+        <li>Escribe <code>Persona</code>, <code>Empleado : public Persona</code> y <code>Gerente : public Empleado</code>, cada una con un campo propio.</li>
+        <li>Pon un <code>std::cout</code> en cada constructor y en cada destructor con el nombre de la clase.</li>
+        <li>Antes de compilar, escribe en papel la salida de <code>{ Gerente g("Ana", 1000, 5); }</code>. Después compílalo y compara.</li>
+      </ol>
+      <div class="solucion" data-label="Ver mi predicción">
+        <pre><code class="language-plaintext" data-trim>
+--- inicio ---
+Persona(Ana)
+Empleado
+Gerente
+~Gerente
+~Empleado
+~Persona
+--- fin ---
+        </code></pre>
+        <p class="muted">Los tres constructores terminan antes de que el objeto exista para el resto del programa, y los tres destructores corren al cerrar la llave, en orden inverso. Ese orden es el mismo que verás en R16 cuando el destructor sea virtual.</p>
+      </div>
+    </section>
+
+    <!-- ============ 17 · CHECKLIST ============ -->
+    <section>
+      <span class="kicker">R15 · Antes de pasar a R16</span>
+      <h2>Verifica que ya puedes</h2>
+      <ul class="checklist" data-deck="v15">
+        <li>Declarar una derivada y llamar al constructor base <span class="cl-ref">slide 5</span></li>
+        <li>Explicar qué ve una derivada con <code>protected</code> <span class="cl-ref">slide 7</span></li>
+        <li>Predecir el orden de construcción y destrucción <span class="cl-ref">slide 8</span></li>
+        <li>Decir qué no se hereda de la base <span class="cl-ref">slide 11</span></li>
+        <li>Justificar herencia o composición en un caso concreto <span class="cl-ref">slide 13</span></li>
+      </ul>
+      <p class="muted">Si algo sigue sin marcarse, regresa a ese slide antes de continuar.</p>
+    </section>
+
+    <!-- ============ EL COMMIT DE ESTA SESIÓN ============ -->
+    <section>
+      <span class="kicker">R15 · Tu repositorio</span>
+      <h2>El commit de esta sesión</h2>
+      <pre><code class="language-bash" data-trim>
+cd repaso-cpp
+git add r15-herencia/
+git commit -m "R15: jerarquia de tres niveles"
+git push
+      </code></pre>
+      <p class="muted">Un commit por sesión. Así, cuando algo deje de compilar, <code>git diff</code> te dice exactamente qué cambiaste desde la última vez que funcionaba.</p>
+    </section>
+
+
+    <!-- ============ 18 · SIGUIENTE ============ -->
+    <section class="divider">
+      <h2>Siguiente:<br>R16 · Polimorfismo</h2>
+      <p class="muted">Ya tienes la jerarquía. Falta que una llamada a través de la base ejecute el código de la derivada.</p>
+      <p><a href="../repaso/">← Volver al índice de la serie</a></p>
+    </section>
+
+    <!-- ============ 19 · REFERENCIAS ============ -->
+    <section>
+      <span class="kicker">R15</span>
+      <h2>Referencias y material para profundizar</h2>
+      <div class="refs cols">
+        <div>
+          <h3>Referencias</h3>
+          <ul>
+            <li><span class="ref-type">Libro</span> Stroustrup, B. <em>The C++ Programming Language</em>, 4.ª ed., Addison-Wesley, 2013. Cap. 20 (jerarquías de clases).</li>
+            <li><span class="ref-type">Libro</span> Gregoire, M. <em>Professional C++</em>, 5.ª ed., Wiley, 2021. Caps. 10 y 32 (herencia y su uso correcto).</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Para profundizar</h3>
+          <ul>
+            <li><span class="ref-type">Web</span> <a href="https://www.learncpp.com/cpp-tutorial/introduction-to-inheritance/">learncpp — Inheritance</a> <span class="ref-nota">— capítulo 24, con el orden de construcción explicado paso a paso.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#Rh-domain">C++ Core Guidelines — Class hierarchies</a> <span class="ref-nota">— las reglas C.120 y siguientes sobre cuándo una jerarquía está justificada.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://isocpp.org/wiki/faq/proper-inheritance">isocpp FAQ — Proper inheritance</a> <span class="ref-nota">— qué garantiza la herencia pública y cuándo el "es un" deja de valer.</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script src="../js/curso-slides.js"></script>
+<script>
+  Reveal.initialize({
+    width: 1280,
+    height: 720,
+    margin: 0.06,
+    hash: true,
+    progress: true,
+    slideNumber: 'c/t',
+    controls: true,
+    transition: 'slide',
+    transitionSpeed: 'fast',
+    plugins: [ RevealHighlight ]
+  }).then(() => {
+    CursoSlides.init({
+      subobjeto: {
+        titulo: "Subobjeto base",
+        def: "La parte de un objeto derivado que corresponde a su clase base. Ocupa memoria dentro del mismo objeto, se construye antes que los miembros propios de la derivada y se destruye al final. Es lo que permite que una referencia <code>Base&amp;</code> apunte a un objeto derivado."
+      },
+      composicion: {
+        titulo: "Composición",
+        def: "Relación en la que una clase contiene un objeto de otra como campo, en vez de heredar de ella. La clase que contiene decide qué operaciones expone y puede cambiar el tipo interno sin afectar a quien la usa. Es la alternativa por omisión cuando la relación es de uso y no de sustitución."
+      },
+      upcast: {
+        titulo: "Conversión a la base (upcast)",
+        def: "Conversión implícita de <code>Derivada*</code> a <code>Base*</code>, o de <code>Derivada&amp;</code> a <code>Base&amp;</code>. No copia ni transforma nada: apunta al subobjeto base que ya vive dentro del objeto derivado. Es la conversión sobre la que se apoya el polimorfismo de R16."
+      }
+    });
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+# .gitignore — Repaso de C++ y POO
+# Guarda este archivo con el nombre .gitignore (con el punto, sin extensión)
+# en la raíz de repaso-cpp/, y commitéalo desde el primer commit.
+
+# Archivos objeto y ejecutables: se regeneran al compilar
+*.o
+*.obj
+*.exe
+*.out
+a.out
+programa
+
+# Binarios sin extensión que produce el Makefile de R11
+/*/ejercicio
+/*/main
+
+# Símbolos de depuración de macOS
+*.dSYM/
+
+# Configuración local del editor y del sistema
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

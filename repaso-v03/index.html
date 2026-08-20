@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Repaso R3 — Entrada y salida</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+  <link rel="stylesheet" href="../css/theme-curso.css">
+</head>
+<body>
+<div class="reveal">
+  <div class="slides">
+
+    <!-- 1 ============ PORTADA ============ -->
+    <section class="cover">
+      <span class="kicker">Repaso de C++ y POO · Módulo 1 · Recapitulación de C++</span>
+      <h1>Entrada y salida</h1>
+      <div class="cover-meta">
+        R3 · Auto-estudio · 26 minutos<br>
+        Estructuras de Datos y Algoritmos
+      </div>
+    </section>
+
+    <!-- 2 ============ OBJETIVO ============ -->
+    <section>
+      <span class="kicker">R3 · Objetivo</span>
+      <h2>Al terminar esta sesión podrás…</h2>
+      <ul>
+        <li class="fragment">Explicar qué queda en el búfer después de cada <code>cin &gt;&gt; x</code> y de cada <code>getline</code>.</li>
+        <li class="fragment">Diagnosticar el ciclo infinito que produce teclear una letra donde se espera un número.</li>
+        <li class="fragment">Recuperar un flujo con <code>clear()</code> e <code>ignore()</code> y saber en qué orden van.</li>
+        <li class="fragment">Escribir una función de lectura validada que no acepte nada fuera de lo pedido.</li>
+      </ul>
+    </section>
+
+    <!-- 3 ============ ARRANQUE ============ -->
+    <section>
+      <span class="kicker">R3 · Punto de partida</span>
+      <h2>Teclea una letra y el programa se vuelve loco</h2>
+      <pre data-title="edad.cpp"><code class="language-cpp" data-trim>
+#include &lt;iostream&gt;
+
+int main() {
+    int edad = 0;
+    while (edad &lt;= 0) {
+        std::cout &lt;&lt; "Edad: ";
+        std::cin &gt;&gt; edad;
+    }
+    std::cout &lt;&lt; "Gracias\n";
+}
+      </code></pre>
+      <pre><code class="language-plaintext" data-trim>
+Edad: veinte
+Edad: Edad: Edad: Edad: Edad: Edad: Edad: Edad: Edad: …
+      </code></pre>
+      <p class="fragment">El programa dejó de pedir datos y ya no se detiene. No hay error de compilación, no hay excepción, no hay mensaje. Solo un ciclo que gira para siempre.</p>
+    </section>
+
+    <!-- 4 ============ COUT Y CIN ============ -->
+    <section>
+      <span class="kicker">R3 · Los dos operadores</span>
+      <h2><code>&lt;&lt;</code> saca datos, <code>&gt;&gt;</code> mete datos</h2>
+      <pre data-title="basico.cpp"><code class="language-cpp" data-trim>
+#include &lt;iostream&gt;
+#include &lt;string&gt;
+
+int main() {
+    std::string nombre;
+    int edad = 0;
+    std::cout &lt;&lt; "Nombre y edad: ";
+    std::cin &gt;&gt; nombre &gt;&gt; edad;
+    std::cout &lt;&lt; nombre &lt;&lt; " tiene " &lt;&lt; edad &lt;&lt; " anios\n";
+}
+      </code></pre>
+      <ul>
+        <li class="fragment">Las flechas apuntan hacia dónde van los datos. <code>cout &lt;&lt; x</code> saca <code>x</code> hacia la pantalla; <code>cin &gt;&gt; x</code> mete lo tecleado en <code>x</code>.</li>
+        <li class="fragment">Ambos se encadenan porque cada operación devuelve el flujo, listo para la siguiente.</li>
+        <li class="fragment"><code>'\n'</code> salta de línea. <code>std::endl</code> además vacía el búfer de salida, lo que es más lento; úsalo solo cuando necesites ver la salida de inmediato.</li>
+      </ul>
+    </section>
+
+    <!-- 5 ============ CÓMO SEPARA >> ============ -->
+    <section>
+      <span class="kicker">R3 · El búfer de entrada</span>
+      <h2><code>&gt;&gt;</code> se detiene en el primer espacio</h2>
+      <p>Lo que tecleas no llega variable por variable. Llega a un <span class="term" data-term="buffer">búfer</span> y ahí se queda hasta que alguien lo consume.</p>
+      <pre><code class="language-plaintext" data-trim>
+Tecleas:   Ana 20⏎
+Búfer:     A n a ␣ 2 0 ⏎
+
+cin &gt;&gt; nombre;   salta espacios, toma "Ana", deja  ␣ 2 0 ⏎
+cin &gt;&gt; edad;     salta el espacio, toma 20,  deja  ⏎
+      </code></pre>
+      <ul>
+        <li class="fragment"><code>&gt;&gt;</code> descarta los espacios, tabuladores y saltos de línea que encuentra <em>antes</em> del dato.</li>
+        <li class="fragment">Se detiene en el primer separador que aparece <em>después</em>, y lo deja intacto en el búfer.</li>
+      </ul>
+    </section>
+
+    <!-- 6 ============ CHECKPOINT 1 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="c">
+        <p class="quiz-question">Con <code>std::string s; std::cin &gt;&gt; s;</code> el usuario teclea <code>Ana Maria Perez</code> y presiona Enter. ¿Qué queda en <code>s</code>?</p>
+        <button class="quiz-option" data-opt="a"><code>"Ana Maria Perez"</code>, la línea completa</button>
+        <button class="quiz-option" data-opt="b">Cadena vacía, porque hay espacios y la lectura falla</button>
+        <button class="quiz-option" data-opt="c"><code>"Ana"</code>, y el resto sigue esperando en el búfer</button>
+        <div class="quiz-explain"><strong>C.</strong> <code>&gt;&gt;</code> lee hasta el primer espacio en blanco, así que toma <code>Ana</code> y deja <code>␣Maria␣Perez⏎</code> en el búfer para la siguiente lectura. Para capturar la línea entera hace falta <code>getline</code> (A). La lectura no falla: leer una palabra es un éxito (B).</div>
+      </div>
+    </section>
+
+    <!-- 7 ============ GETLINE ============ -->
+    <section>
+      <span class="kicker">R3 · getline</span>
+      <h2>Leer una línea completa, espacios incluidos</h2>
+      <pre data-title="linea.cpp"><code class="language-cpp" data-trim>
+#include &lt;iostream&gt;
+#include &lt;string&gt;
+
+int main() {
+    std::string linea;
+    std::cout &lt;&lt; "Frase: ";
+    std::getline(std::cin, linea);
+    std::cout &lt;&lt; "[" &lt;&lt; linea &lt;&lt; "] mide "
+              &lt;&lt; linea.size() &lt;&lt; '\n';
+}
+      </code></pre>
+      <ul>
+        <li class="fragment">Lee desde la posición actual hasta el siguiente <code>'\n'</code>, sin saltar espacios iniciales.</li>
+        <li class="fragment">Consume ese <code>'\n'</code> y no lo guarda en la cadena. Después de <code>getline</code> el búfer queda limpio hasta el siguiente Enter.</li>
+        <li class="fragment">Es función libre, no método: se escribe <code>std::getline(std::cin, s)</code>, no <code>std::cin.getline(s)</code>.</li>
+      </ul>
+    </section>
+
+    <!-- 8 ============ EL CHOQUE ============ -->
+    <section>
+      <span class="kicker">R3 · El choque clásico</span>
+      <h2><code>&gt;&gt;</code> seguido de <code>getline</code> devuelve vacío</h2>
+      <pre data-title="choque.cpp"><code class="language-cpp" data-trim data-line-numbers="4|6">
+int edad = 0;
+std::string nombre;
+std::cout &lt;&lt; "Edad: ";
+std::cin &gt;&gt; edad;                    // deja el ⏎ en el búfer
+std::cout &lt;&lt; "Nombre completo: ";
+std::getline(std::cin, nombre);      // encuentra ese ⏎ de inmediato
+std::cout &lt;&lt; "[" &lt;&lt; nombre &lt;&lt; "]\n";
+      </code></pre>
+      <pre><code class="language-plaintext" data-trim>
+Edad: 20⏎
+Nombre completo: []          &lt;- ni siquiera esperó a que tecleara
+      </code></pre>
+      <p class="fragment"><code>&gt;&gt;</code> tomó los dígitos y dejó el <code>'\n'</code> sin consumir. <code>getline</code> leyó desde ahí, encontró el fin de línea en la posición cero y devolvió una cadena vacía, correctamente y sin fallar.</p>
+    </section>
+
+    <!-- 9 ============ LA SOLUCIÓN: IGNORE ============ -->
+    <section>
+      <span class="kicker">R3 · El choque clásico</span>
+      <h2>Descartar lo que quedó con <code>ignore</code></h2>
+      <pre data-title="choque_resuelto.cpp"><code class="language-cpp" data-trim data-line-numbers="1|8">
+#include &lt;limits&gt;
+
+int edad = 0;
+std::string nombre;
+std::cout &lt;&lt; "Edad: ";
+std::cin &gt;&gt; edad;
+std::cin.ignore(
+    std::numeric_limits&lt;std::streamsize&gt;::max(), '\n');
+std::getline(std::cin, nombre);      // ahora sí espera
+      </code></pre>
+      <ul>
+        <li class="fragment"><code>ignore(n, c)</code> descarta caracteres hasta consumir <code>n</code> o hasta encontrar <code>c</code>, lo que ocurra primero. El delimitador también se descarta.</li>
+        <li class="fragment"><code>std::numeric_limits&lt;std::streamsize&gt;::max()</code> es el mayor valor posible del <span class="term" data-term="streamsize">tipo que cuenta caracteres</span>: significa "sin límite práctico". Vive en <code>&lt;limits&gt;</code>.</li>
+        <li class="fragment"><code>cin.ignore()</code> sin argumentos descarta un solo carácter. Alcanza para este caso y falla si el usuario tecleó <code>20 basura⏎</code>.</li>
+      </ul>
+    </section>
+
+    <!-- 10 ============ CHECKPOINT 2 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="a">
+        <p class="quiz-question">Un programa hace <code>cin &gt;&gt; n;</code> y luego dos <code>getline</code> seguidos. El usuario teclea <code>5⏎</code>, <code>rojo⏎</code>, <code>azul⏎</code>. Sin ningún <code>ignore</code>, ¿qué guardan las dos cadenas?</p>
+        <button class="quiz-option" data-opt="a">La primera queda vacía y la segunda guarda <code>"rojo"</code></button>
+        <button class="quiz-option" data-opt="b">La primera guarda <code>"rojo"</code> y la segunda <code>"azul"</code></button>
+        <button class="quiz-option" data-opt="c">Las dos quedan vacías, porque el flujo entró en estado de fallo</button>
+        <div class="quiz-explain"><strong>A.</strong> El <code>'\n'</code> que dejó <code>&gt;&gt;</code> es lo primero que encuentra el primer <code>getline</code>, que devuelve vacío. Todo se recorre una posición: el segundo <code>getline</code> recoge <code>"rojo"</code> y <code>"azul"</code> se queda esperando. B es lo que ocurriría con el <code>ignore</code> puesto. El flujo no falla en ningún momento (C): leer una línea vacía es una lectura válida.</div>
+      </div>
+    </section>
+
+    <!-- 11 ============ ESTADOS DEL FLUJO ============ -->
+    <section>
+      <span class="kicker">R3 · Estados del flujo</span>
+      <h2>Por qué el ciclo del arranque no termina</h2>
+      <p>Cuando <code>cin &gt;&gt; edad</code> encuentra <code>veinte</code> donde esperaba dígitos, ocurren tres cosas a la vez:</p>
+      <ol>
+        <li class="fragment"><code>edad</code> se queda como estaba. Desde C++11 se le asigna <code>0</code>; en ningún caso recibe el texto.</li>
+        <li class="fragment">El flujo enciende su <span class="term" data-term="failbit">bandera de fallo</span> y <code>cin.fail()</code> pasa a valer <code>true</code>.</li>
+        <li class="fragment">Los caracteres <code>veinte⏎</code> <strong>siguen en el búfer</strong>, sin consumir.</li>
+      </ol>
+      <p class="fragment">La siguiente vuelta del ciclo vuelve a leer, encuentra las mismas letras, vuelve a fallar y deja el búfer igual. Mientras el flujo esté en fallo, toda lectura posterior no hace nada. De ahí el ciclo infinito.</p>
+      <p class="fragment muted">Los estados son cuatro: <code>good</code> (todo bien), <code>fail</code> (formato equivocado), <code>eof</code> (se acabó la entrada) y <code>bad</code> (error irrecuperable).</p>
+    </section>
+
+    <!-- 12 ============ LA RECETA ============ -->
+    <section>
+      <span class="kicker">R3 · Recuperación</span>
+      <h2><code>clear()</code> primero, <code>ignore()</code> después</h2>
+      <pre data-title="recupera.cpp"><code class="language-cpp" data-trim data-line-numbers="2|4|5-6">
+std::cout &lt;&lt; "Numero: ";
+if (!(std::cin &gt;&gt; n)) {                  // la lectura falló
+    std::cout &lt;&lt; "Eso no es un numero\n";
+    std::cin.clear();                    // 1) apaga la bandera
+    std::cin.ignore(                     // 2) tira la basura
+        std::numeric_limits&lt;std::streamsize&gt;::max(), '\n');
+}
+      </code></pre>
+      <ul>
+        <li class="fragment"><code>clear()</code> devuelve el flujo al estado <code>good</code>. Por sí solo no arregla nada: el texto sigue en el búfer y la siguiente lectura fallará igual.</li>
+        <li class="fragment"><code>ignore()</code> descarta la línea entera. Por sí solo tampoco basta: con la bandera encendida, <code>ignore</code> no consume nada.</li>
+      </ul>
+      <div class="box-key">El orden importa. Primero <code>clear()</code>, después <code>ignore()</code>. Al revés no limpia nada.</div>
+    </section>
+
+    <!-- 13 ============ CHECKPOINT 3 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="b">
+        <p class="quiz-question">Dentro de un ciclo que relee hasta obtener un número, un compañero puso solo <code>std::cin.clear();</code> tras detectar el fallo. ¿Qué pasa al teclear <code>abc</code>?</p>
+        <button class="quiz-option" data-opt="a">Funciona: <code>clear()</code> vacía el búfer y vuelve a pedir el dato</button>
+        <button class="quiz-option" data-opt="b">Sigue el ciclo infinito: <code>abc</code> continúa en el búfer y se vuelve a leer</button>
+        <button class="quiz-option" data-opt="c">El programa aborta con una excepción del flujo</button>
+        <div class="quiz-explain"><strong>B.</strong> <code>clear()</code> solo modifica las banderas de estado; no toca los caracteres pendientes. Con el flujo en <code>good</code> y <code>abc</code> todavía ahí, la siguiente lectura falla de nuevo y el ciclo gira igual que antes. Hace falta <code>ignore()</code> para descartar la línea (A). Los flujos no lanzan excepciones salvo que se les active explícitamente (C).</div>
+      </div>
+    </section>
+
+    <!-- 14 ============ FUNCIÓN DE VALIDACIÓN ============ -->
+    <section>
+      <span class="kicker">R3 · Lectura validada</span>
+      <h2>El patrón completo, en una función</h2>
+      <pre data-title="leer.cpp"><code class="language-cpp" data-trim data-line-numbers="1-4|8|9|10">
+void limpiarLinea() {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits&lt;std::streamsize&gt;::max(), '\n');
+}
+int leerEntero(const std::string&amp; msg) {
+    int n = 0;
+    while (true) {
+        std::cout &lt;&lt; msg;
+        bool ok = static_cast&lt;bool&gt;(std::cin &gt;&gt; n);
+        limpiarLinea();
+        if (ok) return n;
+        std::cout &lt;&lt; "Entrada invalida.\n";
+    }
+}
+      </code></pre>
+      <p class="fragment"><code>std::cin &gt;&gt; n</code> devuelve el flujo, y el flujo se convierte a <code>bool</code> según su estado. Por eso la lectura puede usarse directamente como condición, y el mismo mecanismo hace funcionar a <code>while (std::cin &gt;&gt; x)</code>, que recorre la entrada hasta agotarla.</p>
+      <p class="fragment muted">Limpiar en los dos caminos, con éxito y con fallo, descarta el resto de la línea y evita que <code>20 basura</code> contamine la siguiente lectura. <code>clear()</code> sobre un flujo que ya está en <code>good</code> no hace daño.</p>
+    </section>
+
+    <!-- 15 ============ CHECKPOINT 4 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="c">
+        <p class="quiz-question">El programa pide un entero y el usuario teclea <code>12abc</code> seguido de Enter. Con <code>std::cin &gt;&gt; n;</code>, ¿qué ocurre?</p>
+        <button class="quiz-option" data-opt="a">La lectura falla y <code>n</code> queda en <code>0</code></button>
+        <button class="quiz-option" data-opt="b">El flujo lee <code>12</code> y descarta <code>abc</code> automáticamente</button>
+        <button class="quiz-option" data-opt="c"><code>n</code> vale <code>12</code>, la lectura tiene éxito y <code>abc⏎</code> queda en el búfer</button>
+        <div class="quiz-explain"><strong>C.</strong> <code>&gt;&gt;</code> consume los caracteres que forman un entero válido y se detiene en el primero que no lo es. Como leyó al menos un dígito, la lectura es un éxito y el flujo sigue en <code>good</code>. Nada se descarta solo (B): <code>abc⏎</code> espera y hará fallar la siguiente lectura numérica. Por eso el patrón del slide 14 llama a <code>ignore</code> incluso cuando todo salió bien.</div>
+      </div>
+    </section>
+
+    <!-- 16 ============ TRAMPAS COMUNES ============ -->
+    <section>
+      <span class="kicker">R3 · Trampas comunes</span>
+      <h2>Cinco formas de quedarse atorado</h2>
+      <ul>
+        <li class="fragment"><strong>No revisar el resultado de la lectura.</strong> Sin <code>if (cin &gt;&gt; n)</code> el programa sigue con una variable que nunca se llenó.</li>
+        <li class="fragment"><strong><code>clear()</code> sin <code>ignore()</code>.</strong> Es la causa exacta del ciclo infinito que la mayoría no logra explicar.</li>
+        <li class="fragment"><strong><code>ignore()</code> antes de <code>clear()</code>.</strong> Con la bandera encendida <code>ignore</code> no consume nada, así que el orden invertido no limpia.</li>
+        <li class="fragment"><strong>Mezclar <code>&gt;&gt;</code> y <code>getline</code> sin limpiar.</strong> La primera línea leída sale vacía.</li>
+        <li class="fragment"><strong>Olvidar <code>#include &lt;limits&gt;</code>.</strong> El error apunta a <code>numeric_limits</code> y no menciona la cabecera.</li>
+      </ul>
+    </section>
+
+    <!-- 17 ============ EJERCICIO ============ -->
+    <section>
+      <span class="kicker">R3 · Ejercicio</span>
+      <h2>Un entero entre 1 y 100, pase lo que pase</h2>
+      <p>Escribe <code>leerEnRango(msg, lo, hi)</code> que insista hasta obtener un entero dentro del rango. Pruébala con <code>abc</code>, con <code>500</code>, con <code>3.7</code>, con una línea vacía y con <code>42 basura</code>.</p>
+      <div class="solucion">
+        <pre data-title="rango.cpp"><code class="language-cpp" data-trim>
+int leerEnRango(const std::string&amp; msg, int lo, int hi) {
+    int n = 0;
+    while (true) {
+        std::cout &lt;&lt; msg;
+        bool ok = static_cast&lt;bool&gt;(std::cin &gt;&gt; n);
+        std::cin.clear();
+        std::cin.ignore(
+            std::numeric_limits&lt;std::streamsize&gt;::max(), '\n');
+        if (ok &amp;&amp; n &gt;= lo &amp;&amp; n &lt;= hi) return n;
+        std::cout &lt;&lt; "Escribe un entero entre "
+                  &lt;&lt; lo &lt;&lt; " y " &lt;&lt; hi &lt;&lt; ".\n";
+    }
+}
+        </code></pre>
+        <p class="muted">Guardar el resultado en <code>ok</code> permite limpiar el flujo una sola vez, en los dos caminos. Con <code>3.7</code> lee <code>3</code> y descarta <code>.7</code>: si eso debe rechazarse, hay que leer la línea con <code>getline</code> y validarla completa.</p>
+      </div>
+    </section>
+
+    <!-- 18 ============ CHECKLIST ============ -->
+    <section>
+      <span class="kicker">R3 · Antes de pasar a R4</span>
+      <h2>Verifica que ya puedes</h2>
+      <ul class="checklist" data-deck="v03">
+        <li>Describir qué deja <code>&gt;&gt;</code> en el búfer y qué deja <code>getline</code> <span class="cl-ref">slide 5</span></li>
+        <li>Arreglar el choque entre <code>&gt;&gt;</code> y <code>getline</code> con <code>ignore</code> <span class="cl-ref">slide 9</span></li>
+        <li>Explicar el ciclo infinito en términos de bandera de fallo y búfer <span class="cl-ref">slide 11</span></li>
+        <li>Recuperar un flujo con <code>clear()</code> e <code>ignore()</code>, en ese orden <span class="cl-ref">slide 12</span></li>
+        <li>Escribir una función de lectura validada con rango <span class="cl-ref">slide 14</span></li>
+      </ul>
+      <p class="muted">Si algo sigue sin marcarse, regresa a ese slide antes de continuar.</p>
+    </section>
+
+    <!-- ============ EL COMMIT DE ESTA SESIÓN ============ -->
+    <section>
+      <span class="kicker">R3 · Tu repositorio</span>
+      <h2>El commit de esta sesión</h2>
+      <pre><code class="language-bash" data-trim>
+cd repaso-cpp
+git add r03-entrada-salida/
+git commit -m "R3: validacion de entrada con cin.fail"
+git push
+      </code></pre>
+      <p class="muted">Un commit por sesión. Así, cuando algo deje de compilar, <code>git diff</code> te dice exactamente qué cambiaste desde la última vez que funcionaba.</p>
+    </section>
+
+
+    <!-- 19 ============ SIGUIENTE ============ -->
+    <section class="divider">
+      <h2>Siguiente:<br>R4 · Control de flujo</h2>
+      <p class="muted">El ciclo del arranque giraba por un flujo en fallo. Los que siguen giran de más o de menos por un signo mal puesto.</p>
+      <p><a href="../repaso/">← Volver al índice de la serie</a></p>
+    </section>
+
+    <!-- 20 ============ REFERENCIAS ============ -->
+    <section>
+      <span class="kicker">R3</span>
+      <h2>Referencias y material para profundizar</h2>
+      <div class="refs cols">
+        <div>
+          <h3>Referencias</h3>
+          <ul>
+            <li><span class="ref-type">Libro</span> Lippman, S. et al. <em>C++ Primer</em>, 5.ª ed., Addison-Wesley, 2012. Caps. 1 y 8.</li>
+            <li><span class="ref-type">Libro</span> Gregoire, M. <em>Professional C++</em>, 5.ª ed., Wiley, 2021. Cap. 13.</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Para profundizar</h3>
+          <ul>
+            <li><span class="ref-type">Web</span> <a href="https://en.cppreference.com/w/cpp/io/basic_istream/ignore">cppreference — <code>istream::ignore</code></a> <span class="ref-nota">— la firma exacta y qué cuenta como delimitador.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://en.cppreference.com/w/cpp/io/basic_ios/rdstate">cppreference — Estados del flujo</a> <span class="ref-nota">— las cuatro banderas y cómo se consultan.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://isocpp.org/wiki/faq/input-output">ISO C++ FAQ — Input/Output</a> <span class="ref-nota">— respuestas cortas a los atascos más frecuentes.</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script src="../js/curso-slides.js"></script>
+<script>
+  Reveal.initialize({
+    width: 1280,
+    height: 720,
+    margin: 0.06,
+    hash: true,
+    progress: true,
+    slideNumber: 'c/t',
+    controls: true,
+    transition: 'slide',
+    transitionSpeed: 'fast',
+    plugins: [ RevealHighlight ]
+  }).then(() => {
+    CursoSlides.init({
+      buffer: {
+        titulo: "Búfer de entrada",
+        def: "Zona de memoria donde el sistema deposita lo que se teclea hasta que el programa lo consume. Las lecturas toman caracteres de ahí y dejan el resto pendiente, incluido el <code>'\\n'</code> del Enter."
+      },
+      failbit: {
+        titulo: "Bandera de fallo (failbit)",
+        def: "Bit de estado que el flujo enciende cuando la lectura no coincide con el formato esperado. Se consulta con <code>cin.fail()</code> y se apaga con <code>cin.clear()</code>. Mientras esté encendida, toda lectura posterior no hace nada."
+      },
+      streamsize: {
+        titulo: "<code>std::streamsize</code>",
+        def: "Tipo entero con signo que los flujos usan para contar caracteres. <code>std::numeric_limits&lt;std::streamsize&gt;::max()</code> devuelve su valor máximo y se usa como \"sin límite\" en <code>ignore</code>. Declarado en <code>&lt;limits&gt;</code>."
+      }
+    });
+  });
+</script>
+</body>
+</html>

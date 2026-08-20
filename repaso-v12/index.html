@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Repaso R12 — Anatomía de un error de compilación</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+  <link rel="stylesheet" href="../css/theme-curso.css">
+</head>
+<body>
+<div class="reveal">
+  <div class="slides">
+
+    <!-- ============ 1 · PORTADA ============ -->
+    <section class="cover">
+      <span class="kicker">Repaso de C++ y POO · Módulo 2 · Programación orientada a objetos</span>
+      <h1>Anatomía de un error de&nbsp;compilación</h1>
+      <div class="cover-meta">
+        R12 · Auto-estudio · 26 minutos<br>
+        Estructuras de Datos y Algoritmos
+      </div>
+    </section>
+
+    <!-- ============ 2 · OBJETIVO ============ -->
+    <section>
+      <span class="kicker">R12 · Objetivo</span>
+      <h2>Al terminar esta sesión podrás…</h2>
+      <ul>
+        <li class="fragment">Leer las cuatro partes de una línea de diagnóstico de g++ y saber qué información aporta cada una.</li>
+        <li class="fragment">Explicar por qué solo el primer error importa y los siguientes suelen ser consecuencia suya.</li>
+        <li class="fragment">Distinguir en un segundo si un mensaje viene del compilador o del enlazador.</li>
+        <li class="fragment">Diagnosticar <code>undefined reference</code>, <code>multiple definition</code> y el muro de texto de una plantilla.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 3 · ARRANQUE ============ -->
+    <section>
+      <span class="kicker">R12 · Punto de partida</span>
+      <h2>Veintinueve líneas de error, una sola causa</h2>
+      <pre data-title="pila.cpp"><code class="language-cpp" data-trim data-line-numbers="7">
+#include &lt;iostream&gt;
+class Pila {
+    int datos[10];
+    int cima;
+public:
+    Pila() : cima(0) {}
+    void push(int v) { datos[cima++] = v;
+    int pop() { return datos[--cima]; }
+};
+      </code></pre>
+      <pre><code class="language-plaintext" data-trim>
+$ g++ -std=c++17 pila.cpp  2&gt;&amp;1 | wc -l
+29
+      </code></pre>
+      <p class="fragment">Falta una llave al final de la línea 7. El compilador produce cuatro errores, dos advertencias y tres notas, y ninguno de ellos dice "falta una llave en la línea 7".</p>
+    </section>
+
+    <!-- ============ 4 · REGLA DEL PRIMER ERROR ============ -->
+    <section>
+      <span class="kicker">R12 · Cómo leer la salida</span>
+      <h2>Solo el primer error es información</h2>
+      <p>El compilador lee tu archivo de arriba abajo. Cuando encuentra algo que no puede interpretar, hace una suposición y sigue, para reportar de una vez todo lo que pueda. Si la suposición es incorrecta, todo lo que lee después se interpreta mal.</p>
+      <ul>
+        <li class="fragment">Los errores posteriores describen el estado confundido del compilador, no tu programa.</li>
+        <li class="fragment">El procedimiento es: leer el primer error, corregirlo, recompilar. Nunca corregir la lista completa de una pasada.</li>
+        <li class="fragment">Para ver solo el principio: <code>g++ archivo.cpp 2&gt;&amp;1 | head -20</code>, o directamente <code>g++ -fmax-errors=1 archivo.cpp</code>.</li>
+      </ul>
+      <div class="box-key">Un error corregido puede eliminar cuarenta mensajes. Contar los mensajes no mide cuánto falta.</div>
+    </section>
+
+    <!-- ============ 5 · ANATOMÍA DE LA LÍNEA ============ -->
+    <section>
+      <span class="kicker">R12 · Cómo leer la salida</span>
+      <h2>Las cuatro partes de un diagnóstico</h2>
+      <pre><code class="language-plaintext" data-trim>
+e3.cpp:6:24: error: cannot convert 'std::string' to 'int'
+    6 |     std::cout &lt;&lt; doble(s) &lt;&lt; '\n';
+      |                        ^
+e3.cpp:3:15: note:   initializing argument 1 of 'int doble(int)'
+    3 | int doble(int n) { return 2 * n; }
+      |           ~~~~^
+      </code></pre>
+      <ul>
+        <li class="fragment"><code>e3.cpp:6:24</code> — archivo, línea y columna. La columna es donde el compilador se detuvo, que no siempre es donde está la falta.</li>
+        <li class="fragment"><code>error</code> — la severidad. <code>warning</code> no detiene la compilación; <code>note</code> no es un problema aparte sino contexto del <span class="term" data-term="diagnostico">diagnóstico</span> anterior.</li>
+        <li class="fragment">El texto del mensaje, y debajo la línea de código con un cursor apuntando a la posición exacta.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 6 · CHECKPOINT 1 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="b">
+        <p class="quiz-question">Compilas y g++ imprime 41 mensajes. ¿Cuál es el siguiente paso más eficiente?</p>
+        <button class="quiz-option" data-opt="a">Revisar los 41 mensajes y anotar todas las líneas mencionadas antes de tocar nada</button>
+        <button class="quiz-option" data-opt="b">Corregir únicamente lo que señala el primer <code>error</code> y volver a compilar</button>
+        <button class="quiz-option" data-opt="c">Empezar por el último mensaje, que es el que dice si la compilación falló</button>
+        <div class="quiz-explain"><strong>B.</strong> A partir del primer error el compilador trabaja sobre una suposición que puede ser falsa, así que los 40 mensajes siguientes describen un programa que no escribiste. A invierte tiempo en información que probablemente desaparezca sola. C confunde el resumen final (<code>ld returned 1 exit status</code>, por ejemplo) con el diagnóstico útil.</div>
+      </div>
+    </section>
+
+    <!-- ============ 7 · PUNTO Y COMA ============ -->
+    <section>
+      <span class="kicker">R12 · Errores de sintaxis</span>
+      <h2>El punto y coma que falta se reporta una línea después</h2>
+      <pre data-title="e5.cpp"><code class="language-cpp" data-trim data-line-numbers="7|9">
+#include &lt;iostream&gt;
+class Punto {
+    int x, y;
+public:
+    Punto(int a, int b) : x(a), y(b) {}
+    int getX() const { return x; }
+}
+
+Punto origen(0, 0);
+int suma(Punto a, Punto b) { return a.getX() + b.getX(); }
+      </code></pre>
+      <pre><code class="language-plaintext" data-trim>
+e5.cpp:9:7: error: expected initializer before 'origen'
+e5.cpp:13:23: error: 'origen' was not declared in this scope
+      </code></pre>
+      <p class="fragment">Sin el punto y coma, <code>Punto</code> y lo que sigue forman una sola declaración, así que el compilador espera un inicializador donde tú escribiste un nombre de variable. La falta está en la línea 7 y el mensaje habla de la 9. El segundo error es eco: <code>origen</code> no existe porque su declaración no llegó a formarse.</p>
+    </section>
+
+    <!-- ============ 8 · EL CASCADEO ============ -->
+    <section>
+      <span class="kicker">R12 · Errores de sintaxis</span>
+      <h2>La llave faltante del arranque, mensaje por mensaje</h2>
+      <pre><code class="language-plaintext" data-trim data-line-numbers="1-2|3-4|5-6|7">
+pila.cpp:14:2: error: expected '}' at end of input
+pila.cpp:2:12: note: to match this '{'
+pila.cpp:8:12: warning: empty parentheses were disambiguated
+               as a function declaration [-Wvexing-parse]
+pila.cpp: In member function 'int Pila::main()':
+pila.cpp:13:20: error: 'class Pila' has no member named 'pop'
+pila.cpp:14:2: error: expected unqualified-id at end of input
+      </code></pre>
+      <ul>
+        <li class="fragment">La <code>note</code> de la línea 2 es la pista real: el compilador llegó al final del archivo buscando la llave que cierra <code>class Pila</code>.</li>
+        <li class="fragment"><code>In member function 'int Pila::main()'</code> revela lo ocurrido: <code>main</code> quedó absorbido dentro de la clase.</li>
+        <li class="fragment">Los tres mensajes restantes son consecuencias de esa absorción. Agregar la llave los borra todos.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 9 · CHECKPOINT 2 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="a">
+        <p class="quiz-question">g++ reporta <code>error: expected initializer before 'contador'</code> en la línea 40, y esa línea es <code>Registro contador;</code>, que se ve correcta. ¿Dónde conviene buscar?</p>
+        <button class="quiz-option" data-opt="a">En las líneas anteriores, buscando una declaración sin cerrar o un punto y coma faltante</button>
+        <button class="quiz-option" data-opt="b">En la línea 40, porque el compilador siempre señala la posición exacta de la falta</button>
+        <button class="quiz-option" data-opt="c">En el enlazado, porque <code>Registro</code> debe estar definido en otro archivo</button>
+        <div class="quiz-explain"><strong>A.</strong> El compilador reporta dónde <em>se dio cuenta</em>, no dónde está la falta. <code>expected initializer</code> sobre una línea que se ve bien casi siempre significa que la construcción anterior no terminó. B toma la posición del cursor como si fuera infalible. C confunde etapas: si <code>Registro</code> no estuviera declarado, el mensaje sería <code>'Registro' was not declared in this scope</code>, y sería del compilador, no del enlazador.</div>
+      </div>
+    </section>
+
+    <!-- ============ 10 · COMPILADOR VS ENLAZADOR ============ -->
+    <section>
+      <span class="kicker">R12 · Dos etapas, dos programas</span>
+      <h2>Quién firma el mensaje</h2>
+      <table>
+        <tr><th></th><th>Compilador</th><th>Enlazador</th></tr>
+        <tr><td>Formato</td><td><code>archivo.cpp:12:5: error:</code></td><td><code>/usr/bin/ld: …</code> o <code>collect2:</code></td></tr>
+        <tr><td>Qué ve</td><td>Una unidad de traducción</td><td>Todos los <code>.o</code> a la vez</td></tr>
+        <tr><td>Qué revisa</td><td>Sintaxis, tipos, nombres declarados</td><td>Símbolos: quién los define, quién los usa</td></tr>
+        <tr><td>Mensajes</td><td><code>expected</code>, <code>not declared</code>, <code>cannot convert</code></td><td><code>undefined reference</code>, <code>multiple definition</code></td></tr>
+      </table>
+      <p class="fragment">Un mensaje del enlazador no menciona líneas ni columnas de tu código con la precisión del compilador, porque a esas alturas ya no hay código fuente: hay <span class="term" data-term="simbolo">símbolos</span>.</p>
+    </section>
+
+    <!-- ============ 11 · UNDEFINED REFERENCE ============ -->
+    <section>
+      <span class="kicker">R12 · Errores de enlazado</span>
+      <h2><code>undefined reference</code>: alguien prometió y nadie entregó</h2>
+      <pre><code class="language-plaintext" data-trim>
+/usr/bin/ld: main.o: in function `main':
+main.cpp:(.text+0x3c): undefined reference to
+                       `Cuenta::depositar(double)'
+collect2: error: ld returned 1 exit status
+      </code></pre>
+      <p>El mensaje se lee de dentro hacia fuera: <em>quién</em> lo necesita (<code>main.o</code>, dentro de <code>main</code>) y <em>qué</em> le falta (el cuerpo de <code>Cuenta::depositar(double)</code>). Las causas posibles son pocas:</p>
+      <ul>
+        <li class="fragment">El método se declaró en el header y su cuerpo no se escribió en ningún <code>.cpp</code>.</li>
+        <li class="fragment">El cuerpo existe pero el archivo que lo contiene no se pasó al comando de enlazado.</li>
+        <li class="fragment">Las firmas no coinciden: falta el <code>Clase::</code>, sobra o falta un <code>const</code>, o un parámetro es <code>int</code> en un lado y <code>double</code> en el otro. El nombre entre comillas del mensaje trae la firma completa, así que compáralo con tu declaración carácter por carácter.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 12 · CHECKPOINT 3 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="c">
+        <p class="quiz-question">El mensaje es <code>multiple definition of `doble(int)'</code>, con <code>first defined here</code> apuntando a otro objeto. ¿Qué lo produce?</p>
+        <button class="quiz-option" data-opt="a">Dos <code>.cpp</code> incluyen el mismo header y falta la guarda de inclusión</button>
+        <button class="quiz-option" data-opt="b">Se pasó dos veces el mismo <code>.cpp</code> en el comando de compilación</button>
+        <button class="quiz-option" data-opt="c">El cuerpo de <code>doble</code> está escrito en un header que incluyen dos unidades de traducción</button>
+        <div class="quiz-explain"><strong>C.</strong> Cada unidad de traducción recibió su copia del cuerpo y generó su propio símbolo; el enlazador encontró dos y aplicó la regla de una definición por programa. La solución es dejar solo la declaración en el header, o marcar la función <code>inline</code>. A describe un efecto de la guarda que no aplica entre archivos distintos: la guarda actúa dentro de una unidad. B produce el mismo mensaje en casos concretos, pero el <code>first defined here</code> apuntaría al mismo archivo fuente, no a otro.</div>
+      </div>
+    </section>
+
+    <!-- ============ 13 · LAS NOTAS ============ -->
+    <section>
+      <span class="kicker">R12 · Aprovechar las notas</span>
+      <h2>g++ suele decirte la solución en la línea siguiente</h2>
+      <pre><code class="language-plaintext" data-trim>
+e4.cpp:3:10: error: 'vector' is not a member of 'std'
+    3 |     std::vector&lt;int&gt; v;
+      |          ^~~~~~
+e4.cpp:2:1: note: 'std::vector' is defined in header '&lt;vector&gt;';
+                  did you forget to '#include &lt;vector&gt;'?
+    1 | #include &lt;iostream&gt;
+  +++ |+#include &lt;vector&gt;
+e4.cpp:3:17: error: expected primary-expression before 'int'
+e4.cpp:4:5: error: 'v' was not declared in this scope
+      </code></pre>
+      <p class="fragment">La nota trae el arreglo escrito, con <code>+++</code> marcando la línea que hay que agregar. Los dos errores siguientes son eco del primero: sin el tipo, la variable no se declara, y sin la variable nada de lo que la use tiene sentido.</p>
+    </section>
+
+    <!-- ============ 14 · EL MURO DE PLANTILLAS ============ -->
+    <section>
+      <span class="kicker">R12 · Plantillas</span>
+      <h2>Ciento catorce líneas para un operador que falta</h2>
+      <pre data-title="tpl.cpp"><code class="language-cpp" data-trim>
+struct Punto { int x, y; };
+
+std::vector&lt;Punto&gt; v{{3,1},{1,2}};
+std::sort(v.begin(), v.end());
+      </code></pre>
+      <pre><code class="language-plaintext" data-trim data-line-numbers="1-3|4|5">
+/usr/include/c++/11/bits/stl_algo.h:1904:34: required from
+  '_RandomAccessIterator std::__unguarded_partition_pivot(…)
+   [with _RandomAccessIterator = __gnu_cxx::__normal_iterator&lt;…&gt;]'
+tpl.cpp:6:14:   required from here
+predefined_ops.h:45:23: error: no match for 'operator&lt;'
+                        (operand types are 'Punto' and 'Punto')
+      </code></pre>
+      <p class="fragment">Las decenas de líneas <code>required from</code> son la cadena de <span class="term" data-term="instanciacion">instanciación</span>: cómo se llegó desde tu código hasta el interior de la biblioteca. Se leen dos líneas: la que dice <code>required from here</code> y menciona <em>tu</em> archivo, y la que empieza con <code>error:</code>. Aquí: <code>Punto</code> no tiene <code>operator&lt;</code> y <code>std::sort</code> lo necesita.</p>
+    </section>
+
+    <!-- ============ 15 · CHECKPOINT 4 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="a">
+        <p class="quiz-question">Ante un muro de 114 líneas generado por una plantilla, ¿qué buscas primero?</p>
+        <button class="quiz-option" data-opt="a">La línea <code>required from here</code> que menciona un archivo tuyo, y la línea que empieza con <code>error:</code></button>
+        <button class="quiz-option" data-opt="b">La primera línea de la salida, que siempre indica el archivo y la línea del problema</button>
+        <button class="quiz-option" data-opt="c">Los nombres con dobles guiones bajos, que señalan qué parte de la biblioteca está rota</button>
+        <div class="quiz-explain"><strong>A.</strong> Esas dos líneas dan el punto de tu código que originó la instanciación y la razón concreta de la falla. B falla porque en las plantillas la salida arranca dentro de los headers del sistema, con rutas de <code>/usr/include</code> que no te sirven. C interpreta los nombres internos de la biblioteca como el problema; son solo los pasos intermedios de la instanciación.</div>
+      </div>
+    </section>
+
+    <!-- ============ 16 · TRAMPAS COMUNES ============ -->
+    <section>
+      <span class="kicker">R12 · Trampas comunes</span>
+      <h2>Cuatro formas de leer mal un error</h2>
+      <ul>
+        <li class="fragment">Editar las cuarenta líneas mencionadas en la salida. La mayoría desaparecen al corregir la primera.</li>
+        <li class="fragment">Buscar la falta exactamente en la línea y columna que señala el cursor, sin mirar las líneas anteriores.</li>
+        <li class="fragment">Ignorar las <code>note</code> por parecer secundarias. Suelen traer la declaración con la que el compilador estaba comparando, o el arreglo ya escrito.</li>
+        <li class="fragment">Tratar un <code>undefined reference</code> como error de sintaxis y revisar el archivo que lo menciona, cuando lo que falta está en otro o directamente no está en el comando.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 17 · EJERCICIO ============ -->
+    <section>
+      <span class="kicker">R12 · Ejercicio</span>
+      <h2>Cinco mensajes, cinco diagnósticos</h2>
+      <p class="muted">Para cada mensaje, di qué etapa lo emitió y qué hay que corregir. Sin ver el código.</p>
+      <pre><code class="language-plaintext" data-trim>
+1) p1.cpp:9:7: error: expected initializer before 'origen'
+2) /usr/bin/ld: undefined reference to `Cuenta::depositar(double)'
+3) p3.cpp:6:24: error: cannot convert 'std::string' to 'int'
+4) p4.cpp:3:10: error: 'vector' is not a member of 'std'
+5) /usr/bin/ld: multiple definition of `doble(int)'
+      </code></pre>
+      <div class="solucion" data-label="Ver mi diagnóstico">
+        <ol>
+          <li><strong>Compilador, sintaxis.</strong> Una declaración anterior no terminó: falta el punto y coma después de la llave que cierra una clase, arriba de la línea 9.</li>
+          <li><strong>Enlazador.</strong> El cuerpo de <code>depositar</code> no existe, o su <code>.cpp</code> no se pasó al comando, o la firma del <code>.cpp</code> no coincide con la del header.</li>
+          <li><strong>Compilador, tipos.</strong> Se llamó una función que espera <code>int</code> con un <code>std::string</code>. La <code>note</code> siguiente indica qué parámetro es.</li>
+          <li><strong>Compilador, nombre no declarado.</strong> Falta <code>#include &lt;vector&gt;</code>. Los errores posteriores sobre la variable son eco.</li>
+          <li><strong>Enlazador.</strong> El cuerpo de <code>doble</code> está en un header incluido por dos <code>.cpp</code>. Dejar la declaración en el header y el cuerpo en un <code>.cpp</code>, o marcarla <code>inline</code>.</li>
+        </ol>
+        <p class="muted">Reproduce los cinco en tu computadora: escribe programas mínimos que provoquen cada mensaje y compáralos con la salida real de tu compilador.</p>
+      </div>
+    </section>
+
+    <!-- ============ 18 · CHECKLIST ============ -->
+    <section>
+      <span class="kicker">R12 · Antes de pasar a R13</span>
+      <h2>Verifica que ya puedes</h2>
+      <ul class="checklist" data-deck="v12">
+        <li>Corregir el primer error y recompilar en vez de leer la lista entera <span class="cl-ref">slide 4</span></li>
+        <li>Identificar archivo, línea, columna y severidad en un diagnóstico <span class="cl-ref">slide 5</span></li>
+        <li>Reconocer si el mensaje viene del compilador o del enlazador <span class="cl-ref">slide 10</span></li>
+        <li>Enumerar las tres causas de <code>undefined reference</code> <span class="cl-ref">slide 11</span></li>
+        <li>Encontrar las dos líneas útiles dentro de un error de plantilla <span class="cl-ref">slide 14</span></li>
+      </ul>
+      <p class="muted">Si algo sigue sin marcarse, regresa a ese slide antes de continuar.</p>
+    </section>
+
+    <!-- ============ EL COMMIT DE ESTA SESIÓN ============ -->
+    <section>
+      <span class="kicker">R12 · Tu repositorio</span>
+      <h2>El commit de esta sesión</h2>
+      <pre><code class="language-bash" data-trim>
+cd repaso-cpp
+git add r12-errores/
+git commit -m "R12: cinco errores diagnosticados"
+git push
+      </code></pre>
+      <p class="muted">Un commit por sesión. Así, cuando algo deje de compilar, <code>git diff</code> te dice exactamente qué cambiaste desde la última vez que funcionaba.</p>
+    </section>
+
+
+    <!-- ============ 19 · SIGUIENTE ============ -->
+    <section class="divider">
+      <h2>Siguiente:<br>R13 · Memoria dinámica y regla de tres</h2>
+      <p class="muted">La sesión más importante de la serie para lo que viene en Estructuras de Datos.</p>
+      <p><a href="../repaso/">← Volver al índice de la serie</a></p>
+    </section>
+
+    <!-- ============ 20 · REFERENCIAS ============ -->
+    <section>
+      <span class="kicker">R12</span>
+      <h2>Referencias y material para profundizar</h2>
+      <div class="refs cols">
+        <div>
+          <h3>Referencias</h3>
+          <ul>
+            <li><span class="ref-type">Libro</span> Gregoire, M. <em>Professional C++</em>, 5.ª ed., Wiley, 2021. Cap. 30, depuración y diagnóstico.</li>
+            <li><span class="ref-type">Libro</span> Stroustrup, B. <em>Programming: Principles and Practice Using C++</em>, 2.ª ed., Addison-Wesley, 2014. Cap. 5.</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Para profundizar</h3>
+          <ul>
+            <li><span class="ref-type">Web</span> <a href="https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html">GCC — Warning Options</a> <span class="ref-nota">— incluye <code>-fmax-errors</code> y <code>-fdiagnostics-color</code>.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://godbolt.org/">Compiler Explorer</a> <span class="ref-nota">— compara el mismo error en g++, clang y MSVC lado a lado.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://en.cppreference.com/w/cpp/error">cppreference — Diagnostics library</a> <span class="ref-nota">— vocabulario formal de errores y excepciones.</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script src="../js/curso-slides.js"></script>
+<script>
+  Reveal.initialize({
+    width: 1280,
+    height: 720,
+    margin: 0.06,
+    hash: true,
+    progress: true,
+    slideNumber: 'c/t',
+    controls: true,
+    transition: 'slide',
+    transitionSpeed: 'fast',
+    plugins: [ RevealHighlight ]
+  }).then(() => {
+    CursoSlides.init({
+      diagnostico: {
+        titulo: "Diagnóstico",
+        def: "Mensaje que emite el compilador sobre el código fuente. Tiene tres severidades: <code>error</code> detiene la traducción, <code>warning</code> no la detiene, y <code>note</code> agrega contexto al diagnóstico inmediatamente anterior en vez de reportar un problema nuevo."
+      },
+      simbolo: {
+        titulo: "Símbolo",
+        def: "Nombre que el compilador escribe en el archivo objeto para cada función o variable global, con el tipo codificado dentro (<em>name mangling</em>). El enlazador solo trabaja con símbolos: por eso sus mensajes citan firmas completas como <code>Cuenta::depositar(double)</code> y no líneas de código."
+      },
+      instanciacion: {
+        titulo: "Instanciación de plantilla",
+        def: "Proceso por el que el compilador genera código concreto a partir de una plantilla al sustituir sus parámetros por tipos reales. Los errores aparecen durante ese proceso, dentro de la biblioteca, por lo que el diagnóstico incluye la cadena de líneas <code>required from</code> que lleva hasta tu código. Se ve a fondo en R17."
+      }
+    });
+  });
+</script>
+</body>
+</html>

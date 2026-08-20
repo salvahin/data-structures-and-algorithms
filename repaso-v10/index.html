@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Repaso R10 — Constructores, destructor y this</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+  <link rel="stylesheet" href="../css/theme-curso.css">
+</head>
+<body>
+<div class="reveal">
+  <div class="slides">
+
+    <!-- ============ 1 · PORTADA ============ -->
+    <section class="cover">
+      <span class="kicker">Repaso de C++ y POO · Módulo 2 · Programación orientada a objetos</span>
+      <h1>Constructores, destructor y&nbsp;<code>this</code></h1>
+      <div class="cover-meta">
+        R10 · Auto-estudio · 28 minutos<br>
+        Estructuras de Datos y Algoritmos
+      </div>
+    </section>
+
+    <!-- ============ 2 · OBJETIVO ============ -->
+    <section>
+      <span class="kicker">R10 · Objetivo</span>
+      <h2>Al terminar esta sesión podrás…</h2>
+      <ul>
+        <li class="fragment">Escribir constructores por omisión y parametrizados, y sobrecargarlos en una misma clase.</li>
+        <li class="fragment">Explicar qué hace la lista de inicialización y por qué asignar en el cuerpo no produce el mismo resultado.</li>
+        <li class="fragment">Predecir en qué momento exacto se ejecuta cada destructor de un programa.</li>
+        <li class="fragment">Usar <code>this</code> para desambiguar nombres y para devolver el objeto actual.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 3 · ARRANQUE ============ -->
+    <section>
+      <span class="kicker">R10 · Punto de partida</span>
+      <h2>Este constructor no compila</h2>
+      <pre data-title="sensor.cpp"><code class="language-cpp" data-trim>
+class Sensor {
+    const int id;
+public:
+    Sensor(int i) { id = i; }
+};
+
+int main() { Sensor s(7); }
+      </code></pre>
+      <pre><code class="language-plaintext" data-trim>
+sensor.cpp:4:5: error: uninitialized const member in 'const int'
+sensor.cpp:4:24: error: assignment of read-only member 'Sensor::id'
+      </code></pre>
+      <p class="fragment">El código parece razonable: recibe un valor y lo guarda. El compilador dice dos cosas distintas sobre la misma línea, y ninguna de las dos habla de sintaxis.</p>
+    </section>
+
+    <!-- ============ 4 · QUÉ ES UN CONSTRUCTOR ============ -->
+    <section>
+      <span class="kicker">R10 · Constructores</span>
+      <h2>El método que corre al nacer el objeto</h2>
+      <p>Un constructor tiene el mismo nombre que la clase y no declara tipo de retorno. Se ejecuta una sola vez, cuando el objeto entra en existencia, y su trabajo es dejar los campos en un estado válido.</p>
+      <pre data-title="punto.cpp"><code class="language-cpp" data-trim data-line-numbers="1-4|5-6">
+class Punto {
+    int x, y;
+public:
+    Punto() : x(0), y(0) {}           // por omisión
+    Punto(int a, int b) : x(a), y(b) {}   // parametrizado
+};
+      </code></pre>
+      <p class="fragment">Si no escribes ningún constructor, el compilador genera uno por omisión que deja los <code>int</code> con basura. En cuanto escribes uno cualquiera, ese regalo desaparece y <code>Punto p;</code> deja de compilar.</p>
+    </section>
+
+    <!-- ============ 5 · SOBRECARGA ============ -->
+    <section>
+      <span class="kicker">R10 · Constructores</span>
+      <h2>Varios constructores en la misma clase</h2>
+      <p>Se distinguen por el número y tipo de parámetros. El compilador elige el que coincide con los argumentos de la declaración.</p>
+      <pre data-title="punto.cpp"><code class="language-cpp" data-trim data-line-numbers="4|5|6-8|11-13">
+class Punto {
+    int x, y;
+public:
+    Punto() : x(0), y(0) { std::cout &lt;&lt; "Punto()\n"; }
+    Punto(int a) : x(a), y(a) { std::cout &lt;&lt; "Punto(" &lt;&lt; a &lt;&lt; ")\n"; }
+    Punto(int a, int b) : x(a), y(b) {
+        std::cout &lt;&lt; "Punto(" &lt;&lt; a &lt;&lt; "," &lt;&lt; b &lt;&lt; ")\n";
+    }
+};
+
+Punto a;          // Punto()
+Punto b(5);       // Punto(5)
+Punto c(1, 2);    // Punto(1,2)
+      </code></pre>
+    </section>
+
+    <!-- ============ 6 · CHECKPOINT 1 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="c">
+        <p class="quiz-question">Una clase <code>Fecha</code> declara solo <code>Fecha(int d, int m, int a)</code>. ¿Qué pasa con <code>Fecha hoy;</code>?</p>
+        <button class="quiz-option" data-opt="a">Compila y los campos quedan en cero</button>
+        <button class="quiz-option" data-opt="b">Compila y llama al constructor de tres parámetros con valores por omisión</button>
+        <button class="quiz-option" data-opt="c">No compila, porque ya no existe el constructor por omisión</button>
+        <div class="quiz-explain"><strong>C.</strong> El compilador genera el constructor por omisión únicamente cuando la clase no declara ninguno. Al escribir el de tres parámetros lo pierdes, y <code>Fecha hoy;</code> no encuentra a quién llamar. A confunde este caso con el de una clase sin constructores, donde tampoco hay ceros sino basura. B describe parámetros con valor por omisión, que hay que escribir explícitamente.</div>
+      </div>
+    </section>
+
+    <!-- ============ 7 · LISTA DE INICIALIZACIÓN ============ -->
+    <section>
+      <span class="kicker">R10 · Lista de inicialización</span>
+      <h2>Inicializar y asignar son dos operaciones</h2>
+      <p>Los dos puntos antes de la llave abren la <span class="term" data-term="lista-init">lista de inicialización</span>. Lo que ocurre ahí sucede <em>antes</em> de que empiece el cuerpo del constructor.</p>
+      <pre data-title="comparacion.cpp"><code class="language-cpp" data-trim data-line-numbers="1|2">
+class ConCuerpo { Registro r; public: ConCuerpo() { r = Registro(7); } };
+class ConLista  { Registro r; public: ConLista() : r(7) {} };
+      </code></pre>
+      <pre><code class="language-plaintext" data-trim>
+ConCuerpo:
+  Registro()        &lt;- construccion por omision del miembro
+  Registro(7)       &lt;- se construye un temporal
+  operator=         &lt;- se copia encima del miembro
+ConLista:
+  Registro(7)       &lt;- un solo paso
+      </code></pre>
+    </section>
+
+    <!-- ============ 8 · MIEMBROS CONST ============ -->
+    <section>
+      <span class="kicker">R10 · Lista de inicialización</span>
+      <h2>Por qué el ejemplo del arranque fallaba</h2>
+      <ul>
+        <li class="fragment">Al entrar al cuerpo del constructor, todos los miembros ya están construidos. El cuerpo solo puede asignarles valores nuevos.</li>
+        <li class="fragment">Un miembro <code>const</code> no admite asignación después de construido, y una referencia tampoco: hay que darles su valor en el momento de nacer.</li>
+        <li class="fragment">Para esos dos casos la lista de inicialización es la única vía que existe en el lenguaje.</li>
+      </ul>
+      <pre data-title="sensor.cpp"><code class="language-cpp" data-trim>
+class Sensor {
+    const int id;
+public:
+    Sensor(int i) : id(i) {}     // ahora si compila
+};
+      </code></pre>
+    </section>
+
+    <!-- ============ 9 · CHECKPOINT 2 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="a">
+        <p class="quiz-question">La clase tiene miembros <code>int a, b;</code> declarados en ese orden, y el constructor escribe <code>Clase() : b(1), a(b + 1) {}</code>. ¿Qué valor recibe <code>a</code>?</p>
+        <button class="quiz-option" data-opt="a">Un valor indeterminado, porque <code>a</code> se inicializa antes que <code>b</code></button>
+        <button class="quiz-option" data-opt="b">2, porque la lista se ejecuta de izquierda a derecha</button>
+        <button class="quiz-option" data-opt="c">0, porque <code>b</code> todavía no tiene valor y vale cero</button>
+        <div class="quiz-explain"><strong>A.</strong> El orden de la lista de inicialización se ignora: los miembros se inicializan en el orden en que están <em>declarados</em> en la clase. Como <code>a</code> se declara primero, se construye leyendo un <code>b</code> que aún no existe. B es el error habitual de leer la lista como si fuera código secuencial. C supone una inicialización a cero que no ocurre con tipos básicos. Con <code>-Wall -Wextra</code> el compilador avisa con <code>-Wreorder</code>.</div>
+      </div>
+    </section>
+
+    <!-- ============ 10 · DESTRUCTOR ============ -->
+    <section>
+      <span class="kicker">R10 · Destructor</span>
+      <h2>El método que corre al morir el objeto</h2>
+      <p>Se llama igual que la clase con una virgulilla delante, no recibe parámetros y no se puede sobrecargar. Cada clase tiene exactamente uno.</p>
+      <pre data-title="punto.cpp"><code class="language-cpp" data-trim>
+~Punto() { std::cout &lt;&lt; "~Punto(" &lt;&lt; x &lt;&lt; "," &lt;&lt; y &lt;&lt; ")\n"; }
+      </code></pre>
+      <p>Se invoca solo, sin que nadie lo escriba, en tres momentos:</p>
+      <ul>
+        <li class="fragment">Cuando una variable local sale de su <span class="term" data-term="ambito">ámbito</span>, es decir al cerrarse la llave donde se declaró.</li>
+        <li class="fragment">Cuando termina el programa, para los objetos globales.</li>
+        <li class="fragment">Cuando se libera con <code>delete</code> un objeto reservado con <code>new</code> (R13).</li>
+      </ul>
+    </section>
+
+    <!-- ============ 11 · ORDEN REAL ============ -->
+    <section>
+      <span class="kicker">R10 · Destructor</span>
+      <h2>El orden exacto, ejecutado</h2>
+      <div class="cols">
+        <div>
+          <pre data-title="main.cpp"><code class="language-cpp" data-trim data-line-numbers="2|3|4|5">
+int main() {
+    Punto a;
+    Punto b(5);
+    { Punto c(1, 2); }
+    std::cout &lt;&lt; "fin de main\n";
+}
+          </code></pre>
+        </div>
+        <div>
+          <pre><code class="language-plaintext" data-trim>
+Punto()
+Punto(5)
+Punto(1,2)
+~Punto(1,2)
+fin de main
+~Punto(5,5)
+~Punto(0,0)
+          </code></pre>
+        </div>
+      </div>
+      <p class="fragment"><code>c</code> muere en la línea 4, antes del mensaje final, porque su llave cierra ahí. <code>a</code> y <code>b</code> mueren al terminar <code>main</code>, en orden inverso al de construcción.</p>
+    </section>
+
+    <!-- ============ 12 · CHECKPOINT 3 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="b">
+        <p class="quiz-question">Una función recibe un objeto <em>por valor</em> y hace <code>return;</code> a la mitad. ¿Cuántas veces corre el destructor de esa clase durante la llamada?</p>
+        <button class="quiz-option" data-opt="a">Ninguna, porque el objeto original sigue vivo en quien llamó</button>
+        <button class="quiz-option" data-opt="b">Una: el parámetro es una copia y se destruye al salir de la función</button>
+        <button class="quiz-option" data-opt="c">Ninguna, porque el <code>return</code> anticipado se salta la limpieza</button>
+        <div class="quiz-explain"><strong>B.</strong> Pasar por valor construye una copia dentro de la función, y esa copia se destruye al salir. A ignora que la copia también es un objeto. C supone que un <code>return</code> temprano evita la destrucción; el lenguaje garantiza lo contrario, y sobre esa garantía se apoya el RAII de R13.</div>
+      </div>
+    </section>
+
+    <!-- ============ 13 · THIS ============ -->
+    <section>
+      <span class="kicker">R10 · El puntero this</span>
+      <h2>Dentro de un método, <code>this</code> es la dirección del objeto</h2>
+      <pre data-title="contador.cpp"><code class="language-cpp" data-trim data-line-numbers="5|8-10">
+class Contador {
+    int valor;
+public:
+    Contador(int valor) {
+        this-&gt;valor = valor;      // miembro = parametro
+    }
+    Contador&amp; sumar(int n) {
+        valor += n;
+        return *this;             // devuelve el objeto actual
+    }
+};
+Contador c(10);
+c.sumar(5).sumar(3).imprimir();   // imprime 18
+      </code></pre>
+      <p class="fragment">Los dos usos legítimos son estos: desambiguar cuando el parámetro se llama igual que el miembro, y devolver <code>*this</code> para encadenar llamadas. Escribir <code>this-&gt;</code> delante de cada miembro sin necesidad solo agrega ruido.</p>
+    </section>
+
+    <!-- ============ 14 · MOST VEXING PARSE ============ -->
+    <section>
+      <span class="kicker">R10 · Trampa clásica</span>
+      <h2><code>Reloj r();</code> declara una función</h2>
+      <pre data-title="reloj.cpp"><code class="language-cpp" data-trim>
+int main() {
+    Reloj r();       // una funcion r que no recibe nada
+    r.hora();        //  y devuelve un Reloj
+}
+      </code></pre>
+      <pre><code class="language-plaintext" data-trim>
+reloj.cpp:8:12: warning: empty parentheses were disambiguated
+                as a function declaration [-Wvexing-parse]
+reloj.cpp:9:7: error: request for member 'hora' in 'r',
+               which is of non-class type 'Reloj()'
+      </code></pre>
+      <p class="fragment">La gramática de C++ resuelve la ambigüedad a favor de la declaración de función. Se conoce como <span class="term" data-term="vexing">most vexing parse</span>. La forma correcta es <code>Reloj r;</code> o <code>Reloj r{};</code>. Nota que el mensaje del constructor nunca se imprime: el objeto no llegó a existir.</p>
+    </section>
+
+    <!-- ============ 15 · CHECKPOINT 4 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="c">
+        <p class="quiz-question">Tu clase imprime un mensaje en el constructor, pero al correr el programa no aparece nada. La línea es <code>Matriz m();</code>. ¿Qué ocurre?</p>
+        <button class="quiz-option" data-opt="a">El constructor por omisión que genera el compilador reemplazó al tuyo</button>
+        <button class="quiz-option" data-opt="b">La salida quedó en el búfer y se perdió al terminar el programa</button>
+        <button class="quiz-option" data-opt="c">Esa línea declara una función, así que ningún objeto se construyó</button>
+        <div class="quiz-explain"><strong>C.</strong> Con los paréntesis vacíos la línea es una declaración de función y el constructor jamás se ejecuta. A es imposible: si escribiste un constructor, el compilador no genera otro. B describe un problema real de búfer, pero aquí el mensaje no existe porque nunca se produjo.</div>
+      </div>
+    </section>
+
+    <!-- ============ 16 · TRAMPAS COMUNES ============ -->
+    <section>
+      <span class="kicker">R10 · Trampas comunes</span>
+      <h2>Cuatro formas de perder una tarde</h2>
+      <ul>
+        <li class="fragment">Escribir <code>MiClase obj();</code> y buscar el error en el constructor, cuando el objeto ni siquiera se creó.</li>
+        <li class="fragment">Asignar en el cuerpo lo que corresponde a la lista de inicialización: compila para tipos básicos y falla para <code>const</code>, referencias y clases sin constructor por omisión.</li>
+        <li class="fragment">Escribir la lista en un orden distinto al de declaración de los miembros y suponer que se respeta.</li>
+        <li class="fragment">Dar al destructor un tipo de retorno o parámetros. La firma es fija: <code>~Clase()</code> y nada más.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 17 · EJERCICIO ============ -->
+    <section>
+      <span class="kicker">R10 · Ejercicio</span>
+      <h2>Predice el orden de los mensajes</h2>
+      <pre data-title="ejercicio.cpp"><code class="language-cpp" data-trim>
+Sesion global("global");
+
+int main() {
+    Sesion a("a");
+    {
+        Sesion b("b");
+        Sesion c("c", 2);
+    }
+    std::cout &lt;&lt; "--- medio ---\n";
+    Sesion d;
+}
+      </code></pre>
+      <p class="muted">La clase <code>Sesion</code> tiene tres constructores —sin argumentos, con nombre, con nombre y prioridad— y un destructor; los cuatro imprimen su nombre. Escribe la salida completa antes de abrir la solución.</p>
+      <div class="solucion" data-label="Ver mi predicción">
+        <pre><code class="language-plaintext" data-trim>
+Sesion(global)
+Sesion(a)
+Sesion(b)
+Sesion(c, 2)
+~Sesion(c)        &lt;- la llave interna cierra aqui
+~Sesion(b)
+--- medio ---
+Sesion(sin nombre)
+~Sesion(sin nombre)
+~Sesion(a)
+~Sesion(global)   &lt;- despues de que main termina
+        </code></pre>
+        <p class="muted">Dos reglas explican toda la salida: los objetos mueren al cerrarse su llave, y dentro de un mismo ámbito mueren en orden inverso al de construcción. El global se construye primero y se destruye al final.</p>
+      </div>
+    </section>
+
+    <!-- ============ 18 · CHECKLIST ============ -->
+    <section>
+      <span class="kicker">R10 · Antes de pasar a R11</span>
+      <h2>Verifica que ya puedes</h2>
+      <ul class="checklist" data-deck="v10">
+        <li>Sobrecargar constructores y saber cuándo desaparece el de por omisión <span class="cl-ref">slide 5</span></li>
+        <li>Explicar qué hace la lista de inicialización y por qué <code>const</code> la exige <span class="cl-ref">slide 8</span></li>
+        <li>Predecir el momento exacto en que corre cada destructor <span class="cl-ref">slide 11</span></li>
+        <li>Usar <code>this</code> para desambiguar y para devolver el objeto actual <span class="cl-ref">slide 13</span></li>
+        <li>Reconocer <code>MiClase obj();</code> como declaración de función <span class="cl-ref">slide 14</span></li>
+      </ul>
+      <p class="muted">Si algo sigue sin marcarse, regresa a ese slide antes de continuar.</p>
+    </section>
+
+    <!-- ============ EL COMMIT DE ESTA SESIÓN ============ -->
+    <section>
+      <span class="kicker">R10 · Tu repositorio</span>
+      <h2>El commit de esta sesión</h2>
+      <pre><code class="language-bash" data-trim>
+cd repaso-cpp
+git add r10-constructores/
+git commit -m "R10: orden de constructores y destructor"
+git push
+      </code></pre>
+      <p class="muted">Un commit por sesión. Así, cuando algo deje de compilar, <code>git diff</code> te dice exactamente qué cambiaste desde la última vez que funcionaba.</p>
+    </section>
+
+
+    <!-- ============ 19 · SIGUIENTE ============ -->
+    <section class="divider">
+      <h2>Siguiente:<br>R11 · Separación <code>.h</code>/<code>.cpp</code> y compilación multiarchivo</h2>
+      <p class="muted">La clase ya tiene constructores, destructor y métodos. Es momento de sacarla de <code>main.cpp</code>.</p>
+      <p><a href="../repaso/">← Volver al índice de la serie</a></p>
+    </section>
+
+    <!-- ============ 20 · REFERENCIAS ============ -->
+    <section>
+      <span class="kicker">R10</span>
+      <h2>Referencias y material para profundizar</h2>
+      <div class="refs cols">
+        <div>
+          <h3>Referencias</h3>
+          <ul>
+            <li><span class="ref-type">Libro</span> Stroustrup, B. <em>A Tour of C++</em>, 3.ª ed., Addison-Wesley, 2022. Cap. 5.</li>
+            <li><span class="ref-type">Libro</span> Gregoire, M. <em>Professional C++</em>, 5.ª ed., Wiley, 2021. Cap. 8 y 9.</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Para profundizar</h3>
+          <ul>
+            <li><span class="ref-type">Web</span> <a href="https://en.cppreference.com/w/cpp/language/constructor">cppreference — Constructors</a> <span class="ref-nota">— la referencia formal sobre orden de inicialización.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://en.cppreference.com/w/cpp/language/destructor">cppreference — Destructors</a> <span class="ref-nota">— lista completa de los momentos en que se invoca.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#c-classes-and-class-hierarchies">C++ Core Guidelines — Clases</a> <span class="ref-nota">— reglas C.40 a C.52 sobre constructores.</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script src="../js/curso-slides.js"></script>
+<script>
+  Reveal.initialize({
+    width: 1280,
+    height: 720,
+    margin: 0.06,
+    hash: true,
+    progress: true,
+    slideNumber: 'c/t',
+    controls: true,
+    transition: 'slide',
+    transitionSpeed: 'fast',
+    plugins: [ RevealHighlight ]
+  }).then(() => {
+    CursoSlides.init({
+      "lista-init": {
+        titulo: "Lista de inicialización",
+        def: "Sección del constructor que va entre los dos puntos y la llave de apertura: <code>Punto(int a) : x(a), y(a) { }</code>. Da su valor inicial a cada miembro antes de que empiece el cuerpo. Es la única forma de dar valor a miembros <code>const</code>, a referencias y a objetos cuya clase no tiene constructor por omisión."
+      },
+      ambito: {
+        titulo: "Ámbito (scope)",
+        def: "Región de código donde un nombre es válido. Para una variable local va desde su declaración hasta la llave que cierra el bloque. Al salir del ámbito se destruyen todas las variables declaradas en él, en orden inverso al de construcción."
+      },
+      vexing: {
+        titulo: "Most vexing parse",
+        def: "Regla de la gramática de C++: cuando una construcción puede leerse como declaración de variable o como declaración de función, se lee como declaración de función. Por eso <code>Reloj r();</code> declara una función <code>r</code> sin parámetros que devuelve <code>Reloj</code>. Se evita escribiendo <code>Reloj r;</code> o <code>Reloj r{};</code>."
+      }
+    });
+  });
+</script>
+</body>
+</html>

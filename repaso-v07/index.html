@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Repaso R7 — std::string y espacios de nombres</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+  <link rel="stylesheet" href="../css/theme-curso.css">
+</head>
+<body>
+<div class="reveal">
+  <div class="slides">
+
+    <!-- ============ 1 · PORTADA ============ -->
+    <section class="cover">
+      <span class="kicker">Repaso de C++ y POO · Módulo 1 · Recapitulación de C++</span>
+      <h1><code>std::string</code> y espacios de&nbsp;nombres</h1>
+      <div class="cover-meta">
+        R7 · Auto-estudio · 24 minutos<br>
+        Estructuras de Datos y Algoritmos
+      </div>
+    </section>
+
+    <!-- ============ 2 · OBJETIVO ============ -->
+    <section>
+      <span class="kicker">R7 · Objetivo</span>
+      <h2>Al terminar esta sesión podrás…</h2>
+      <ul>
+        <li class="fragment">Construir, concatenar y medir cadenas con <code>std::string</code>.</li>
+        <li class="fragment">Extraer una parte con <code>substr</code> y buscar con <code>find</code>, comparando siempre contra <code>npos</code>.</li>
+        <li class="fragment">Recorrer una cadena carácter por carácter de dos maneras.</li>
+        <li class="fragment">Explicar qué gana <code>std::string</code> sobre <code>char*</code>.</li>
+        <li class="fragment">Definir un espacio de nombres y decidir dónde <code>using namespace std;</code> es aceptable.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 3 · ARRANQUE ============ -->
+    <section>
+      <span class="kicker">R7 · Punto de partida</span>
+      <h2>Este programa encuentra lo que no existe</h2>
+      <pre data-title="buscar.cpp"><code class="language-cpp" data-trim>
+#include &lt;iostream&gt;
+#include &lt;string&gt;
+
+int main() {
+    std::string s = "estructuras de datos";
+    if (s.find("arbol") &gt; 0)
+        std::cout &lt;&lt; "arbol si aparece\n";
+    if (s.find("estructuras") &gt; 0)
+        std::cout &lt;&lt; "estructuras si aparece\n";
+}
+      </code></pre>
+      <pre><code class="language-plaintext" data-trim>
+$ ./buscar
+arbol si aparece
+      </code></pre>
+      <p class="fragment">Reporta la palabra ausente y calla la que sí está. Compila sin una sola advertencia.</p>
+    </section>
+
+    <!-- ============ 4 · CREAR Y CONCATENAR ============ -->
+    <section>
+      <span class="kicker">R7 · Operaciones básicas</span>
+      <h2>Crear y unir cadenas</h2>
+      <pre data-title="cadenas.cpp"><code class="language-cpp" data-trim data-line-numbers="5-6|7|8|9">
+#include &lt;iostream&gt;
+#include &lt;string&gt;
+
+int main() {
+    std::string curso = "Estructuras";
+    std::string tema  = "Datos";
+    std::string todo = curso + " de " + tema;
+    todo += " y Algoritmos";
+    std::string linea(5, '-');
+    std::cout &lt;&lt; todo &lt;&lt; '\n' &lt;&lt; linea &lt;&lt; '\n';
+}
+      </code></pre>
+      <ul>
+        <li class="fragment"><code>+</code> produce una cadena nueva; <code>+=</code> modifica la que ya tienes y evita la copia.</li>
+        <li class="fragment">El constructor <code>std::string linea(5, '-')</code> repite un carácter. Es útil para separadores y para reservar espacio inicial.</li>
+        <li class="fragment">Hay que incluir <code>&lt;string&gt;</code>. Que a veces funcione sin él es un accidente de qué arrastra <code>&lt;iostream&gt;</code> en tu compilador.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 5 · SIZE Y SUBSTR ============ -->
+    <section>
+      <span class="kicker">R7 · Operaciones básicas</span>
+      <h2>Tamaño y trozos</h2>
+      <pre data-title="partes.cpp"><code class="language-cpp" data-trim data-line-numbers="2|3|4|5-6">
+std::string s = "Estructuras de Datos";
+std::cout &lt;&lt; s.size() &lt;&lt; '\n';          // 20
+std::cout &lt;&lt; s.substr(0, 11) &lt;&lt; '\n';   // Estructuras
+std::cout &lt;&lt; s.substr(15) &lt;&lt; '\n';      // Datos
+std::cout &lt;&lt; s.front() &lt;&lt; s.back();     // Es
+std::cout &lt;&lt; s.empty() &lt;&lt; '\n';         // 0
+      </code></pre>
+      <ul>
+        <li class="fragment">Las posiciones empiezan en 0 y la última válida es <code>s.size() - 1</code>.</li>
+        <li class="fragment"><code>substr(inicio, cantidad)</code>: el segundo argumento es <strong>cuántos caracteres</strong>, no la posición final. Con un solo argumento copia hasta el final.</li>
+        <li class="fragment"><code>length()</code> hace exactamente lo mismo que <code>size()</code>; el nombre <code>size()</code> es el que comparten todos los contenedores de la biblioteca.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 6 · CHECKPOINT 1 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="a">
+        <p class="quiz-question">Con <code>std::string s = "algoritmos";</code>, ¿qué imprime <code>s.substr(2, 4)</code>?</p>
+        <button class="quiz-option" data-opt="a"><code>gori</code></button>
+        <button class="quiz-option" data-opt="b"><code>gor</code></button>
+        <button class="quiz-option" data-opt="c"><code>lgori</code></button>
+        <div class="quiz-explain"><strong>A.</strong> Se empieza en la posición 2, que es la <code>g</code> porque la <code>a</code> ocupa la posición 0, y se toman cuatro caracteres: <code>g</code>, <code>o</code>, <code>r</code>, <code>i</code>. La opción B sale de leer el 4 como posición final en lugar de como cantidad de caracteres. La C sale de arrancar en la posición 1.</div>
+      </div>
+    </section>
+
+    <!-- ============ 7 · FIND Y NPOS ============ -->
+    <section>
+      <span class="kicker">R7 · Búsqueda</span>
+      <h2><code>find</code> y el valor <code>npos</code></h2>
+      <pre data-title="buscar.cpp · corregido"><code class="language-cpp" data-trim data-line-numbers="2|3-4|5-6">
+std::string s = "estructuras de datos";
+std::size_t p = s.find("datos");
+if (p != std::string::npos)
+    std::cout &lt;&lt; "encontrado en " &lt;&lt; p &lt;&lt; '\n';   // 15
+if (s.find("arbol") == std::string::npos)
+    std::cout &lt;&lt; "no aparece\n";
+      </code></pre>
+      <ul>
+        <li class="fragment"><code>find</code> devuelve la posición del primer carácter de la coincidencia, y <span class="term" data-term="npos"><code>std::string::npos</code></span> cuando no hay ninguna.</li>
+        <li class="fragment"><code>npos</code> es un valor sin signo enorme, así que <code>find(...) &gt; 0</code> es verdadero justo cuando la búsqueda fracasa.</li>
+        <li class="fragment">Ese mismo detalle explica el segundo <code>if</code> del arranque: <code>"estructuras"</code> está en la posición 0, y <code>0 &gt; 0</code> es falso.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 8 · COMPARAR Y RECORRER ============ -->
+    <section>
+      <span class="kicker">R7 · Comparar y recorrer</span>
+      <h2>Comparación y recorrido carácter por carácter</h2>
+      <pre data-title="recorrer.cpp"><code class="language-cpp" data-trim data-line-numbers="1-3|5-7|9-10">
+std::string a = "casa", b = "Casa";
+if (a == b) std::cout &lt;&lt; "iguales\n";      // no entra
+if (b &lt; a)  std::cout &lt;&lt; "Casa antes\n";   // 'C'=67, 'c'=99
+
+// recorrido por indice
+for (std::size_t i = 0; i &lt; a.size(); i++)
+    std::cout &lt;&lt; a[i] &lt;&lt; '-';              // c-a-s-a-
+
+// recorrido por rango
+for (char c : a) std::cout &lt;&lt; c;           // casa
+      </code></pre>
+      <ul>
+        <li class="fragment"><code>==</code> compara contenido; <code>&lt;</code> compara en orden lexicográfico usando el código de cada carácter, así que las mayúsculas van antes que las minúsculas.</li>
+        <li class="fragment"><code>a[i]</code> no revisa el rango. <code>a.at(i)</code> sí, y lanza una excepción si te pasas.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 9 · CHECKPOINT 2 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="c">
+        <p class="quiz-question">¿Cuál es la forma correcta de preguntar si <code>"nodo"</code> aparece dentro de <code>texto</code>?</p>
+        <button class="quiz-option" data-opt="a"><code>if (texto.find("nodo") &gt; 0)</code></button>
+        <button class="quiz-option" data-opt="b"><code>if (texto.find("nodo") != -1)</code></button>
+        <button class="quiz-option" data-opt="c"><code>if (texto.find("nodo") != std::string::npos)</code></button>
+        <div class="quiz-explain"><strong>C.</strong> A falla dos veces: da verdadero cuando no hay coincidencia, porque <code>npos</code> es un número enorme, y da falso cuando la coincidencia está en la posición 0. B da el resultado correcto, porque <code>npos</code> se define como <code>size_type(-1)</code> y el literal se convierte a ese mismo valor, pero mezcla tipos con y sin signo, dispara <code>-Wsign-compare</code> y oculta la intención. Comparar contra <code>std::string::npos</code> dice en el código lo que se está preguntando.</div>
+      </div>
+    </section>
+
+    <!-- ============ 10 · STRING FRENTE A CHAR* ============ -->
+    <section>
+      <span class="kicker">R7 · string frente a char*</span>
+      <h2>Lo que cambia al dejar <code>char*</code></h2>
+      <div class="cols">
+        <div>
+          <pre data-title="cadena en C"><code class="language-cpp" data-trim>
+const char* a = "hola";
+const char* b = "hola";
+a == b;              // compara direcciones
+std::strcmp(a, b);   // compara contenido
+std::strlen(a);      // recorre hasta el '\0'
+// concatenar exige reservar
+// espacio a mano
+          </code></pre>
+        </div>
+        <div>
+          <pre data-title="std::string"><code class="language-cpp" data-trim>
+std::string x = "hola";
+std::string y = "hola";
+x == y;              // compara contenido
+x.size();            // dato guardado
+x += " mundo";       // crece sola
+          </code></pre>
+        </div>
+      </div>
+      <ul>
+        <li class="fragment"><span class="term" data-term="cadena-c">Una cadena de C</span> es un arreglo de <code>char</code> que termina en <code>'\0'</code>. Conoce su final solo recorriéndose, y quien la use administra su memoria.</li>
+        <li class="fragment"><code>std::string</code> guarda su tamaño, ajusta su capacidad al crecer y libera su memoria al salir de ámbito. En este curso se usa siempre.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 11 · CHECKPOINT 3 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="b">
+        <p class="quiz-question">Con <code>const char* a = "hola";</code> y <code>const char* b = "hola";</code>, ¿qué compara <code>a == b</code>?</p>
+        <button class="quiz-option" data-opt="a">El contenido, igual que en <code>std::string</code></button>
+        <button class="quiz-option" data-opt="b">Las direcciones donde empieza cada cadena</button>
+        <button class="quiz-option" data-opt="c">La longitud de ambas cadenas</button>
+        <div class="quiz-explain"><strong>B.</strong> <code>a</code> y <code>b</code> son punteros, y <code>==</code> entre punteros compara direcciones. El resultado depende de si el compilador decidió guardar los dos literales iguales en el mismo lugar, así que a veces da verdadero y a veces falso. Para comparar contenido en C se usa <code>std::strcmp</code>. Con <code>std::string</code> el operador <code>==</code> sí compara los caracteres.</div>
+      </div>
+    </section>
+
+    <!-- ============ 12 · NAMESPACES: EL PROBLEMA ============ -->
+    <section>
+      <span class="kicker">R7 · Espacios de nombres</span>
+      <h2>Qué problema resuelven</h2>
+      <pre data-title="colision"><code class="language-cpp" data-trim>
+// lista.h  (biblioteca de listas)
+struct Nodo { int dato; Nodo* siguiente; };
+void imprimir(const Nodo* n);
+
+// arbol.h  (biblioteca de arboles)
+struct Nodo { int dato; Nodo* izq; Nodo* der; };
+void imprimir(const Nodo* n);
+      </code></pre>
+      <p class="fragment">Incluir los dos archivos en el mismo <code>.cpp</code> produce <code>redefinition of 'struct Nodo'</code>. Las dos bibliotecas son correctas por separado y ninguna puede renombrar sus tipos sin romper a sus usuarios.</p>
+      <p class="fragment"><span class="term" data-term="namespace">Un espacio de nombres</span> agrega un prefijo a cada nombre, así que <code>lista::Nodo</code> y <code>arbol::Nodo</code> conviven.</p>
+    </section>
+
+    <!-- ============ 13 · DEFINIR UN NAMESPACE ============ -->
+    <section>
+      <span class="kicker">R7 · Espacios de nombres</span>
+      <h2>Definir uno y usarlo</h2>
+      <pre data-title="areas.cpp"><code class="language-cpp" data-trim data-line-numbers="1-4|6-8|11-12">
+namespace geometria {
+    const double PI = 3.14159265;
+    double area(double r) { return PI * r * r; }
+}
+
+namespace fisica {
+    double area(double b, double h) { return b * h; }
+}
+
+int main() {
+    std::cout &lt;&lt; geometria::area(2.0) &lt;&lt; '\n';   // 12.5664
+    std::cout &lt;&lt; fisica::area(3.0, 4.0) &lt;&lt; '\n'; // 12
+}
+      </code></pre>
+      <ul>
+        <li class="fragment">El bloque <code>namespace</code> no lleva punto y coma final y puede reabrirse en varios archivos: todo lo que declares dentro se acumula bajo el mismo prefijo.</li>
+        <li class="fragment">El operador <code>::</code> elige de qué espacio viene el nombre. <code>std::string</code> y <code>std::cout</code> son exactamente eso.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 14 · USING NAMESPACE STD ============ -->
+    <section>
+      <span class="kicker">R7 · Espacios de nombres</span>
+      <h2><code>using namespace std;</code>: dónde sí y dónde no</h2>
+      <pre data-title="util.h · lo que no se hace"><code class="language-cpp" data-trim data-line-numbers="3|4">
+#pragma once
+#include &lt;string&gt;
+using namespace std;      // viaja a todo .cpp que lo incluya
+string saludo();
+      </code></pre>
+      <pre><code class="language-plaintext" data-trim>
+main.cpp:8:5: error: reference to 'count' is ambiguous
+    8 |     count++;
+      |     ^~~~~
+note: candidates are: 'template&lt;...&gt; std::count(...)'
+note:                 'int count'
+      </code></pre>
+      <ul>
+        <li class="fragment">Quien incluya <code>util.h</code> recibe los mil nombres de <code>std</code> aunque no los pidió, y su variable <code>count</code> deja de compilar. El error aparece en su archivo, no en el header culpable.</li>
+        <li class="fragment">En un <code>.cpp</code> de práctica el efecto termina en ese archivo y nadie más lo sufre. En un header nunca se escribe.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 15 · CHECKPOINT 4 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="a">
+        <p class="quiz-question">¿Por qué <code>using namespace std;</code> es peor en un <code>.h</code> que en un <code>.cpp</code>?</p>
+        <button class="quiz-option" data-opt="a">Porque el header se copia dentro de cada archivo que lo incluye, así que impone la decisión a todos sus usuarios</button>
+        <button class="quiz-option" data-opt="b">Porque en un <code>.h</code> la directiva se ejecuta en tiempo de ejecución y hace más lento el programa</button>
+        <button class="quiz-option" data-opt="c">Porque los headers se compilan una sola vez y la directiva se pierde</button>
+        <div class="quiz-explain"><strong>A.</strong> El preprocesador pega el contenido del header en cada <code>.cpp</code> que lo incluye, de modo que la directiva viaja con él y puede provocar ambigüedades en código ajeno. B confunde una instrucción del compilador con código ejecutable: <code>using</code> no genera ninguna instrucción. C describe los headers precompilados, que son otro mecanismo y no evitan el problema.</div>
+      </div>
+    </section>
+
+    <!-- ============ 16 · TRAMPAS COMUNES ============ -->
+    <section>
+      <span class="kicker">R7 · Trampas comunes</span>
+      <h2>Cuatro errores que aparecen siempre</h2>
+      <ul>
+        <li class="fragment">Usar <code>find</code> sin comparar contra <code>npos</code>. El resultado es de tipo sin signo y cualquier comparación con <code>&gt; 0</code> o <code>&gt;= 0</code> da lo contrario de lo que esperas.</li>
+        <li class="fragment">Leer el segundo argumento de <code>substr</code> como posición final. Es una cantidad de caracteres.</li>
+        <li class="fragment">Comparar <code>char*</code> con <code>==</code> y creer que compara contenido.</li>
+        <li class="fragment">Indexar con <code>s[s.size()]</code>. Esa posición está fuera del contenido; el último carácter es <code>s[s.size() - 1]</code>.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 17 · EJERCICIO ============ -->
+    <section>
+      <span class="kicker">R7 · Ejercicio</span>
+      <h2>Contar palabras y voltear una cadena</h2>
+      <ol>
+        <li>Escribe <code>int contarPalabras(const std::string&amp; s)</code> que cuente grupos de caracteres separados por espacios, tolerando espacios repetidos.</li>
+        <li>Escribe <code>std::string voltear(const std::string&amp; s)</code> que devuelva la cadena invertida.</li>
+        <li>Usa solo <code>size</code>, <code>operator[]</code> y <code>+=</code>. Nada de <code>&lt;algorithm&gt;</code>.</li>
+      </ol>
+      <div class="solucion">
+        <pre><code class="language-cpp" data-trim>
+int contarPalabras(const std::string&amp; s) {
+    int n = 0; bool dentro = false;
+    for (char c : s) {
+        if (c == ' ') dentro = false;
+        else if (!dentro) { dentro = true; n++; }
+    }
+    return n;
+}
+std::string voltear(const std::string&amp; s) {
+    std::string r;
+    for (std::size_t i = s.size(); i &gt; 0; i--)
+        r += s[i - 1];
+    return r;
+}
+        </code></pre>
+        <p class="muted">El índice de <code>voltear</code> baja desde <code>s.size()</code> y se lee <code>s[i - 1]</code>. Escribirlo como <code>for (std::size_t i = s.size() - 1; i &gt;= 0; i--)</code> produce un ciclo infinito, porque un <code>size_t</code> nunca es negativo.</p>
+      </div>
+    </section>
+
+    <!-- ============ 18 · CHECKLIST ============ -->
+    <section>
+      <span class="kicker">R7 · Antes de pasar a R8</span>
+      <h2>Verifica que ya puedes</h2>
+      <ul class="checklist" data-deck="v07">
+        <li>Crear, concatenar y medir cadenas <span class="cl-ref">slide 4</span></li>
+        <li>Extraer un trozo con <code>substr</code> contando desde 0 <span class="cl-ref">slide 5</span></li>
+        <li>Buscar con <code>find</code> comparando contra <code>npos</code> <span class="cl-ref">slide 7</span></li>
+        <li>Recorrer una cadena por índice y por rango <span class="cl-ref">slide 8</span></li>
+        <li>Justificar por qué <code>using namespace std;</code> no va en un header <span class="cl-ref">slide 14</span></li>
+      </ul>
+      <p class="muted">Si algo sigue sin marcarse, regresa a ese slide antes de continuar.</p>
+    </section>
+
+    <!-- ============ EL COMMIT DE ESTA SESIÓN ============ -->
+    <section>
+      <span class="kicker">R7 · Tu repositorio</span>
+      <h2>El commit de esta sesión</h2>
+      <pre><code class="language-bash" data-trim>
+cd repaso-cpp
+git add r07-string/
+git commit -m "R7: contar palabras y voltear una cadena"
+git push
+      </code></pre>
+      <p class="muted">Un commit por sesión. Así, cuando algo deje de compilar, <code>git diff</code> te dice exactamente qué cambiaste desde la última vez que funcionaba.</p>
+    </section>
+
+
+    <!-- ============ 19 · SIGUIENTE ============ -->
+    <section class="divider">
+      <h2>Siguiente:<br>R8 · Arreglos, punteros y referencias</h2>
+      <p class="muted"><code>std::string</code> administra su memoria por ti. Ahora toca ver la memoria directamente.</p>
+      <p><a href="../repaso/">← Volver al índice de la serie</a></p>
+    </section>
+
+    <!-- ============ 20 · REFERENCIAS ============ -->
+    <section>
+      <span class="kicker">R7</span>
+      <h2>Referencias y material para profundizar</h2>
+      <div class="refs cols">
+        <div>
+          <h3>Referencias</h3>
+          <ul>
+            <li><span class="ref-type">Libro</span> Stroustrup, B. <em>A Tour of C++</em>, 3.ª ed., Addison-Wesley, 2022. Cap. 10, “Strings and Regular Expressions”.</li>
+            <li><span class="ref-type">Libro</span> Gregoire, M. <em>Professional C++</em>, 5.ª ed., Wiley, 2021. Cap. 2, “Working with Strings and String Views”.</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Para profundizar</h3>
+          <ul>
+            <li><span class="ref-type">Web</span> <a href="https://en.cppreference.com/w/cpp/string/basic_string">cppreference — std::basic_string</a> <span class="ref-nota">— la lista completa de operaciones.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#sf7-dont-write-using-namespace-at-global-scope-in-a-header-file">C++ Core Guidelines SF.7</a> <span class="ref-nota">— la regla sobre <code>using namespace</code> en headers.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://en.cppreference.com/w/cpp/language/namespace">cppreference — Namespaces</a> <span class="ref-nota">— alias, namespaces anidados y sin nombre.</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script src="../js/curso-slides.js"></script>
+<script>
+  Reveal.initialize({
+    width: 1280,
+    height: 720,
+    margin: 0.06,
+    hash: true,
+    progress: true,
+    slideNumber: 'c/t',
+    controls: true,
+    transition: 'slide',
+    transitionSpeed: 'fast',
+    plugins: [ RevealHighlight ]
+  }).then(() => {
+    CursoSlides.init({
+      npos: {
+        titulo: "std::string::npos",
+        def: "Constante que <code>find</code> y sus variantes devuelven cuando no hay coincidencia. Es el mayor valor representable en el tipo de tamaño de la cadena, así que comparar el resultado con <code>&gt; 0</code> o <code>&gt;= 0</code> siempre da verdadero. La comparación correcta es <code>!= std::string::npos</code>."
+      },
+      "cadena-c": {
+        titulo: "Cadena de C (C-string)",
+        def: "Arreglo de <code>char</code> cuyo final se marca con el carácter <code>'\\0'</code>. No guarda su longitud: cada consulta de tamaño recorre el arreglo hasta el terminador. Quien la usa se encarga de reservar y liberar su memoria."
+      },
+      namespace: {
+        titulo: "Espacio de nombres (namespace)",
+        def: "Región con nombre que agrupa declaraciones para que sus identificadores no choquen con los de otras bibliotecas. Se accede a sus miembros con <code>espacio::nombre</code>. La biblioteca estándar de C++ vive completa dentro de <code>std</code>."
+      }
+    });
+  });
+</script>
+</body>
+</html>

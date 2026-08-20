@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Repaso R11 — Separación .h/.cpp y compilación multiarchivo</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+  <link rel="stylesheet" href="../css/theme-curso.css">
+</head>
+<body>
+<div class="reveal">
+  <div class="slides">
+
+    <!-- ============ 1 · PORTADA ============ -->
+    <section class="cover">
+      <span class="kicker">Repaso de C++ y POO · Módulo 2 · Programación orientada a objetos</span>
+      <h1>Separación <code>.h</code>/<code>.cpp</code> y compilación multiarchivo</h1>
+      <div class="cover-meta">
+        R11 · Auto-estudio · 26 minutos<br>
+        Estructuras de Datos y Algoritmos
+      </div>
+    </section>
+
+    <!-- ============ 2 · OBJETIVO ============ -->
+    <section>
+      <span class="kicker">R11 · Objetivo</span>
+      <h2>Al terminar esta sesión podrás…</h2>
+      <ul>
+        <li class="fragment">Decidir qué parte de una clase va en el <code>.h</code> y qué parte en el <code>.cpp</code>.</li>
+        <li class="fragment">Escribir guardas de inclusión y explicar contra qué protegen.</li>
+        <li class="fragment">Compilar a objetos por separado y enlazarlos, sin repetir trabajo innecesario.</li>
+        <li class="fragment">Leer y escribir un Makefile de tres reglas para un proyecto de tres archivos.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 3 · ARRANQUE ============ -->
+    <section>
+      <span class="kicker">R11 · Punto de partida</span>
+      <h2>Dos archivos, una función, un error de enlazado</h2>
+      <div class="cols">
+        <div>
+          <pre data-title="util.h"><code class="language-cpp" data-trim>
+#pragma once
+int doble(int n) { return 2 * n; }
+          </code></pre>
+          <pre data-title="a.cpp"><code class="language-cpp" data-trim>
+#include "util.h"
+int usarA() { return doble(2); }
+          </code></pre>
+        </div>
+        <div>
+          <pre data-title="main.cpp"><code class="language-cpp" data-trim>
+#include &lt;iostream&gt;
+#include "util.h"
+int usarA();
+int main() {
+    std::cout &lt;&lt; usarA() + doble(1) &lt;&lt; '\n';
+}
+          </code></pre>
+        </div>
+      </div>
+      <pre><code class="language-plaintext" data-trim>
+$ g++ -std=c++17 -Wall -Wextra main.cpp a.cpp -o app
+/usr/bin/ld: a.o: in function `doble(int)':
+a.cpp:(.text+0x0): multiple definition of `doble(int)';
+main.o:main.cpp:(.text+0x0): first defined here
+      </code></pre>
+      <p class="fragment">El <code>#pragma once</code> está puesto y aun así hay dos definiciones. Antes de terminar esta sesión vas a saber por qué.</p>
+    </section>
+
+    <!-- ============ 4 · QUÉ VA EN CADA ARCHIVO ============ -->
+    <section>
+      <span class="kicker">R11 · El reparto</span>
+      <h2>El header promete, el <code>.cpp</code> cumple</h2>
+      <table>
+        <tr><th>En el <code>.h</code></th><th>En el <code>.cpp</code></th></tr>
+        <tr><td>La definición de la clase con sus miembros</td><td>El cuerpo de cada método</td></tr>
+        <tr><td>Las <em>declaraciones</em> de los métodos (firma y punto y coma)</td><td>Las funciones auxiliares que nadie más usa</td></tr>
+        <tr><td>Constantes y <code>enum</code> que otros archivos necesitan</td><td>Las variables globales del módulo</td></tr>
+        <tr><td>Los <code>#include</code> que el header mismo necesita</td><td>Los <code>#include</code> que solo usa la implementación</td></tr>
+      </table>
+      <p class="fragment">El criterio operativo: en el header va lo que otro archivo necesita conocer para compilar; todo lo demás va en el <code>.cpp</code>. Cada línea que agregas al header la pagan todos los archivos que lo incluyen.</p>
+    </section>
+
+    <!-- ============ 5 · LA CLASE DIVIDIDA ============ -->
+    <section>
+      <span class="kicker">R11 · El reparto</span>
+      <h2>La clase <code>Punto</code> en dos archivos</h2>
+      <div class="cols">
+        <div>
+          <pre data-title="punto.h"><code class="language-cpp" data-trim>
+#ifndef PUNTO_H
+#define PUNTO_H
+
+class Punto {
+    double x, y;
+public:
+    Punto();
+    Punto(double a, double b);
+    double distanciaAlOrigen() const;
+    void imprimir() const;
+};
+
+#endif
+          </code></pre>
+        </div>
+        <div>
+          <pre data-title="punto.cpp"><code class="language-cpp" data-trim>
+#include "punto.h"
+#include &lt;iostream&gt;
+#include &lt;cmath&gt;
+
+Punto::Punto() : x(0), y(0) {}
+Punto::Punto(double a, double b)
+    : x(a), y(b) {}
+
+double Punto::distanciaAlOrigen() const {
+    return std::sqrt(x * x + y * y);
+}
+          </code></pre>
+        </div>
+      </div>
+      <p class="fragment"><code>&lt;iostream&gt;</code> y <code>&lt;cmath&gt;</code> se quedan en el <code>.cpp</code> porque el header no los necesita para describir la clase.</p>
+    </section>
+
+    <!-- ============ 6 · LA SINTAXIS Punto:: ============ -->
+    <section>
+      <span class="kicker">R11 · El reparto</span>
+      <h2>Qué se repite y qué no en la implementación</h2>
+      <pre data-title="punto.cpp"><code class="language-cpp" data-trim data-line-numbers="1|2-4">
+double Punto::distanciaAlOrigen() const {
+    return std::sqrt(x * x + y * y);
+}
+      </code></pre>
+      <ul>
+        <li class="fragment"><code>Punto::</code> indica a qué clase pertenece el método; sin ese prefijo sería una función libre y el enlazador no la relacionaría con la declaración del header.</li>
+        <li class="fragment">El <code>const</code> del final es parte de la firma y debe aparecer en los dos archivos. Si lo escribes solo en uno, el compilador ve dos métodos distintos.</li>
+        <li class="fragment">Los valores por omisión de los parámetros se escriben únicamente en el header. Repetirlos en el <code>.cpp</code> es un error.</li>
+        <li class="fragment">La lista de inicialización va en el <code>.cpp</code>, junto al cuerpo, no en la declaración.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 7 · CHECKPOINT 1 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="c">
+        <p class="quiz-question">Declaras <code>void imprimir() const;</code> en <code>punto.h</code> y escribes <code>void Punto::imprimir() { … }</code> en <code>punto.cpp</code>. ¿Qué ocurre?</p>
+        <button class="quiz-option" data-opt="a">Compila sin problema: el <code>const</code> del header es solo documentación</button>
+        <button class="quiz-option" data-opt="b">Compila y falla al enlazar con <code>undefined reference</code></button>
+        <button class="quiz-option" data-opt="c">Falla al compilar <code>punto.cpp</code> con <code>no declaration matches</code></button>
+        <div class="quiz-explain"><strong>C.</strong> El <code>const</code> final forma parte de la firma, así que estás definiendo un método que la clase no declara, y eso el compilador lo detecta con la sola información del header: <code>error: no declaration matches 'void Punto::imprimir()'</code>, seguido de <code>note: candidate is: void Punto::imprimir() const</code>. A trata el <code>const</code> como un comentario. B es el desenlace de otro caso: cuando la firma coincide pero nadie escribió el cuerpo en ningún archivo.</div>
+      </div>
+    </section>
+
+    <!-- ============ 8 · UNIDAD DE TRADUCCIÓN ============ -->
+    <section>
+      <span class="kicker">R11 · Qué hace realmente #include</span>
+      <h2>El preprocesador pega texto</h2>
+      <p>En R0 viste que <code>g++ -E</code> muestra el archivo con los <code>#include</code> ya resueltos. <code>#include "punto.h"</code> copia el contenido completo del header en ese punto exacto del archivo.</p>
+      <pre><code class="language-bash" data-trim>
+g++ -E main.cpp | grep -c ""      # cuenta las lineas resultantes
+g++ -E main.cpp | grep "class Punto"
+      </code></pre>
+      <p class="fragment">El resultado de pegar todos los headers en un <code>.cpp</code> es una <span class="term" data-term="unidad">unidad de traducción</span>: lo que el compilador procesa de una sola vez para producir un archivo objeto. Cada <code>.cpp</code> genera una unidad de traducción independiente y no sabe nada de las demás.</p>
+    </section>
+
+    <!-- ============ 9 · GUARDAS ============ -->
+    <section>
+      <span class="kicker">R11 · Guardas de inclusión</span>
+      <h2>Sin guarda, el texto se pega dos veces</h2>
+      <pre data-title="main.cpp"><code class="language-cpp" data-trim>
+#include "punto.h"     // pega la clase Punto
+#include "figura.h"    // figura.h tambien incluye punto.h
+      </code></pre>
+      <pre><code class="language-plaintext" data-trim>
+In file included from figura.h:1, from main.cpp:2:
+punto.h:1:7: error: redefinition of 'class Punto'
+In file included from main.cpp:1:
+punto.h:1:7: note: previous definition of 'class Punto'
+      </code></pre>
+      <p class="fragment">La <span class="term" data-term="guarda">guarda de inclusión</span> define un símbolo la primera vez y salta el contenido las siguientes. <code>#pragma once</code> hace lo mismo con una línea; no es estándar, pero g++, clang y MSVC lo aceptan.</p>
+      <div class="cols">
+        <div><pre data-title="punto.h"><code class="language-cpp" data-trim>
+#ifndef PUNTO_H
+#define PUNTO_H
+// contenido
+#endif
+        </code></pre></div>
+        <div><pre data-title="punto.h"><code class="language-cpp" data-trim>
+#pragma once
+// contenido
+        </code></pre></div>
+      </div>
+    </section>
+
+    <!-- ============ 10 · CHECKPOINT 2 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="b">
+        <p class="quiz-question">¿Contra qué protege una guarda de inclusión?</p>
+        <button class="quiz-option" data-opt="a">Contra que dos <code>.cpp</code> distintos incluyan el mismo header</button>
+        <button class="quiz-option" data-opt="b">Contra que el mismo header se pegue dos veces dentro de una misma unidad de traducción</button>
+        <button class="quiz-option" data-opt="c">Contra que el enlazador encuentre dos copias de la clase en el ejecutable</button>
+        <div class="quiz-explain"><strong>B.</strong> La guarda actúa en el preprocesador y su alcance es un solo archivo en proceso de traducción. A describe justo lo que <em>debe</em> ocurrir: incluir el mismo header desde varios <code>.cpp</code> es normal y necesario, y la guarda no lo impide. C confunde etapas: el enlazador no ve clases, ve símbolos, y las definiciones de clase no generan símbolos.</div>
+      </div>
+    </section>
+
+    <!-- ============ 11 · COMPILACIÓN SEPARADA ============ -->
+    <section>
+      <span class="kicker">R11 · Compilar y enlazar</span>
+      <h2>Un objeto por cada <code>.cpp</code>, un enlazado al final</h2>
+      <pre><code class="language-bash" data-trim data-line-numbers="1-3|5-6">
+# compilar cada unidad de traduccion por separado
+g++ -std=c++17 -Wall -Wextra -g -c main.cpp     # -&gt; main.o
+g++ -std=c++17 -Wall -Wextra -g -c punto.cpp    # -&gt; punto.o
+
+# enlazar los objetos en un ejecutable
+g++ main.o punto.o -o programa
+      </code></pre>
+      <ul>
+        <li class="fragment">La bandera <code>-c</code> detiene el proceso antes del enlazado y deja un <span class="term" data-term="objeto">archivo objeto</span> con el código máquina de esa unidad y una tabla de símbolos.</li>
+        <li class="fragment">Al enlazar no hacen falta las banderas de lenguaje ni de advertencias: esa etapa no vuelve a leer el código fuente.</li>
+        <li class="fragment">Si cambias <code>punto.cpp</code>, solo hay que rehacer <code>punto.o</code> y volver a enlazar. En un proyecto de treinta archivos la diferencia es de minutos.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 12 · MAKEFILE ============ -->
+    <section>
+      <span class="kicker">R11 · Makefile</span>
+      <h2>Las mismas órdenes, escritas una vez</h2>
+<pre data-title="Makefile"><code class="language-makefile" data-trim data-line-numbers="1-3|5-6|8-12|14-15">
+CXX      = g++
+CXXFLAGS = -std=c++17 -Wall -Wextra -g
+OBJ      = main.o punto.o
+
+programa: $(OBJ)
+	$(CXX) $(OBJ) -o programa
+
+main.o: main.cpp punto.h
+	$(CXX) $(CXXFLAGS) -c main.cpp
+
+punto.o: punto.cpp punto.h
+	$(CXX) $(CXXFLAGS) -c punto.cpp
+
+clean:
+	rm -f $(OBJ) programa
+</code></pre>
+      <p class="muted">Cada regla tiene la forma <code>objetivo: dependencias</code> y debajo, indentada con un carácter de tabulación real, la orden que produce el objetivo. Un espacio en lugar del tabulador da el error <code>missing separator</code>.</p>
+      <p class="muted">El <code>Makefile</code> se versiona: es código fuente. Los <code>.o</code> y el ejecutable que produce, no, y por eso están en el <code>.gitignore</code> que pusiste en G1. La regla <code>clean</code> borra exactamente lo mismo que git ignora.</p>
+    </section>
+
+    <!-- ============ 13 · MAKE INCREMENTAL ============ -->
+    <section>
+      <span class="kicker">R11 · Makefile</span>
+      <h2>Cómo decide <code>make</code> qué recompilar</h2>
+      <p><code>make</code> compara la fecha de modificación del objetivo con la de sus dependencias. Si el objetivo es más nuevo que todas ellas, no hace nada.</p>
+      <pre><code class="language-plaintext" data-trim data-line-numbers="1-5|7-10|12-16">
+$ make
+g++ -std=c++17 -Wall -Wextra -g -c main.cpp
+g++ -std=c++17 -Wall -Wextra -g -c punto.cpp
+g++ main.o punto.o -o programa
+
+$ touch punto.cpp   &amp;&amp;  make
+g++ -std=c++17 -Wall -Wextra -g -c punto.cpp
+g++ main.o punto.o -o programa
+
+$ touch punto.h     &amp;&amp;  make
+g++ -std=c++17 -Wall -Wextra -g -c main.cpp
+g++ -std=c++17 -Wall -Wextra -g -c punto.cpp
+g++ main.o punto.o -o programa
+      </code></pre>
+      <p class="fragment">Tocar el header rehace los dos objetos porque los dos lo declaran como dependencia. Omitir <code>punto.h</code> de esas reglas es la causa habitual de ejecutar un binario que no refleja los cambios.</p>
+    </section>
+
+    <!-- ============ 14 · CHECKPOINT 3 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="c">
+        <p class="quiz-question">Agregas un método a <code>punto.h</code>, escribes su cuerpo en <code>punto.cpp</code> y corres <code>make</code>. El Makefile declara <code>main.o: main.cpp</code> sin mencionar el header. ¿Qué pasa?</p>
+        <button class="quiz-option" data-opt="a">Todo se recompila igual, porque <code>make</code> revisa los <code>#include</code></button>
+        <button class="quiz-option" data-opt="b">Falla el enlazado por símbolos duplicados</button>
+        <button class="quiz-option" data-opt="c"><code>main.o</code> no se rehace y puede quedar desincronizado con la nueva versión de la clase</button>
+        <div class="quiz-explain"><strong>C.</strong> <code>make</code> no lee el código fuente ni sigue los <code>#include</code>: solo compara fechas de los archivos que tú listaste. Con <code>main.cpp</code> sin cambios, <code>main.o</code> se conserva tal cual, compilado contra la clase vieja. A atribuye a <code>make</code> un análisis que no hace. B describe otro problema, el de las definiciones en el header.</div>
+      </div>
+    </section>
+
+    <!-- ============ 15 · LA TRAMPA DEL ARRANQUE ============ -->
+    <section>
+      <span class="kicker">R11 · La trampa del arranque</span>
+      <h2>Definir una función en el header la duplica</h2>
+      <ul>
+        <li class="fragment"><code>#pragma once</code> evita que <code>util.h</code> se pegue dos veces en <em>la misma</em> unidad de traducción. No puede hacer nada entre unidades distintas.</li>
+        <li class="fragment"><code>main.cpp</code> y <code>a.cpp</code> se compilan por separado, y cada uno recibe su copia del cuerpo de <code>doble</code>. Al enlazar hay dos símbolos con el mismo nombre.</li>
+        <li class="fragment">La regla que el enlazador aplica es que cada función debe tener exactamente una definición en todo el programa.</li>
+      </ul>
+      <pre data-title="util.h"><code class="language-cpp" data-trim>
+#pragma once
+int doble(int n);                       // declaracion: correcto
+inline int triple(int n) { return 3 * n; }  // inline: tambien
+      </code></pre>
+      <p class="fragment">La palabra <span class="term" data-term="inline">inline</span> autoriza copias idénticas en varias unidades y le pide al enlazador que se quede con una. Los métodos escritos dentro del cuerpo de la clase ya son <code>inline</code> de forma implícita, y por eso <code>punto.h</code> no da problemas.</p>
+    </section>
+
+    <!-- ============ 16 · TRAMPAS COMUNES ============ -->
+    <section>
+      <span class="kicker">R11 · Trampas comunes</span>
+      <h2>Cuatro fallas que produce la separación</h2>
+      <ul>
+        <li class="fragment">Definir funciones libres en el header e incluirlo desde dos <code>.cpp</code>: <code>multiple definition</code> al enlazar.</li>
+        <li class="fragment">Olvidar el <code>#endif</code> de la guarda, o repetir el mismo símbolo de guarda en dos headers distintos, lo que hace desaparecer el segundo en silencio.</li>
+        <li class="fragment">Escribir <code>using namespace std;</code> en un header: se lo impone a todos los archivos que lo incluyan, sin que ellos puedan evitarlo.</li>
+        <li class="fragment">Compilar solo el <code>.cpp</code> que cambiaste y olvidar pasar el resto de los objetos al enlazar: <code>undefined reference</code>.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 17 · EJERCICIO ============ -->
+    <section>
+      <span class="kicker">R11 · Ejercicio</span>
+      <h2>Divide un programa monolítico en tres archivos</h2>
+      <ol>
+        <li>Toma la clase <code>Punto</code> de R10, con sus constructores, su destructor y sus métodos, escrita entera dentro de <code>main.cpp</code>.</li>
+        <li>Sepárala en <code>punto.h</code>, <code>punto.cpp</code> y <code>main.cpp</code>, con guarda de inclusión.</li>
+        <li>Escribe el Makefile con las reglas del objetivo, de cada objeto y de <code>clean</code>, y comprueba con <code>touch</code> que solo se recompila lo necesario.</li>
+      </ol>
+      <div class="solucion">
+        <pre><code class="language-bash" data-trim>
+$ ls
+Makefile  main.cpp  punto.cpp  punto.h
+
+$ make
+g++ -std=c++17 -Wall -Wextra -g -c main.cpp
+g++ -std=c++17 -Wall -Wextra -g -c punto.cpp
+g++ main.o punto.o -o programa
+
+$ ./programa
+(3, 4)
+5
+
+$ make            # nada cambio: make no hace nada
+make: 'programa' is up to date.
+        </code></pre>
+        <p class="muted">El reparto queda así: en <code>punto.h</code> la clase con las firmas y el punto y coma; en <code>punto.cpp</code> los cuerpos con el prefijo <code>Punto::</code> y los <code>#include</code> de <code>&lt;iostream&gt;</code> y <code>&lt;cmath&gt;</code>; en <code>main.cpp</code> solo <code>#include "punto.h"</code> y el uso de la clase.</p>
+      </div>
+    </section>
+
+    <!-- ============ 18 · CHECKLIST ============ -->
+    <section>
+      <span class="kicker">R11 · Antes de pasar a R12</span>
+      <h2>Verifica que ya puedes</h2>
+      <ul class="checklist" data-deck="v11">
+        <li>Decidir qué va en el <code>.h</code> y qué en el <code>.cpp</code> <span class="cl-ref">slide 4</span></li>
+        <li>Escribir la definición de un método con el prefijo <code>Clase::</code> y su <code>const</code> <span class="cl-ref">slide 6</span></li>
+        <li>Escribir una guarda de inclusión y explicar contra qué protege <span class="cl-ref">slide 9</span></li>
+        <li>Escribir un Makefile de tres reglas y probarlo con <code>touch</code> <span class="cl-ref">slide 12</span></li>
+        <li>Reconocer <code>multiple definition</code> como función definida en un header <span class="cl-ref">slide 15</span></li>
+      </ul>
+      <p class="muted">Si algo sigue sin marcarse, regresa a ese slide antes de continuar.</p>
+    </section>
+
+    <!-- ============ EL COMMIT DE ESTA SESIÓN ============ -->
+    <section>
+      <span class="kicker">R11 · Tu repositorio</span>
+      <h2>El commit de esta sesión</h2>
+      <pre><code class="language-bash" data-trim>
+cd repaso-cpp
+git add r11-multiarchivo/
+git commit -m "R11: programa en tres archivos con Makefile"
+git push
+      </code></pre>
+      <p class="muted">El <code>Makefile</code> sí se versiona; los <code>.o</code> y el ejecutable que produce, no. De eso se encarga el <code>.gitignore</code> que pusiste en G1.</p>
+    </section>
+
+
+    <!-- ============ 19 · SIGUIENTE ============ -->
+    <section class="divider">
+      <h2>Siguiente:<br>G2 · Ramas, historia y volver atrás</h2>
+      <p class="muted">Ya llevas once sesiones commiteadas. Esa historia sirve para más que guardar: con ella puedes comparar versiones y probar ideas sin romper lo que funciona.</p>
+      <p><a href="../repaso/">← Volver al índice de la serie</a></p>
+    </section>
+
+    <!-- ============ 20 · REFERENCIAS ============ -->
+    <section>
+      <span class="kicker">R11</span>
+      <h2>Referencias y material para profundizar</h2>
+      <div class="refs cols">
+        <div>
+          <h3>Referencias</h3>
+          <ul>
+            <li><span class="ref-type">Libro</span> Gregoire, M. <em>Professional C++</em>, 5.ª ed., Wiley, 2021. Cap. 11.</li>
+            <li><span class="ref-type">Libro</span> Stroustrup, B. <em>A Tour of C++</em>, 3.ª ed., Addison-Wesley, 2022. Cap. 3.</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Para profundizar</h3>
+          <ul>
+            <li><span class="ref-type">Web</span> <a href="https://www.gnu.org/software/make/manual/make.html">GNU Make Manual</a> <span class="ref-nota">— los capítulos 2 y 3 bastan para el curso.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://en.cppreference.com/w/cpp/language/definition">cppreference — One Definition Rule</a> <span class="ref-nota">— la regla que aplica el enlazador, enunciada formalmente.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#S-source">C++ Core Guidelines — Source files</a> <span class="ref-nota">— reglas SF.1 a SF.12 sobre el reparto entre archivos.</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script src="../js/curso-slides.js"></script>
+<script>
+  Reveal.initialize({
+    width: 1280,
+    height: 720,
+    margin: 0.06,
+    hash: true,
+    progress: true,
+    slideNumber: 'c/t',
+    controls: true,
+    transition: 'slide',
+    transitionSpeed: 'fast',
+    plugins: [ RevealHighlight ]
+  }).then(() => {
+    CursoSlides.init({
+      unidad: {
+        titulo: "Unidad de traducción",
+        def: "Un archivo <code>.cpp</code> después de que el preprocesador pegó en él todos sus <code>#include</code>. Es lo que el compilador procesa de una sola vez para producir un archivo objeto. Cada <code>.cpp</code> del proyecto genera su propia unidad, independiente de las demás."
+      },
+      guarda: {
+        titulo: "Guarda de inclusión",
+        def: "Trío <code>#ifndef</code> / <code>#define</code> / <code>#endif</code> que envuelve el contenido de un header para que el preprocesador lo pegue una sola vez por unidad de traducción. <code>#pragma once</code> logra lo mismo con una línea, aunque no forma parte del estándar."
+      },
+      objeto: {
+        titulo: "Archivo objeto (.o)",
+        def: "Resultado de compilar una unidad de traducción con <code>-c</code>. Contiene el código máquina de esa unidad, la lista de símbolos que define y la lista de los que necesita de otros. El enlazador toma varios <code>.o</code> y resuelve esas listas entre sí."
+      },
+      inline: {
+        titulo: "inline",
+        def: "Palabra clave que autoriza a que una función tenga definiciones idénticas en varias unidades de traducción y le indica al enlazador que conserve una sola. Es lo que permite definir funciones dentro de un header. Los métodos escritos dentro del cuerpo de la clase son <code>inline</code> de forma implícita."
+      }
+    });
+  });
+</script>
+</body>
+</html>

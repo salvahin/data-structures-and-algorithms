@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Repaso R2 — Anatomía de un programa y tipos básicos</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+  <link rel="stylesheet" href="../css/theme-curso.css">
+</head>
+<body>
+<div class="reveal">
+  <div class="slides">
+
+    <!-- 1 ============ PORTADA ============ -->
+    <section class="cover">
+      <span class="kicker">Repaso de C++ y POO · Módulo 1 · Recapitulación de C++</span>
+      <h1>Anatomía de un programa y tipos&nbsp;básicos</h1>
+      <div class="cover-meta">
+        R2 · Auto-estudio · 22 minutos<br>
+        Estructuras de Datos y Algoritmos
+      </div>
+    </section>
+
+    <!-- 2 ============ OBJETIVO ============ -->
+    <section>
+      <span class="kicker">R2 · Objetivo</span>
+      <h2>Al terminar esta sesión podrás…</h2>
+      <ul>
+        <li class="fragment">Explicar qué hace cada parte de un programa mínimo, incluido el valor de retorno de <code>main</code>.</li>
+        <li class="fragment">Consultar el tamaño de un tipo con <code>sizeof</code> y decir qué garantiza el estándar y qué no.</li>
+        <li class="fragment">Predecir el resultado de una expresión con conversiones implícitas antes de compilarla.</li>
+        <li class="fragment">Reconocer un desbordamiento de enteros y una comparación entre <code>int</code> y <code>unsigned</code>.</li>
+      </ul>
+    </section>
+
+    <!-- 3 ============ ARRANQUE ============ -->
+    <section>
+      <span class="kicker">R2 · Punto de partida</span>
+      <h2>Dos líneas que imprimen lo que nadie espera</h2>
+      <pre data-title="sorpresa.cpp"><code class="language-cpp" data-trim>
+#include &lt;iostream&gt;
+
+int main() {
+    int a = 2147483647;          // el mayor int de 32 bits
+    std::cout &lt;&lt; a + 1 &lt;&lt; '\n';
+
+    unsigned int u = 1;
+    int i = -1;
+    std::cout &lt;&lt; (i &lt; u) &lt;&lt; '\n';
+}
+      </code></pre>
+      <pre><code class="language-plaintext" data-trim>
+-2147483648
+0
+      </code></pre>
+      <p class="fragment">Sumarle uno a un número lo hizo negativo, y menos uno resultó no ser menor que uno. Ninguna de las dos líneas tiene un error de sintaxis.</p>
+    </section>
+
+    <!-- 4 ============ ANATOMÍA DE MAIN ============ -->
+    <section>
+      <span class="kicker">R2 · Anatomía</span>
+      <h2>Las cuatro piezas de un programa mínimo</h2>
+      <pre data-title="minimo.cpp"><code class="language-cpp" data-trim data-line-numbers="1|3|4|5">
+#include &lt;iostream&gt;      // trae la declaración de std::cout
+
+int main() {              // punto de entrada: el sistema llama aquí
+    std::cout &lt;&lt; "hola\n";
+    return 0;             // 0 significa "terminó bien"
+}
+      </code></pre>
+      <ul>
+        <li class="fragment"><code>#include</code> lo procesa el preprocesador de R0: pega el contenido de la cabecera antes de compilar.</li>
+        <li class="fragment">Un programa tiene exactamente una función <code>main</code>. El sistema operativo la llama y recibe su valor de retorno.</li>
+        <li class="fragment"><code>main</code> es la única función que puede omitir el <code>return</code>: si falta, el compilador supone <code>return 0;</code>. En cualquier otra función eso sería un error (R5).</li>
+      </ul>
+    </section>
+
+    <!-- 5 ============ std:: ============ -->
+    <section>
+      <span class="kicker">R2 · Espacios de nombres</span>
+      <h2>Por qué se escribe <code>std::cout</code></h2>
+      <ul>
+        <li class="fragment">La biblioteca estándar declara sus nombres dentro de un <span class="term" data-term="namespace">espacio de nombres</span> llamado <code>std</code>. <code>std::cout</code> significa "el <code>cout</code> que vive en <code>std</code>".</li>
+        <li class="fragment">Sirve para que tu programa pueda tener su propia función <code>sort</code> o su propia clase <code>list</code> sin chocar con las de la biblioteca.</li>
+        <li class="fragment"><code>using namespace std;</code> hace visibles todos esos nombres sin prefijo. Es tolerable en un <code>.cpp</code> de práctica y nunca aceptable en una cabecera, porque se lo impone a todo archivo que la incluya.</li>
+      </ul>
+      <pre><code class="language-cpp" data-trim>
+std::cout &lt;&lt; "sin using\n";      // preferido en este curso
+      </code></pre>
+      <p class="muted">Los espacios de nombres se tratan a fondo en R7.</p>
+    </section>
+
+    <!-- 6 ============ CHECKPOINT 1 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="b">
+        <p class="quiz-question">Un programa compila y ejecuta bien, pero el <code>return</code> de <code>main</code> devuelve <code>1</code>. ¿Qué consecuencia tiene?</p>
+        <button class="quiz-option" data-opt="a">Ninguna: el valor de retorno de <code>main</code> se descarta siempre</button>
+        <button class="quiz-option" data-opt="b">El sistema lo interpreta como código de salida distinto de cero, es decir, como fallo</button>
+        <button class="quiz-option" data-opt="c">El programa imprime <code>1</code> al terminar</button>
+        <div class="quiz-explain"><strong>B.</strong> El valor de retorno de <code>main</code> es el código de salida del proceso: cero indica éxito y cualquier otro valor indica fallo. La terminal lo consulta con <code>echo $?</code> y los guiones de compilación lo usan para decidir si continúan. No se descarta (A) ni se imprime en pantalla (C).</div>
+      </div>
+    </section>
+
+    <!-- 7 ============ TIPOS FUNDAMENTALES ============ -->
+    <section>
+      <span class="kicker">R2 · Tipos</span>
+      <h2>Los tipos fundamentales que usarás</h2>
+      <table>
+        <tr><th>Tipo</th><th>Guarda</th><th>Tamaño típico</th><th>Rango típico</th></tr>
+        <tr><td><code>bool</code></td><td>verdadero o falso</td><td>1 byte</td><td><code>true</code> / <code>false</code></td></tr>
+        <tr><td><code>char</code></td><td>un carácter</td><td>1 byte</td><td>-128 a 127</td></tr>
+        <tr><td><code>int</code></td><td>entero con signo</td><td>4 bytes</td><td>±2 147 483 647</td></tr>
+        <tr><td><code>unsigned int</code></td><td>entero sin signo</td><td>4 bytes</td><td>0 a 4 294 967 295</td></tr>
+        <tr><td><code>long long</code></td><td>entero grande</td><td>8 bytes</td><td>±9.2 × 10<sup>18</sup></td></tr>
+        <tr><td><code>double</code></td><td>real</td><td>8 bytes</td><td>~15 dígitos significativos</td></tr>
+      </table>
+      <p class="fragment">La columna dice <em>típico</em> a propósito. El estándar fija mínimos, no valores exactos.</p>
+    </section>
+
+    <!-- 8 ============ SIZEOF ============ -->
+    <section>
+      <span class="kicker">R2 · Tipos</span>
+      <h2>Pregúntale al compilador con <code>sizeof</code></h2>
+      <pre data-title="tamanios.cpp"><code class="language-cpp" data-trim>
+#include &lt;iostream&gt;
+
+int main() {
+    std::cout &lt;&lt; sizeof(char)   &lt;&lt; ' '
+              &lt;&lt; sizeof(short)  &lt;&lt; ' '
+              &lt;&lt; sizeof(int)    &lt;&lt; ' '
+              &lt;&lt; sizeof(long)   &lt;&lt; ' '
+              &lt;&lt; sizeof(double) &lt;&lt; '\n';
+}
+      </code></pre>
+      <pre><code class="language-plaintext" data-trim>
+Linux 64 bits:    1 2 4 8 8
+Windows 64 bits:  1 2 4 4 8      &lt;- long mide la mitad
+      </code></pre>
+      <p class="fragment"><code>sizeof</code> devuelve bytes y lo resuelve el compilador, no el programa en ejecución. Cuando un tamaño exacto importe, usa <code>&lt;cstdint&gt;</code>: <code>int32_t</code>, <code>uint64_t</code>.</p>
+    </section>
+
+    <!-- 9 ============ CHECKPOINT 2 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="c">
+        <p class="quiz-question">Tu programa guarda identificadores hasta 3 000 000 000 en un <code>long</code>. Funciona en tu Linux y falla en la máquina Windows de un compañero. ¿Por qué?</p>
+        <button class="quiz-option" data-opt="a">Windows no admite números tan grandes en ningún tipo</button>
+        <button class="quiz-option" data-opt="b">El compilador de Windows convierte los <code>long</code> a <code>double</code></button>
+        <button class="quiz-option" data-opt="c">En Windows de 64 bits <code>long</code> mide 4 bytes y ese valor no cabe</button>
+        <div class="quiz-explain"><strong>C.</strong> El estándar exige que <code>long</code> tenga al menos 32 bits y deja el resto a cada plataforma: Linux de 64 bits le da 64, Windows de 64 bits le da 32. El valor desborda. La solución es <code>long long</code> o <code>int64_t</code>. Windows sí maneja enteros de 64 bits (A) y no hay conversión automática a <code>double</code> (B).</div>
+      </div>
+    </section>
+
+    <!-- 10 ============ CONVERSIONES ============ -->
+    <section>
+      <span class="kicker">R2 · Conversiones implícitas</span>
+      <h2>El tipo de los operandos decide la operación</h2>
+      <pre data-title="conversiones.cpp"><code class="language-cpp" data-trim data-line-numbers="5|6|8-9|11">
+#include &lt;iostream&gt;
+
+int main() {
+    int a = 7, b = 2;
+    std::cout &lt;&lt; a / b   &lt;&lt; '\n';   // 3    división entera
+    std::cout &lt;&lt; a / 2.0 &lt;&lt; '\n';   // 3.5  a se convierte a double
+
+    double d = 3.9;
+    int t = d;                      // t vale 3: se trunca
+    std::cout &lt;&lt; t &lt;&lt; '\n';
+    std::cout &lt;&lt; 'A' + 1 &lt;&lt; '\n';   // 66   char promovido a int
+}
+      </code></pre>
+      <ul>
+        <li class="fragment">Con dos enteros, <code>/</code> es división entera y descarta el residuo. Basta con que uno sea <code>double</code> para que la división sea real.</li>
+        <li class="fragment">Asignar un <code>double</code> a un <code>int</code> corta la parte decimal hacia cero. Para redondear existe <code>std::round</code>.</li>
+      </ul>
+    </section>
+
+    <!-- 11 ============ INT VS UNSIGNED ============ -->
+    <section>
+      <span class="kicker">R2 · Conversiones implícitas</span>
+      <h2><code>-1 &lt; 1u</code> es falso</h2>
+      <ul>
+        <li class="fragment">Al comparar <code>int</code> con <code>unsigned int</code>, el compilador convierte el <code>int</code> a <code>unsigned</code> antes de comparar.</li>
+        <li class="fragment"><code>-1</code> convertido a <code>unsigned int</code> de 32 bits vale <code>4294967295</code>, que no es menor que <code>1</code>.</li>
+        <li class="fragment"><code>-Wall -Wextra</code> lo avisa: <code>comparison of integer expressions of different signedness</code>.</li>
+      </ul>
+      <pre><code class="language-cpp" data-trim>
+unsigned int u = 3;
+std::cout &lt;&lt; u - 5 &lt;&lt; '\n';        // 4294967294, no -2
+      </code></pre>
+      <div class="box-key">Esta conversión aparecerá cada vez que compares un índice <code>int</code> contra <code>v.size()</code>, que es de tipo sin signo (R18).</div>
+    </section>
+
+    <!-- 12 ============ CHECKPOINT 3 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="a">
+        <p class="quiz-question">¿Qué imprime <code>std::cout &lt;&lt; 5 / 2 * 2.0;</code>?</p>
+        <button class="quiz-option" data-opt="a"><code>4</code></button>
+        <button class="quiz-option" data-opt="b"><code>5</code></button>
+        <button class="quiz-option" data-opt="c"><code>4.5</code></button>
+        <div class="quiz-explain"><strong>A.</strong> <code>/</code> y <code>*</code> tienen la misma precedencia y agrupan de izquierda a derecha, así que la expresión es <code>(5 / 2) * 2.0</code>: primero <code>5 / 2</code>, con dos <code>int</code>, da <code>2</code> por división entera. Después <code>2 * 2.0</code> da <code>4.0</code>, que <code>cout</code> imprime como <code>4</code> porque no tiene decimales significativos. La opción B supone que la división se hace en <code>double</code> desde el principio y la C mezcla las dos ideas.</div>
+      </div>
+    </section>
+
+    <!-- 13 ============ DESBORDAMIENTO ============ -->
+    <section>
+      <span class="kicker">R2 · Desbordamiento</span>
+      <h2>Qué ocurre al pasarse del rango</h2>
+      <pre data-title="desborde.cpp"><code class="language-cpp" data-trim>
+#include &lt;iostream&gt;
+
+int main() {
+    short s = 32767;
+    s = s + 1;
+    std::cout &lt;&lt; s &lt;&lt; '\n';                        // -32768
+
+    unsigned char c = 250;
+    c = c + 10;
+    std::cout &lt;&lt; static_cast&lt;int&gt;(c) &lt;&lt; '\n';      // 4
+}
+      </code></pre>
+      <ul>
+        <li class="fragment">En los tipos <strong>sin signo</strong> el resultado se define como aritmética modular: <code>260 % 256</code> da <code>4</code>.</li>
+        <li class="fragment">En los tipos <strong>con signo</strong> el desbordamiento es <span class="term" data-term="ub">comportamiento indefinido</span>. La vuelta a negativo es lo que suele pasar, no lo que el estándar promete: con optimización el compilador puede producir otra cosa.</li>
+      </ul>
+    </section>
+
+    <!-- 14 ============ CONST Y AUTO ============ -->
+    <section>
+      <span class="kicker">R2 · <code>const</code> y <code>auto</code></span>
+      <h2>Fijar un valor y deducir un tipo</h2>
+      <pre data-title="const_auto.cpp"><code class="language-cpp" data-trim data-line-numbers="5-6|8-10">
+#include &lt;iostream&gt;
+#include &lt;string&gt;
+
+int main() {
+    const double IVA = 0.16;
+    // IVA = 0.20;          // error: no se puede asignar a const
+
+    auto n = 42;            // n es int
+    auto tasa = IVA * 2;    // tasa es double
+    auto texto = std::string("hola");
+    std::cout &lt;&lt; n &lt;&lt; ' ' &lt;&lt; tasa &lt;&lt; ' ' &lt;&lt; texto &lt;&lt; '\n';
+}
+      </code></pre>
+      <ul>
+        <li class="fragment"><code>const</code> convierte un intento de modificación en un error de compilación. Marca las constantes del programa y, más adelante, los parámetros que una función promete no tocar (R8).</li>
+        <li class="fragment"><code>auto</code> deja que el compilador deduzca el tipo del inicializador. El tipo existe y es fijo; lo que se ahorra es escribirlo. Úsalo cuando el tipo sea largo y evidente por el contexto, no para esconder qué se está guardando.</li>
+      </ul>
+    </section>
+
+    <!-- 15 ============ CHECKPOINT 4 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="b">
+        <p class="quiz-question">Escribes <code>auto promedio = suma / cantidad;</code> donde <code>suma</code> y <code>cantidad</code> son <code>int</code>. ¿De qué tipo es <code>promedio</code> y qué guarda?</p>
+        <button class="quiz-option" data-opt="a"><code>double</code>, porque un promedio siempre tiene decimales</button>
+        <button class="quiz-option" data-opt="b"><code>int</code>, con la parte decimal ya descartada</button>
+        <button class="quiz-option" data-opt="c">El tipo se decide en ejecución según el resultado</button>
+        <div class="quiz-explain"><strong>B.</strong> <code>auto</code> deduce del tipo de la expresión, y <code>int / int</code> es una división entera que produce un <code>int</code>. Los decimales se pierden antes de que <code>auto</code> intervenga; declarar <code>double</code> tampoco los recuperaría. La solución es forzar la división real: <code>suma / static_cast&lt;double&gt;(cantidad)</code>. En C++ los tipos se fijan al compilar (C).</div>
+      </div>
+    </section>
+
+    <!-- 16 ============ TRAMPAS COMUNES ============ -->
+    <section>
+      <span class="kicker">R2 · Trampas comunes</span>
+      <h2>Cuatro supuestos que fallan</h2>
+      <ul>
+        <li class="fragment"><strong>"<code>int</code> mide lo mismo en todas partes."</strong> Mide al menos 16 bits; el resto depende de la plataforma. <code>long</code> es el caso que más rompe programas al cambiar de máquina.</li>
+        <li class="fragment"><strong>Comparar con signo contra sin signo.</strong> Producirá resultados invertidos y ciclos que no terminan. La advertencia de <code>-Wextra</code> es la única señal.</li>
+        <li class="fragment"><strong>Esperar redondeo al convertir a <code>int</code>.</strong> Se trunca hacia cero: <code>-3.9</code> se vuelve <code>-3</code>.</li>
+        <li class="fragment"><strong>Confiar en el desbordamiento con signo.</strong> Es comportamiento indefinido: puede dar resultados distintos con y sin <code>-O2</code>.</li>
+      </ul>
+    </section>
+
+    <!-- 17 ============ EJERCICIO ============ -->
+    <section>
+      <span class="kicker">R2 · Ejercicio</span>
+      <h2>Predice la salida de estas seis expresiones</h2>
+      <pre data-title="predice.cpp"><code class="language-cpp" data-trim>
+std::cout &lt;&lt; 7 / 2 &lt;&lt; '\n';                       // 1
+std::cout &lt;&lt; 7 / 2.0 &lt;&lt; '\n';                     // 2
+std::cout &lt;&lt; 7 % 2 &lt;&lt; '\n';                       // 3
+std::cout &lt;&lt; static_cast&lt;int&gt;(3.99) &lt;&lt; '\n';      // 4
+std::cout &lt;&lt; (1 == 1.0) &lt;&lt; '\n';                  // 5
+unsigned int u = 3;
+std::cout &lt;&lt; u - 5 &lt;&lt; '\n';                       // 6
+      </code></pre>
+      <p class="muted">Escríbelas en papel antes de compilar. Después verifica con <code>g++ -std=c++17 -Wall -Wextra</code>.</p>
+      <div class="solucion" data-label="Ver mi predicción">
+        <pre><code class="language-plaintext" data-trim>
+1) 3            división entera, se descarta el residuo
+2) 3.5          un operando double convierte la operación
+3) 1            % es el residuo de la división entera
+4) 3            se trunca hacia cero, no se redondea
+5) 1            el int se convierte a double; cout imprime true como 1
+6) 4294967294   3 - 5 en aritmética sin signo de 32 bits
+        </code></pre>
+        <p class="muted">La sexta es la que más se falla. Ninguna resta de tipos sin signo puede dar un negativo.</p>
+      </div>
+    </section>
+
+    <!-- 18 ============ CHECKLIST ============ -->
+    <section>
+      <span class="kicker">R2 · Antes de pasar a R3</span>
+      <h2>Verifica que ya puedes</h2>
+      <ul class="checklist" data-deck="v02">
+        <li>Explicar el valor de retorno de <code>main</code> y por qué puede omitirse <span class="cl-ref">slide 4</span></li>
+        <li>Decir qué es <code>std</code> y por qué <code>cout</code> vive dentro <span class="cl-ref">slide 5</span></li>
+        <li>Consultar tamaños con <code>sizeof</code> y nombrar qué garantiza el estándar <span class="cl-ref">slide 8</span></li>
+        <li>Predecir el resultado de una expresión con conversiones <span class="cl-ref">slide 10</span></li>
+        <li>Reconocer un desbordamiento y una comparación con signo mezclado <span class="cl-ref">slide 13</span></li>
+      </ul>
+      <p class="muted">Si algo sigue sin marcarse, regresa a ese slide antes de continuar.</p>
+    </section>
+
+    <!-- ============ EL COMMIT DE ESTA SESIÓN ============ -->
+    <section>
+      <span class="kicker">R2 · Tu repositorio</span>
+      <h2>El commit de esta sesión</h2>
+      <pre><code class="language-bash" data-trim>
+cd repaso-cpp
+git add r02-tipos/
+git commit -m "R2: prediccion de conversiones"
+git push
+      </code></pre>
+      <p class="muted">Aunque el ejercicio sea de predicción, guarda el archivo con el que comprobaste tus respuestas.</p>
+    </section>
+
+
+    <!-- 19 ============ SIGUIENTE ============ -->
+    <section class="divider">
+      <h2>Siguiente:<br>R3 · Entrada y salida</h2>
+      <p class="muted">Ya sabes qué tipos existen. Ahora, cómo llenarlos con lo que teclea el usuario sin que el programa se atore.</p>
+      <p><a href="../repaso/">← Volver al índice de la serie</a></p>
+    </section>
+
+    <!-- 20 ============ REFERENCIAS ============ -->
+    <section>
+      <span class="kicker">R2</span>
+      <h2>Referencias y material para profundizar</h2>
+      <div class="refs cols">
+        <div>
+          <h3>Referencias</h3>
+          <ul>
+            <li><span class="ref-type">Libro</span> Stroustrup, B. <em>A Tour of C++</em>, 3.ª ed., Addison-Wesley, 2022. Cap. 1.</li>
+            <li><span class="ref-type">Libro</span> Lippman, S. et al. <em>C++ Primer</em>, 5.ª ed., Addison-Wesley, 2012. Cap. 2.</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Para profundizar</h3>
+          <ul>
+            <li><span class="ref-type">Web</span> <a href="https://en.cppreference.com/w/cpp/language/types">cppreference — Fundamental types</a> <span class="ref-nota">— los mínimos que el estándar sí garantiza.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://en.cppreference.com/w/cpp/language/implicit_conversion">cppreference — Implicit conversions</a> <span class="ref-nota">— las reglas completas de promoción y conversión.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://godbolt.org/">Compiler Explorer</a> <span class="ref-nota">— compara el mismo <code>sizeof</code> en varios compiladores.</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script src="../js/curso-slides.js"></script>
+<script>
+  Reveal.initialize({
+    width: 1280,
+    height: 720,
+    margin: 0.06,
+    hash: true,
+    progress: true,
+    slideNumber: 'c/t',
+    controls: true,
+    transition: 'slide',
+    transitionSpeed: 'fast',
+    plugins: [ RevealHighlight ]
+  }).then(() => {
+    CursoSlides.init({
+      namespace: {
+        titulo: "Espacio de nombres (namespace)",
+        def: "Región con nombre que agrupa declaraciones para evitar choques entre identificadores iguales. La biblioteca estándar usa <code>std</code>; el acceso se escribe <code>std::cout</code>. Se trata a fondo en R7."
+      },
+      ub: {
+        titulo: "Comportamiento indefinido (undefined behavior)",
+        def: "Situación en la que el estándar no impone ningún resultado. El compilador puede producir cualquier cosa, y con optimización distinta a la que produce sin ella. Ejemplos: desbordamiento de enteros con signo, leer una variable sin inicializar, salirse de un arreglo."
+      }
+    });
+  });
+</script>
+</body>
+</html>

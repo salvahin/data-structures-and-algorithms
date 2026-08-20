@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Repaso R9 — De struct a class: abstracción y encapsulamiento</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+  <link rel="stylesheet" href="../css/theme-curso.css">
+</head>
+<body>
+<div class="reveal">
+  <div class="slides">
+
+    <!-- ============ 1 · PORTADA ============ -->
+    <section class="cover">
+      <span class="kicker">Repaso de C++ y POO · Módulo 2 · Programación orientada a objetos</span>
+      <h1>De <code>struct</code> a <code>class</code>: abstracción y encapsulamiento</h1>
+      <div class="cover-meta">
+        R9 · Auto-estudio · 26 minutos<br>
+        Estructuras de Datos y Algoritmos
+      </div>
+    </section>
+
+    <!-- ============ 2 · OBJETIVO ============ -->
+    <section>
+      <span class="kicker">R9 · Objetivo</span>
+      <h2>Al terminar esta sesión podrás…</h2>
+      <ul>
+        <li class="fragment">Mostrar por qué un <code>struct</code> de campos públicos no puede sostener una regla sobre sus datos.</li>
+        <li class="fragment">Escribir métodos que validen antes de asignar.</li>
+        <li class="fragment">Enunciar la única diferencia entre <code>struct</code> y <code>class</code> en C++.</li>
+        <li class="fragment">Distinguir abstracción de encapsulamiento y decir qué resuelve cada una.</li>
+        <li class="fragment">Reconocer cuándo una clase con getters y setters no encapsula nada.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 3 · ARRANQUE ============ -->
+    <section>
+      <span class="kicker">R9 · Punto de partida</span>
+      <h2>Un estudiante de menos cinco años</h2>
+      <pre data-title="estudiante.cpp"><code class="language-cpp" data-trim data-line-numbers="1-5|9-10">
+struct Estudiante {
+    std::string nombre;
+    int edad;
+    double promedio;
+};
+
+int main() {
+    Estudiante e{"Ana", 20, 92.5};
+    e.edad = -5;
+    e.promedio = 140.0;
+    std::cout &lt;&lt; e.nombre &lt;&lt; ": " &lt;&lt; e.edad
+              &lt;&lt; " anios, promedio " &lt;&lt; e.promedio &lt;&lt; '\n';
+}
+      </code></pre>
+      <pre><code class="language-plaintext" data-trim>
+$ g++ -std=c++17 -Wall -Wextra estudiante.cpp -o est &amp;&amp; ./est
+Ana: -5 anios, promedio 140
+      </code></pre>
+    </section>
+
+    <!-- ============ 4 · DIAGNÓSTICO ============ -->
+    <section>
+      <span class="kicker">R9 · Diagnóstico</span>
+      <h2>Nadie está encargado de la regla</h2>
+      <ul>
+        <li class="fragment">El compilador verifica tipos: <code>-5</code> es un <code>int</code> perfectamente válido y <code>140.0</code> es un <code>double</code> válido. No hay nada que objetar.</li>
+        <li class="fragment">Las reglas “la edad va de 15 a 99” y “el promedio va de 0 a 100” existen en la cabeza de quien escribió el <code>struct</code> y en ninguna línea del programa.</li>
+        <li class="fragment">Con los campos públicos, cualquier línea de cualquier archivo puede escribirlos. Cuando aparece un promedio de 140, el sospechoso es el programa completo.</li>
+      </ul>
+      <div class="box-key">La pregunta no es cómo evitar esa línea, sino dónde debería vivir la regla para que la línea no pueda escribirse.</div>
+    </section>
+
+    <!-- ============ 5 · CHECKPOINT 1 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="b">
+        <p class="quiz-question">En un programa de 2000 líneas, un <code>Estudiante</code> aparece con promedio 140. Los campos son públicos. ¿Dónde buscas el error?</p>
+        <button class="quiz-option" data-opt="a">En la definición del <code>struct</code>, porque ahí se declara el tipo del campo</button>
+        <button class="quiz-option" data-opt="b">En todas las líneas del programa que escriban <code>.promedio</code></button>
+        <button class="quiz-option" data-opt="c">En el compilador, porque debió advertir sobre el valor fuera de rango</button>
+        <div class="quiz-explain"><strong>B.</strong> Con campos públicos, escribir en <code>promedio</code> es legal desde cualquier punto del programa, así que el conjunto de sospechosos es toda escritura sobre ese campo. La declaración del tipo (A) solo fija que es un <code>double</code>. El compilador (C) no conoce el rango válido: nadie se lo dijo.</div>
+      </div>
+    </section>
+
+    <!-- ============ 6 · PRIVATE ============ -->
+    <section>
+      <span class="kicker">R9 · Cerrar el acceso</span>
+      <h2>Reducir los sospechosos a uno</h2>
+      <pre data-title="estudiante.hpp"><code class="language-cpp" data-trim data-line-numbers="1-3|4-8|11-12">
+class Estudiante {
+public:
+    // aqui iran los metodos
+private:
+    std::string nombre = "sin nombre";
+    int edad = 18;
+    double promedio = 0.0;
+};
+
+int main() {
+    Estudiante a;
+    a.edad = -5;   // error: 'int Estudiante::edad' is private
+}
+      </code></pre>
+      <ul>
+        <li class="fragment">Con <code>private</code>, el único código que puede escribir en <code>edad</code> son los métodos de la propia clase. El compilador rechaza lo demás.</li>
+        <li class="fragment">La búsqueda del promedio de 140 pasa de 2000 líneas a las pocas que forman la clase.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 7 · MÉTODOS QUE VALIDAN ============ -->
+    <section>
+      <span class="kicker">R9 · Cerrar el acceso</span>
+      <h2>La puerta con un guardia</h2>
+      <pre data-title="estudiante.hpp"><code class="language-cpp" data-trim data-line-numbers="3-7|8|9-13">
+class Estudiante {
+public:
+    bool asignarEdad(int e) {
+        if (e &lt; 15 || e &gt; 99) return false;
+        edad = e;
+        return true;
+    }
+    int obtenerEdad() const { return edad; }
+private:
+    std::string nombre = "sin nombre";
+    int edad = 18;
+    double promedio = 0.0;
+};
+      </code></pre>
+      <ul>
+        <li class="fragment">El método revisa el rango antes de tocar el campo y devuelve <code>false</code> cuando el valor no sirve. El objeto nunca queda en un estado imposible.</li>
+        <li class="fragment"><code>const</code> al final de <code>obtenerEdad</code> promete que el método no modifica el objeto. El compilador lo verifica.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 8 · ESTADO INVÁLIDO IMPOSIBLE ============ -->
+    <section>
+      <span class="kicker">R9 · Cerrar el acceso</span>
+      <h2>El estado inválido deja de ser alcanzable</h2>
+      <pre data-title="main.cpp"><code class="language-cpp" data-trim>
+Estudiante a;
+std::cout &lt;&lt; a.asignarEdad(-5) &lt;&lt; ' '
+          &lt;&lt; a.obtenerEdad() &lt;&lt; '\n';    // 0 18
+std::cout &lt;&lt; a.asignarEdad(20) &lt;&lt; ' '
+          &lt;&lt; a.obtenerEdad() &lt;&lt; '\n';    // 1 20
+      </code></pre>
+      <ul>
+        <li class="fragment">La asignación inválida se rechaza y el objeto conserva el valor que tenía. Quien llama recibe un <code>false</code> y decide qué hacer.</li>
+        <li class="fragment">Los valores escritos junto a cada campo privado son inicializadores por omisión: el objeto nace válido, antes de que nadie lo toque.</li>
+        <li class="fragment">En R10 esa inicialización pasa al constructor, que además permite exigir los datos al crear el objeto.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 9 · CHECKPOINT 2 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="a">
+        <p class="quiz-question">¿Qué garantiza declarar <code>edad</code> como <code>private</code>?</p>
+        <button class="quiz-option" data-opt="a">Que solo los métodos de <code>Estudiante</code> pueden leerla y escribirla</button>
+        <button class="quiz-option" data-opt="b">Que el valor de <code>edad</code> no puede cambiar después de crear el objeto</button>
+        <button class="quiz-option" data-opt="c">Que el campo se guarda cifrado y no aparece en el depurador</button>
+        <div class="quiz-explain"><strong>A.</strong> <code>private</code> es una regla de acceso que el compilador aplica al código fuente: limita quién puede nombrar el miembro. Para impedir cambios después de la construcción se usa <code>const</code> (B). No hay ninguna protección en tiempo de ejecución: el depurador muestra los campos privados igual que los públicos (C).</div>
+      </div>
+    </section>
+
+    <!-- ============ 10 · STRUCT Y CLASS ============ -->
+    <section>
+      <span class="kicker">R9 · struct y class</span>
+      <h2>La única diferencia</h2>
+      <pre data-title="acceso.cpp"><code class="language-cpp" data-trim data-line-numbers="1|2">
+struct A { int x = 1; };   // miembros publicos por omision
+class  B { int x = 1; };   // miembros privados por omision
+
+int main() {
+    A a;  std::cout &lt;&lt; a.x;   // compila
+    B b;  std::cout &lt;&lt; b.x;   // error: 'int B::x' is private
+}
+      </code></pre>
+      <ul>
+        <li class="fragment">Un <code>struct</code> puede tener métodos, campos privados, constructores y herencia. Un <code>class</code> puede tener todo público. Lo único que cambia es el acceso por omisión.</li>
+        <li class="fragment">La convención del curso: <code>struct</code> para agrupaciones de datos sin reglas, <code>class</code> cuando hay algo que proteger.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 11 · ABSTRACCIÓN ============ -->
+    <section>
+      <span class="kicker">R9 · Abstracción</span>
+      <h2>Decidir qué se expone</h2>
+      <pre data-title="termostato.hpp"><code class="language-cpp" data-trim data-line-numbers="2-5|6-7">
+class Termostato {
+public:
+    void subir()      { if (grados &lt; 30) grados++; }
+    void bajar()      { if (grados &gt; 15) grados--; }
+    int  leer() const { return grados; }
+private:
+    int grados = 21;
+};
+      </code></pre>
+      <ul>
+        <li class="fragment"><span class="term" data-term="abstraccion">La abstracción</span> es la decisión de qué operaciones ofrece el tipo. Aquí son tres verbos del problema: subir, bajar, leer.</li>
+        <li class="fragment">Quien usa <code>Termostato</code> no necesita saber que la temperatura se guarda en un <code>int</code> en grados enteros. Ese detalle puede cambiar a <code>double</code> sin tocar el código que lo usa.</li>
+        <li class="fragment">La parte pública es el vocabulario con el que se habla del objeto. Lo que quede fuera de ella no existe para el resto del programa.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 12 · CHECKPOINT 3 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="c">
+        <p class="quiz-question">¿Cuál es la diferencia entre <code>struct</code> y <code>class</code> en C++?</p>
+        <button class="quiz-option" data-opt="a">Un <code>struct</code> solo guarda datos; un <code>class</code> puede tener métodos</button>
+        <button class="quiz-option" data-opt="b">Un <code>struct</code> se copia siempre por valor y un <code>class</code> por referencia</button>
+        <button class="quiz-option" data-opt="c">Los miembros de un <code>struct</code> son públicos por omisión y los de un <code>class</code>, privados</button>
+        <div class="quiz-explain"><strong>C.</strong> Es la única diferencia del lenguaje, junto con el acceso por omisión en la herencia. A describe el <code>struct</code> de C, no el de C++, donde puede tener métodos y constructores. B es falso: los dos se copian igual, según cómo se declare el parámetro o la variable.</div>
+      </div>
+    </section>
+
+    <!-- ============ 13 · ENCAPSULAMIENTO ============ -->
+    <section>
+      <span class="kicker">R9 · Encapsulamiento</span>
+      <h2>Proteger los invariantes</h2>
+      <ul>
+        <li class="fragment"><span class="term" data-term="invariante">Un invariante</span> es una condición sobre los datos del objeto que se cumple siempre, desde que el objeto existe hasta que se destruye.</li>
+        <li class="fragment">Invariantes de <code>Estudiante</code>: la edad está entre 15 y 99; el promedio está entre 0 y 100; el nombre no está vacío.</li>
+        <li class="fragment">Invariante de <code>Termostato</code>: <code>grados</code> está entre 15 y 30. <code>subir</code> y <code>bajar</code> lo respetan en el tope, así que llamar a <code>subir</code> veinte veces deja 30.</li>
+        <li class="fragment"><span class="term" data-term="encapsulamiento">El encapsulamiento</span> es cerrar el acceso directo a los datos para que toda modificación pase por código que preserva esos invariantes.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 14 · LA TRAMPA DE LOS SETTERS ============ -->
+    <section>
+      <span class="kicker">R9 · Encapsulamiento</span>
+      <h2>Getters y setters para todo</h2>
+      <pre data-title="lo que no encapsula"><code class="language-cpp" data-trim>
+class Estudiante {
+public:
+    void setEdad(int e)        { edad = e; }
+    int  getEdad() const       { return edad; }
+    void setPromedio(double p) { promedio = p; }
+    double getPromedio() const { return promedio; }
+private:
+    int edad;
+    double promedio;
+};
+      </code></pre>
+      <ul>
+        <li class="fragment">Un setter sin validación deja pasar exactamente los mismos valores que el campo público. <code>e.setEdad(-5)</code> funciona igual que <code>e.edad = -5</code>.</li>
+        <li class="fragment">Cada par de métodos que no filtra nada agrega líneas y no agrega garantías.</li>
+        <li class="fragment">El criterio es al revés: primero se escriben los invariantes, y solo entonces se decide qué operaciones se ofrecen para modificar el objeto sin romperlos.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 15 · CHECKPOINT 4 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="b">
+        <p class="quiz-question">Una clase tiene todos sus campos privados y un par de <code>get</code>/<code>set</code> sin validación para cada uno. ¿Qué protege?</p>
+        <button class="quiz-option" data-opt="a">Los invariantes, porque el acceso ya pasa por métodos</button>
+        <button class="quiz-option" data-opt="b">Nada sobre los valores; solo permite cambiar la representación interna sin tocar a quien la usa</button>
+        <button class="quiz-option" data-opt="c">La memoria del objeto, porque los campos privados no se pueden leer desde el depurador</button>
+        <div class="quiz-explain"><strong>B.</strong> El único beneficio que queda es de mantenimiento: si mañana <code>edad</code> se guarda como fecha de nacimiento, el cambio se limita al cuerpo de los métodos. Los invariantes siguen sin custodia, porque el setter acepta cualquier valor del tipo (A). Los campos privados se ven igual en el depurador (C): <code>private</code> es una regla de compilación.</div>
+      </div>
+    </section>
+
+    <!-- ============ 16 · TRAMPAS COMUNES ============ -->
+    <section>
+      <span class="kicker">R9 · Trampas comunes</span>
+      <h2>Cuatro descuidos frecuentes</h2>
+      <ul>
+        <li class="fragment">Escribir getters y setters para cada campo y dar por hecho que la clase ya encapsula.</li>
+        <li class="fragment">Devolver una referencia no constante a un campo privado. <code>int&amp; getEdad() { return edad; }</code> permite escribir <code>obj.getEdad() = -5;</code> y anula la validación.</li>
+        <li class="fragment">Olvidar <code>const</code> en los métodos de consulta. Un objeto declarado <code>const</code> no podrá llamarlos.</li>
+        <li class="fragment">Abrir un <code>class</code> y escribir los métodos antes de cualquier especificador. Quedan privados y el código que usa la clase no compila.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 17 · EJERCICIO ============ -->
+    <section>
+      <span class="kicker">R9 · Ejercicio</span>
+      <h2>Tres invariantes que hay que sostener</h2>
+      <pre data-title="reserva.cpp"><code class="language-cpp" data-trim>
+struct Reserva {
+    std::string sala;   // invariante 1: no vacia
+    int personas;       // invariante 2: entre 1 y 20
+    int horaInicio;     // invariante 3: 0 &lt;= inicio &lt; fin &lt;= 23
+    int horaFin;
+};
+      </code></pre>
+      <p class="muted">Conviértelo en clase e impide cada violación. El tercer invariante relaciona dos campos, así que no puede sostenerse con un setter por campo.</p>
+      <div class="solucion">
+        <pre><code class="language-cpp" data-trim>
+class Reserva {
+public:
+    bool asignarPersonas(int p) {
+        if (p &lt; 1 || p &gt; 20) return false;
+        personas = p; return true;
+    }
+    bool asignarHorario(int ini, int fin) {   // los dos juntos
+        if (ini &lt; 0 || fin &gt; 23 || ini &gt;= fin) return false;
+        horaInicio = ini; horaFin = fin; return true;
+    }
+private:
+    std::string sala = "A1";
+    int personas = 1;
+    int horaInicio = 8, horaFin = 9;
+};
+        </code></pre>
+        <p class="muted"><code>asignarSala</code> sigue el mismo patrón: rechaza la cadena vacía con <code>s.empty()</code> antes de escribir. Con <code>asignarInicio</code> y <code>asignarFin</code> por separado el objeto pasaría por un estado con <code>inicio &gt;= fin</code> entre las dos llamadas; un solo método que recibe el par revisa la condición completa antes de escribir cualquiera de los dos campos.</p>
+      </div>
+    </section>
+
+    <!-- ============ 18 · CHECKLIST ============ -->
+    <section>
+      <span class="kicker">R9 · Antes de pasar a R10</span>
+      <h2>Verifica que ya puedes</h2>
+      <ul class="checklist" data-deck="v09">
+        <li>Explicar por qué un campo público no puede sostener una regla <span class="cl-ref">slide 4</span></li>
+        <li>Escribir un método que valide antes de asignar <span class="cl-ref">slide 7</span></li>
+        <li>Enunciar la única diferencia entre <code>struct</code> y <code>class</code> <span class="cl-ref">slide 10</span></li>
+        <li>Distinguir abstracción de encapsulamiento <span class="cl-ref">slide 13</span></li>
+        <li>Detectar una clase con getters y setters que no protege nada <span class="cl-ref">slide 14</span></li>
+      </ul>
+      <p class="muted">Si algo sigue sin marcarse, regresa a ese slide antes de continuar.</p>
+    </section>
+
+    <!-- ============ EL COMMIT DE ESTA SESIÓN ============ -->
+    <section>
+      <span class="kicker">R9 · Tu repositorio</span>
+      <h2>El commit de esta sesión</h2>
+      <pre><code class="language-bash" data-trim>
+cd repaso-cpp
+git add r09-clases/
+git commit -m "R9: struct convertido en clase con invariantes"
+git push
+      </code></pre>
+      <p class="muted">Un commit por sesión. Así, cuando algo deje de compilar, <code>git diff</code> te dice exactamente qué cambiaste desde la última vez que funcionaba.</p>
+    </section>
+
+
+    <!-- ============ 19 · SIGUIENTE ============ -->
+    <section class="divider">
+      <h2>Siguiente:<br>R10 · Constructores, destructor y <code>this</code></h2>
+      <p class="muted">Los invariantes ya tienen guardia para las modificaciones. Falta garantizarlos en el instante en que el objeto nace.</p>
+      <p><a href="../repaso/">← Volver al índice de la serie</a></p>
+    </section>
+
+    <!-- ============ 20 · REFERENCIAS ============ -->
+    <section>
+      <span class="kicker">R9</span>
+      <h2>Referencias y material para profundizar</h2>
+      <div class="refs cols">
+        <div>
+          <h3>Referencias</h3>
+          <ul>
+            <li><span class="ref-type">Libro</span> Stroustrup, B. <em>A Tour of C++</em>, 3.ª ed., Addison-Wesley, 2022. Cap. 2, “User-Defined Types”.</li>
+            <li><span class="ref-type">Libro</span> Gregoire, M. <em>Professional C++</em>, 5.ª ed., Wiley, 2021. Caps. 5 y 8, diseño de clases e interfaces.</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Para profundizar</h3>
+          <ul>
+            <li><span class="ref-type">Web</span> <a href="https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#c2-use-class-if-the-class-has-an-invariant-use-struct-if-the-data-members-can-vary-independently">C++ Core Guidelines C.2</a> <span class="ref-nota">— cuándo usar <code>class</code> y cuándo <code>struct</code>, según haya invariante.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#c131-avoid-trivial-getters-and-setters">C++ Core Guidelines C.131</a> <span class="ref-nota">— por qué evitar getters y setters triviales.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://en.cppreference.com/w/cpp/language/access">cppreference — Access specifiers</a> <span class="ref-nota">— reglas exactas de <code>public</code>, <code>protected</code> y <code>private</code>.</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script src="../js/curso-slides.js"></script>
+<script>
+  Reveal.initialize({
+    width: 1280,
+    height: 720,
+    margin: 0.06,
+    hash: true,
+    progress: true,
+    slideNumber: 'c/t',
+    controls: true,
+    transition: 'slide',
+    transitionSpeed: 'fast',
+    plugins: [ RevealHighlight ]
+  }).then(() => {
+    CursoSlides.init({
+      invariante: {
+        titulo: "Invariante de clase",
+        def: "Condición sobre los datos de un objeto que se cumple en todo momento observable desde fuera. El constructor la establece y cada método público la deja igual de cierta al terminar. Ejemplo: <code>0 &lt;= promedio &lt;= 100</code>."
+      },
+      abstraccion: {
+        titulo: "Abstracción",
+        def: "Decisión sobre qué operaciones ofrece un tipo y qué detalles de su implementación quedan fuera de la vista. Define el vocabulario con el que el resto del programa habla del objeto."
+      },
+      encapsulamiento: {
+        titulo: "Encapsulamiento",
+        def: "Mecanismo que cierra el acceso directo a los datos de un objeto para que toda modificación pase por código de la propia clase. En C++ se aplica con <code>private</code> y se verifica al compilar."
+      }
+    });
+  });
+</script>
+</body>
+</html>

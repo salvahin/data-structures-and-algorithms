@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Repaso G2 — Ramas, historia y volver atrás</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+  <link rel="stylesheet" href="../css/theme-curso.css">
+</head>
+<body>
+<div class="reveal">
+  <div class="slides">
+
+    <!-- ============ 1 · PORTADA ============ -->
+    <section class="cover">
+      <span class="kicker">Repaso de C++ y POO · Módulo 2 · Programación orientada a objetos</span>
+      <h1>Ramas, historia y volver&nbsp;atrás</h1>
+      <div class="cover-meta">
+        G2 · Auto-estudio · 26 minutos<br>
+        Estructuras de Datos y Algoritmos
+      </div>
+    </section>
+
+    <!-- ============ 2 · OBJETIVO ============ -->
+    <section>
+      <span class="kicker">G2 · Objetivo</span>
+      <h2>Al terminar esta sesión podrás…</h2>
+      <ul>
+        <li class="fragment">Leer la historia de tu repositorio con <code>git log</code>, <code>git show</code> y <code>git diff</code>, y decir qué cambió entre dos commits.</li>
+        <li class="fragment">Crear ramas con <code>git switch -c</code> y moverte entre ellas sin perder trabajo.</li>
+        <li class="fragment">Fusionar una rama con <code>git merge</code> y reconocer cuándo la fusión fue un <em>fast-forward</em>.</li>
+        <li class="fragment">Resolver un conflicto a mano y deshacer con <code>git revert</code> un commit que ya subiste.</li>
+      </ul>
+      <p class="muted">Trabajaremos sobre tu propio repositorio, el que vienes armando sesión por sesión desde G1.</p>
+    </section>
+
+    <!-- ============ 3 · PUNTO DE PARTIDA ============ -->
+    <section>
+      <span class="kicker">G2 · Punto de partida</span>
+      <h2>Quieres probar una idea que puede romper todo</h2>
+      <p>Llevas once sesiones, tu clase compila y ahora quieres reescribirla de otra forma. La única maniobra que conoces es duplicar la carpeta antes de tocar nada.</p>
+      <pre><code class="language-bash" data-trim>
+cp -r r13-memoria arreglo_backup
+      </code></pre>
+      <ul>
+        <li class="fragment">Quedan dos copias del mismo código y nada registra en qué se diferencian: para saberlo hay que abrir los archivos y compararlos a ojo.</li>
+        <li class="fragment">Si la idea funciona, los cambios se regresan a mano, archivo por archivo.</li>
+        <li class="fragment">La copia no entra en la historia. En dos semanas, el nombre <code>arreglo_backup</code> no dice qué contenía ni por qué se creó.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 4 · LA HISTORIA QUE YA TIENES ============ -->
+    <section>
+      <span class="kicker">G2 · Leer la historia</span>
+      <h2>Tu semestre ya está registrado</h2>
+      <pre><code class="language-plaintext" data-trim>
+$ git log --oneline
+650683f R11: ejercicio de la sesion
+ed4156c R10: ejercicio de la sesion
+cf91ed7 R9: ejercicio de la sesion
+203e666 R8: ejercicio de la sesion
+b5cee31 R7: ejercicio de la sesion
+6f3feea R6: ejercicio de la sesion
+      </code></pre>
+      <pre><code class="language-plaintext" data-trim>
+$ git show --stat 4cea4b4
+commit 4cea4b404588b2ce95bd4fecbfdba3d15e9eaa68
+Author: Estudiante &lt;e@tec.mx&gt;
+Date:   Thu Aug 20 16:28:38 2026 -0600
+
+    R0: compilacion desde la terminal
+
+ .gitignore               | 10 ++++++++++
+ r00-compilacion/main.cpp |  2 ++
+ 2 files changed, 12 insertions(+)
+      </code></pre>
+      <p class="fragment">Los siete caracteres de la izquierda son el hash abreviado del commit y sirven como su nombre en cualquier comando. <code>git show --stat</code> abre uno solo y lista qué archivos tocó.</p>
+    </section>
+
+    <!-- ============ 5 · GIT DIFF ============ -->
+    <section>
+      <span class="kicker">G2 · Leer la historia</span>
+      <h2>Qué cambió entre dos commits</h2>
+      <pre><code class="language-plaintext" data-trim>
+$ git diff --stat HEAD~3 HEAD
+ r09-tema/main.cpp | 1 +
+ r10-tema/main.cpp | 1 +
+ r11-tema/main.cpp | 1 +
+ 3 files changed, 3 insertions(+)
+      </code></pre>
+      <p><code>HEAD~3</code> significa tres commits antes del actual. Sin <code>--stat</code>, el mismo comando imprime las líneas exactas que entraron y salieron.</p>
+      <pre><code class="language-plaintext" data-trim>
+$ git diff
+diff --git a/r00-compilacion/main.cpp b/r00-compilacion/main.cpp
+index 2481a48..0e9df85 100644
+--- a/r00-compilacion/main.cpp
++++ b/r00-compilacion/main.cpp
+@@ -1,2 +1,2 @@
+ #include &lt;iostream&gt;
+-int main(){ std::cout &lt;&lt; "hola\n"; }
++int main(){ std::cot &lt;&lt; "hola\n"; }
+      </code></pre>
+      <p class="fragment">Cuando algo deja de compilar, la pregunta útil no se contesta releyendo el archivo entero: se contesta comparando con el último commit que sí compilaba. Es el punto de partida de R12.</p>
+    </section>
+
+    <!-- ============ 6 · CHECKPOINT 1 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="b">
+        <p class="quiz-question">Tu clase compilaba en el commit <code>ed4156c</code> de R10 y hoy, varios commits después, ya no compila. ¿Qué comando te dice qué líneas cambiaron desde entonces?</p>
+        <button class="quiz-option" data-opt="a"><code>git log --oneline</code>, que lista los commits desde R10</button>
+        <button class="quiz-option" data-opt="b"><code>git diff ed4156c HEAD</code>, que compara ese commit con el estado actual</button>
+        <button class="quiz-option" data-opt="c"><code>git show --stat HEAD</code>, que resume el último commit</button>
+        <div class="quiz-explain"><strong>B.</strong> <code>git diff</code> acepta dos referencias cualesquiera y devuelve las líneas que las separan. A solo devuelve mensajes y hashes, que te sirven para elegir el commit pero no dicen qué se modificó. C mira un solo commit y, con <code>--stat</code>, solo cuenta archivos y líneas de ese commit, no la diferencia acumulada desde R10.</div>
+      </div>
+    </section>
+
+    <!-- ============ 7 · QUÉ ES UNA RAMA ============ -->
+    <section>
+      <span class="kicker">G2 · Ramas</span>
+      <h2>Una rama es un nombre que apunta a un commit</h2>
+      <svg viewBox="0 0 1120 320">
+        <g class="anim-step" data-step="1">
+          <rect class="svg-node" x="60" y="130" width="180" height="70" rx="10"/>
+          <text class="svg-label" x="150" y="160" text-anchor="middle">cf91ed7</text>
+          <text class="svg-label" x="150" y="188" text-anchor="middle" style="font-size:20px;fill:#4b5260">R9</text>
+          <path class="svg-edge" d="M240 165 H 320"/>
+          <rect class="svg-node" x="320" y="130" width="180" height="70" rx="10"/>
+          <text class="svg-label" x="410" y="160" text-anchor="middle">ed4156c</text>
+          <text class="svg-label" x="410" y="188" text-anchor="middle" style="font-size:20px;fill:#4b5260">R10</text>
+          <path class="svg-edge" d="M500 165 H 580"/>
+          <rect class="svg-node" x="580" y="130" width="180" height="70" rx="10"/>
+          <text class="svg-label" x="670" y="160" text-anchor="middle">650683f</text>
+          <text class="svg-label" x="670" y="188" text-anchor="middle" style="font-size:20px;fill:#4b5260">R11</text>
+        </g>
+        <g class="anim-step" data-step="2">
+          <text class="svg-label" x="670" y="22" text-anchor="middle" style="font-size:20px;fill:#4b5260">HEAD</text>
+          <rect class="svg-node-hl" x="600" y="30" width="140" height="56" rx="8"/>
+          <text class="svg-label" x="670" y="68" text-anchor="middle">main</text>
+          <path class="svg-edge" d="M670 86 V 130"/>
+        </g>
+        <g class="anim-step" data-step="3" data-step-off="4">
+          <rect class="svg-node-hl" x="590" y="235" width="160" height="56" rx="8"/>
+          <text class="svg-label" x="670" y="273" text-anchor="middle">prueba</text>
+          <path class="svg-edge" d="M670 235 V 200"/>
+        </g>
+        <g class="anim-step" data-step="4">
+          <path class="svg-edge" d="M760 165 H 840"/>
+          <rect class="svg-node" x="840" y="130" width="180" height="70" rx="10"/>
+          <text class="svg-label" x="930" y="172" text-anchor="middle">408de56</text>
+          <rect class="svg-node-hl" x="850" y="235" width="160" height="56" rx="8"/>
+          <text class="svg-label" x="930" y="273" text-anchor="middle">prueba</text>
+          <path class="svg-edge" d="M930 235 V 200"/>
+        </g>
+      </svg>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <p class="fragment"><span class="term" data-term="rama">Una rama</span> guarda un hash de 40 caracteres, no archivos. <span class="term" data-term="head">HEAD</span> indica en cuál de esos nombres estás parado: al hacer un commit, git escribe el commit nuevo y mueve ese nombre hacia adelante, mientras los demás se quedan donde estaban. Crear la rama <code>prueba</code> escribió un archivo de 41 bytes y no copió una sola línea del proyecto.</p>
+    </section>
+
+    <!-- ============ 8 · CAMBIAR DE RAMA ============ -->
+    <section>
+      <span class="kicker">G2 · Ramas</span>
+      <h2>Cambiar de rama cambia los archivos del disco</h2>
+      <pre><code class="language-plaintext" data-trim>
+$ git switch -c sin-regla-de-tres
+Switched to a new branch 'sin-regla-de-tres'
+
+# creas r13-memoria/, la compilas y haces commit
+
+$ git switch main
+Switched to branch 'main'
+
+$ git branch
+* main
+  sin-regla-de-tres
+      </code></pre>
+      <ul>
+        <li class="fragment">Al volver a <code>main</code>, la carpeta <code>r13-memoria</code> ya no está en el disco. Con <code>git switch sin-regla-de-tres</code> reaparece completa. Los archivos viven dentro del repositorio y git reescribe tu carpeta de trabajo en cada cambio de rama.</li>
+        <li class="fragment"><code>git branch</code> lista los nombres y marca con <code>*</code> aquel al que apunta HEAD.</li>
+        <li class="fragment">Lo que no está comiteado no está guardado: git intenta arrastrarlo a la otra rama y, si estorba, se niega a cambiar. Comitea antes de moverte.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 9 · CHECKPOINT 2 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="c">
+        <p class="quiz-question">Estás en <code>main</code> con todo comiteado y ejecutas <code>git switch -c prueba</code>. ¿Qué ocurrió en ese instante?</p>
+        <button class="quiz-option" data-opt="a">Se duplicaron los archivos del proyecto dentro de una carpeta <code>prueba/</code></button>
+        <button class="quiz-option" data-opt="b">Los archivos de <code>main</code> quedaron congelados y solo vuelven tras fusionar</button>
+        <button class="quiz-option" data-opt="c">Se escribió un nombre nuevo apuntando al mismo commit, y HEAD pasó a apuntar a ese nombre</button>
+        <div class="quiz-explain"><strong>C.</strong> La rama nueva nace apuntando al commit donde estabas, así que los dos nombres señalan lo mismo y el disco no cambia. A supone una copia de archivos que git no hace. B invierte el mecanismo: <code>main</code> sigue disponible y basta <code>git switch main</code> para recuperar su versión de los archivos, con o sin fusión.</div>
+      </div>
+    </section>
+
+    <!-- ============ 10 · LOG CON GRAFO ============ -->
+    <section>
+      <span class="kicker">G2 · Ramas</span>
+      <h2>Ver las dos ramas a la vez</h2>
+      <pre><code class="language-plaintext" data-trim>
+$ git log --oneline --graph --all
+* 9c559d7 R13: Arreglo con regla de tres
+| * 408de56 R13: Arreglo sin regla de tres
+|/
+* 650683f R11: ejercicio de la sesion
+* ed4156c R10: ejercicio de la sesion
+      </code></pre>
+      <ul>
+        <li class="fragment">Cada <code>*</code> es un commit. La columna en la que aparece indica a qué línea de trabajo pertenece.</li>
+        <li class="fragment">La barra <code>|/</code> marca el punto donde las dos ramas se separaron: <code>650683f</code>, el commit de R11, es el ancestro común.</li>
+        <li class="fragment">Sin <code>--all</code>, git solo dibuja la historia alcanzable desde la rama actual y la otra rama no aparece.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 11 · DIFF ENTRE RAMAS ============ -->
+    <section>
+      <span class="kicker">G2 · Comparar</span>
+      <h2>Las dos versiones de la misma clase</h2>
+      <pre><code class="language-plaintext" data-trim>
+$ git diff sin-regla-de-tres con-regla-de-tres
+diff --git a/r13-memoria/arreglo.h b/r13-memoria/arreglo.h
+index ad22530..5e91cce 100644
+--- a/r13-memoria/arreglo.h
++++ b/r13-memoria/arreglo.h
+@@ -1,6 +1,8 @@
+ class Arreglo {
+ public:
+     Arreglo(int n) : n_(n), datos_(new int[n]) {}
++    Arreglo(const Arreglo&amp; o);
++    Arreglo&amp; operator=(const Arreglo&amp; o);
+     ~Arreglo() { delete[] datos_; }
+ private:
+     int  n_;
+      </code></pre>
+      <p class="fragment">El orden de los argumentos importa: <code>git diff A B</code> describe cómo pasar de A a B, así que las líneas con <code>+</code> están en B y faltan en A. Aquí la diferencia entre las dos ramas son las dos declaraciones que R13 llama regla de tres.</p>
+    </section>
+
+    <!-- ============ 12 · MERGE SIN CONFLICTO ============ -->
+    <section>
+      <span class="kicker">G2 · Fusionar</span>
+      <h2>Fusionar cuando main no avanzó</h2>
+      <pre><code class="language-plaintext" data-trim>
+$ git switch main
+Switched to branch 'main'
+
+$ git merge con-regla-de-tres
+Updating 650683f..9c559d7
+Fast-forward
+ r13-memoria/arreglo.h | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+ create mode 100644 r13-memoria/arreglo.h
+      </code></pre>
+      <ul>
+        <li class="fragment">Desde que nació la rama, <code>main</code> no recibió commits propios, así que su historia está contenida en la de la otra rama.</li>
+        <li class="fragment">Git no combina nada: mueve el nombre <code>main</code> hasta <code>9c559d7</code>. Eso es un <span class="term" data-term="ff">fast-forward</span>, y por eso no aparece ningún commit de fusión en el <code>git log</code>.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 13 · CHECKPOINT 3 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="a">
+        <p class="quiz-question"><code>git merge</code> imprime <code>Fast-forward</code> y ninguna otra cosa. ¿Qué hizo git?</p>
+        <button class="quiz-option" data-opt="a">Movió el nombre <code>main</code> hasta el commit de la otra rama, sin crear ningún commit</button>
+        <button class="quiz-option" data-opt="b">Creó un commit de fusión con dos padres para unir las dos historias</button>
+        <button class="quiz-option" data-opt="c">Copió los archivos de la otra rama sobre los de <code>main</code> y dejó la historia intacta</button>
+        <div class="quiz-explain"><strong>A.</strong> El fast-forward solo es posible cuando la rama de destino no tiene commits propios: su commit es ancestro del otro, así que adelantar el nombre basta. B describe la fusión real, que git usa cuando las dos ramas avanzaron por separado y que sí produce un commit extra. C invierte el orden de las cosas: git opera sobre commits y la carpeta de trabajo se reescribe como consecuencia.</div>
+      </div>
+    </section>
+
+    <!-- ============ 14 · EL CONFLICTO ============ -->
+    <section>
+      <span class="kicker">G2 · Conflictos</span>
+      <h2>Dos ramas cambiaron la misma línea</h2>
+      <pre><code class="language-plaintext" data-trim>
+$ git merge prueba-a
+Auto-merging r13-memoria/demo.cpp
+CONFLICT (content): Merge conflict in r13-memoria/demo.cpp
+Automatic merge failed; fix conflicts and then commit the result.
+
+$ git status --short
+UU r13-memoria/demo.cpp
+      </code></pre>
+      <pre data-title="r13-memoria/demo.cpp"><code class="language-cpp" data-trim>
+#include &lt;iostream&gt;
+int main() {
+&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
+    std::cout &lt;&lt; "version con delete\n";
+=======
+    std::cout &lt;&lt; "version con delete[]\n";
+&gt;&gt;&gt;&gt;&gt;&gt;&gt; prueba-a
+}
+      </code></pre>
+      <p class="fragment"><code>UU</code> marca el archivo como no fusionado. Git combinó todo lo que pudo y se detuvo en las líneas que no supo decidir.</p>
+    </section>
+
+    <!-- ============ 15 · RESOLVER EL CONFLICTO ============ -->
+    <section>
+      <span class="kicker">G2 · Conflictos</span>
+      <h2>Resolver es editar el archivo y cerrar el merge</h2>
+      <ul>
+        <li class="fragment"><code>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</code> abre el bloque. Lo que sigue es la versión de la rama donde estabas parado.</li>
+        <li class="fragment"><code>=======</code> separa las dos versiones; debajo va la de la rama que estás fusionando, y <code>&gt;&gt;&gt;&gt;&gt;&gt;&gt; prueba-a</code> cierra el bloque con su nombre.</li>
+        <li class="fragment">Abre el archivo, deja el código que quieres —una versión, la otra o una mezcla— y borra las tres marcas. Después, <span class="term" data-term="conflicto">el conflicto</span> se cierra igual que cualquier cambio.</li>
+      </ul>
+      <pre><code class="language-plaintext" data-trim>
+$ git add r13-memoria/demo.cpp
+$ git commit -m "Merge: me quedo con delete[]"
+$ git log --oneline --graph
+*   765eee1 Merge: me quedo con delete[]
+|\
+| * 5fc24b8 R13: prueba con delete[]
+* | 28a9d25 R13: prueba con delete
+|/
+* edcf2df R13: demo base
+      </code></pre>
+      <p class="muted">Si el conflicto se complica, <code>git merge --abort</code> cancela la fusión y deja el proyecto como estaba antes de empezarla.</p>
+    </section>
+
+    <!-- ============ 16 · REVERT ============ -->
+    <section>
+      <span class="kicker">G2 · Volver atrás</span>
+      <h2>Deshacer un commit que ya subiste</h2>
+      <pre><code class="language-plaintext" data-trim>
+$ git revert --no-edit 650683f
+[main 4f155c6] Revert "R11: ejercicio de la sesion"
+ Date: Thu Aug 20 16:29:21 2026 -0600
+ 1 file changed, 1 deletion(-)
+ delete mode 100644 r11-tema/main.cpp
+      </code></pre>
+      <ul>
+        <li class="fragment">Git calcula el cambio inverso del commit señalado y lo graba como un commit nuevo, <code>4f155c6</code>. El original sigue en <code>git log</code>, con su fecha y su mensaje.</li>
+        <li class="fragment"><code>git reset --hard</code> hace algo distinto: mueve el nombre de la rama hacia atrás y descarta los commits posteriores en tu copia.</li>
+        <li class="fragment">Sobre historia ya publicada eso obliga a <code>git push --force</code>, que reemplaza en el servidor commits que otros ya descargaron. Quien tenga esa rama se queda con una historia que ya no existe.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 17 · CHECKPOINT 4 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="b">
+        <p class="quiz-question">Subiste a GitHub un commit que rompe la compilación y un compañero ya lo descargó. ¿Qué haces?</p>
+        <button class="quiz-option" data-opt="a"><code>git reset --hard HEAD~1</code> y <code>git push --force</code>, para que el commit malo desaparezca</button>
+        <button class="quiz-option" data-opt="b"><code>git revert</code> de ese commit, que agrega uno nuevo con el cambio inverso</button>
+        <button class="quiz-option" data-opt="c">Fusionar otra vez la rama buena; git detecta el commit malo y lo descarta solo</button>
+        <div class="quiz-explain"><strong>B.</strong> El revert deja el proyecto sin el cambio dañino y conserva el registro de que ocurrió: el commit original permanece en el historial, acompañado del que lo invierte. A reescribe historia que ya está en la copia de tu compañero, y su repositorio quedará apuntando a commits que el servidor ya no tiene. C atribuye a <code>git merge</code> un criterio que no tiene: combina cambios y, cuando chocan, se detiene y te pregunta.</div>
+      </div>
+    </section>
+
+    <!-- ============ 18 · TRAMPAS COMUNES ============ -->
+    <section>
+      <span class="kicker">G2 · Trampas comunes</span>
+      <h2>Cuatro formas de perder media hora</h2>
+      <pre><code class="language-plaintext" data-trim>
+$ git checkout 6827b8f
+Note: switching to '6827b8f'.
+
+You are in 'detached HEAD' state. You can look around, make experimental
+changes and commit them, and you can discard any commits you make in this
+state without impacting any branches by switching back to a branch.
+
+$ git switch -
+Previous HEAD position was 6827b8f R13: demo base
+Switched to branch 'main'
+      </code></pre>
+      <ul>
+        <li class="fragment">Visitar un commit por su hash deja HEAD sin rama. Los commits que hagas ahí no tienen nombre que los alcance. <code>git switch -</code> regresa a donde estabas.</li>
+        <li class="fragment">Borrar una rama sin fusionar: <code>error: The branch 'sin-regla-de-tres' is not fully merged.</code> La <code>-d</code> minúscula es la protección; <code>-D</code> la ignora.</li>
+        <li class="fragment">Comitear el archivo con las marcas adentro. El compilador falla en la línea de <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</code>, que no es C++, y el mensaje no menciona git por ningún lado.</li>
+        <li class="fragment">Creer que borrar una rama borra sus commits. Si ya la fusionaste, sus commits viven en la historia de <code>main</code>; se va el nombre, no el trabajo.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 19 · EJERCICIO ============ -->
+    <section>
+      <span class="kicker">G2 · Ejercicio</span>
+      <h2>Dos ramas para la clase <code>Arreglo</code></h2>
+      <ol>
+        <li>Desde <code>main</code>, crea la rama <code>sin-regla-de-tres</code> con <code>r13-memoria/arreglo.h</code>: solo constructor y destructor. Comitea.</li>
+        <li>Vuelve a <code>main</code> y crea <code>con-regla-de-tres</code> con la misma clase más el constructor de copia y el <code>operator=</code>. Comitea.</li>
+        <li>Compara las dos ramas con <code>git diff</code>, fusiona la buena en <code>main</code> y borra la otra.</li>
+      </ol>
+      <div class="solucion">
+        <pre><code class="language-bash" data-trim>
+git switch -c sin-regla-de-tres
+# arreglo.h: Arreglo(int n) y ~Arreglo()
+git add r13-memoria/arreglo.h
+git commit -m "R13: Arreglo sin regla de tres"
+git switch main
+
+git switch -c con-regla-de-tres
+# la misma clase + constructor de copia y operator=
+git add r13-memoria/arreglo.h
+git commit -m "R13: Arreglo con regla de tres"
+git diff sin-regla-de-tres con-regla-de-tres
+git switch main
+git merge con-regla-de-tres        # Fast-forward
+git branch -d sin-regla-de-tres    # responde: not fully merged
+        </code></pre>
+        <p class="muted">El diff que verás es el del slide 11. La última línea falla a propósito: esa rama nunca se fusionó, así que git pide <code>-D</code> para borrarla. La versión que queda en <code>main</code> es el punto de partida de R13.</p>
+      </div>
+    </section>
+
+    <!-- ============ 20 · CHECKLIST ============ -->
+    <section>
+      <span class="kicker">G2 · Antes de pasar a R12</span>
+      <h2>Verifica que ya puedes</h2>
+      <ul class="checklist" data-deck="g02">
+        <li>Explicar qué guarda una rama y por qué crearla no copia archivos <span class="cl-ref">slide 7</span></li>
+        <li>Crear una rama, moverte entre ramas y saber en cuál estás <span class="cl-ref">slide 8</span></li>
+        <li>Comparar dos versiones de la misma clase con <code>git diff</code> <span class="cl-ref">slide 11</span></li>
+        <li>Resolver un conflicto quitando las tres marcas y cerrarlo con un commit <span class="cl-ref">slide 15</span></li>
+        <li>Deshacer con <code>git revert</code> un commit que ya subiste <span class="cl-ref">slide 16</span></li>
+      </ul>
+      <p class="muted">Si algo sigue sin marcarse, regresa a ese slide antes de continuar.</p>
+    </section>
+
+    <!-- ============ 21 · SIGUIENTE ============ -->
+    <section class="divider">
+      <h2>Siguiente:<br>R12 · Anatomía de un error de compilación</h2>
+      <p class="muted">Ya puedes regresar a cualquier versión que compilaba. Ahora, leer el mensaje que explica por qué esta no compila.</p>
+      <p><a href="../repaso/">← Volver al índice de la serie</a></p>
+    </section>
+
+    <!-- ============ 22 · REFERENCIAS ============ -->
+    <section>
+      <span class="kicker">G2</span>
+      <h2>Referencias y material para profundizar</h2>
+      <div class="refs cols">
+        <div>
+          <h3>Referencias</h3>
+          <ul>
+            <li><span class="ref-type">Libro</span> Chacon, S. y Straub, B. <em>Pro Git</em>, 2.ª ed., Apress, 2014. Caps. 2 y 3.</li>
+            <li><span class="ref-type">Libro</span> Ponuthorai, P. y Loeliger, J. <em>Version Control with Git</em>, 3.ª ed., O'Reilly, 2022. Caps. 7 y 9.</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Para profundizar</h3>
+          <ul>
+            <li><span class="ref-type">Web</span> <a href="https://git-scm.com/docs/git-merge">git-scm — git merge</a> <span class="ref-nota">— la documentación oficial, con el detalle de qué hace ante un conflicto.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://git-scm.com/book/es/v2">Pro Git en español</a> <span class="ref-nota">— el libro completo y gratuito; el capítulo 3 es este deck con más ejemplos.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://learngitbranching.js.org/">Learn Git Branching</a> <span class="ref-nota">— simulador visual para practicar ramas y fusiones sin arriesgar tu repositorio.</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script src="../js/curso-slides.js"></script>
+<script>
+  Reveal.initialize({
+    width: 1280,
+    height: 720,
+    margin: 0.06,
+    hash: true,
+    progress: true,
+    slideNumber: 'c/t',
+    controls: true,
+    transition: 'slide',
+    transitionSpeed: 'fast',
+    plugins: [ RevealHighlight ]
+  }).then(() => {
+    CursoSlides.init({
+      rama: {
+        titulo: "Rama (branch)",
+        def: "Nombre que apunta a un commit. Se guarda como un archivo con un hash de 40 caracteres dentro de <code>.git/refs/heads/</code>. Al hacer un commit estando en ella, el nombre se mueve al commit nuevo; las demás ramas no se enteran."
+      },
+      head: {
+        titulo: "HEAD",
+        def: "Referencia al commit en el que estás parado. Normalmente apunta a una rama, y la rama al commit, por eso al comitear la rama avanza. Si apunta directo a un commit, git lo llama <em>detached HEAD</em> y los commits que hagas quedan sin nombre que los alcance."
+      },
+      ff: {
+        titulo: "Fast-forward",
+        def: "Fusión en la que la rama de destino no recibió commits propios desde que la otra se separó, así que su commit es ancestro del otro. Git no combina cambios: adelanta el nombre de la rama hasta el commit más nuevo y no crea commit de fusión."
+      },
+      conflicto: {
+        titulo: "Conflicto (merge conflict)",
+        def: "Dos ramas modificaron las mismas líneas de un archivo y git no tiene criterio para elegir. Marca el archivo como no fusionado (<code>UU</code> en <code>git status --short</code>), escribe las dos versiones separadas por marcas y detiene la fusión hasta que edites el archivo, hagas <code>git add</code> y comitees."
+      }
+    });
+  });
+</script>
+</body>
+</html>

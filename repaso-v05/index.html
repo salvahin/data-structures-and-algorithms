@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Repaso R5 — Funciones</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+  <link rel="stylesheet" href="../css/theme-curso.css">
+</head>
+<body>
+<div class="reveal">
+  <div class="slides">
+
+    <!-- 1 ============ PORTADA ============ -->
+    <section class="cover">
+      <span class="kicker">Repaso de C++ y POO · Módulo 1 · Recapitulación de C++</span>
+      <h1>Funciones</h1>
+      <div class="cover-meta">
+        R5 · Auto-estudio · 24 minutos<br>
+        Estructuras de Datos y Algoritmos
+      </div>
+    </section>
+
+    <!-- 2 ============ OBJETIVO ============ -->
+    <section>
+      <span class="kicker">R5 · Objetivo</span>
+      <h2>Al terminar esta sesión podrás…</h2>
+      <ul>
+        <li class="fragment">Separar la declaración de una función de su definición y decir para qué sirve cada una.</li>
+        <li class="fragment">Explicar por qué una función que recibe por valor no modifica al original.</li>
+        <li class="fragment">Reconocer una función que no retorna en todos los caminos y el aviso que la delata.</li>
+        <li class="fragment">Escribir un conjunto de sobrecargas válido y predecir cuál elige el compilador.</li>
+      </ul>
+    </section>
+
+    <!-- 3 ============ ARRANQUE ============ -->
+    <section>
+      <span class="kicker">R5 · Punto de partida</span>
+      <h2>Una función que devuelve un número inventado</h2>
+      <pre data-title="clasificar.cpp"><code class="language-cpp" data-trim data-line-numbers="|6">
+int clasificar(int cal) {
+    if (cal &gt;= 90) return 4;
+    else if (cal &gt;= 80) return 3;
+    else if (cal &gt;= 70) return 2;
+    // si cal es menor que 70 no hay return
+}
+
+int main() { std::cout &lt;&lt; clasificar(55) &lt;&lt; '\n'; }
+      </code></pre>
+      <pre><code class="language-plaintext" data-trim>
+$ ./clasificar
+55
+      </code></pre>
+      <p class="fragment">Imprimió <code>55</code>, que es el argumento que se le pasó. El programa leyó lo que quedaba en el lugar donde esperaba encontrar el resultado. Con otro compilador, o con <code>-O2</code>, el número sería otro.</p>
+    </section>
+
+    <!-- 4 ============ DECLARACIÓN VS DEFINICIÓN ============ -->
+    <section>
+      <span class="kicker">R5 · Declaración y definición</span>
+      <h2>Prometer que existe, y entregarla</h2>
+      <pre data-title="area.cpp"><code class="language-cpp" data-trim data-line-numbers="3|9-11">
+#include &lt;iostream&gt;
+
+double area(double base, double altura);   // declaración
+
+int main() {
+    std::cout &lt;&lt; area(3.0, 4.0) &lt;&lt; '\n';   // 6
+}
+
+double area(double base, double altura) {  // definición
+    return base * altura / 2.0;
+}
+      </code></pre>
+      <ul>
+        <li class="fragment">La <span class="term" data-term="prototipo">declaración</span> da el nombre, los tipos de los parámetros y el tipo de retorno. Con eso el compilador ya puede verificar cada llamada.</li>
+        <li class="fragment">La definición agrega el cuerpo. Puede estar más abajo, o en otro archivo, como el <code>suma.cpp</code> de R0.</li>
+        <li class="fragment">Sin la declaración previa, el compilador llega a <code>area(3.0, 4.0)</code> sin haber visto ese nombre y falla ahí mismo.</li>
+      </ul>
+    </section>
+
+    <!-- 5 ============ PASO POR VALOR ============ -->
+    <section>
+      <span class="kicker">R5 · Parámetros</span>
+      <h2>El parámetro es una copia</h2>
+      <pre data-title="duplicar.cpp"><code class="language-cpp" data-trim>
+void duplicar(int n) { n = n * 2; }
+
+int main() {
+    int x = 5;
+    duplicar(x);
+    std::cout &lt;&lt; x &lt;&lt; '\n';      // 5, no 10
+}
+      </code></pre>
+      <ul>
+        <li class="fragment">Al llamar, el valor de <code>x</code> se copia en el parámetro <code>n</code>. Son dos variables distintas y <code>n</code> deja de existir al terminar la función.</li>
+        <li class="fragment">Los nombres del argumento y del parámetro no tienen relación: llamar <code>n</code> a los dos no los conecta.</li>
+        <li class="fragment">Para que la función sí modifique al original hace falta pasar por referencia o por puntero, que es el tema de R8.</li>
+      </ul>
+    </section>
+
+    <!-- 6 ============ CHECKPOINT 1 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="c">
+        <p class="quiz-question">Declaras <code>int suma(int a, int b);</code> arriba del <code>main</code> y nunca escribes su cuerpo, pero sí la llamas. ¿Qué ocurre?</p>
+        <button class="quiz-option" data-opt="a">Error del compilador en la línea de la llamada</button>
+        <button class="quiz-option" data-opt="b">Compila y ejecuta; la función devuelve <code>0</code></button>
+        <button class="quiz-option" data-opt="c">Compila sin quejas y falla al enlazar con <code>undefined reference</code></button>
+        <div class="quiz-explain"><strong>C.</strong> El compilador solo verifica que la llamada coincida con la declaración, y coincide. El cuerpo lo busca el enlazador entre todos los <code>.o</code>, y al no encontrarlo emite <code>undefined reference</code>, el error de R0. No hay error en la llamada (A) ni un cuerpo por omisión (B): declarar es prometer, definir es entregar.</div>
+      </div>
+    </section>
+
+    <!-- 7 ============ VALOR DE RETORNO ============ -->
+    <section>
+      <span class="kicker">R5 · Valor de retorno</span>
+      <h2>Qué devuelve y qué hace <code>return</code></h2>
+      <ul>
+        <li class="fragment"><code>return expr;</code> termina la función de inmediato y entrega el valor al punto de llamada. Lo que venga después no se ejecuta.</li>
+        <li class="fragment">El valor se convierte al tipo declarado. Una función <code>int</code> que hace <code>return 2.7;</code> devuelve <code>2</code>, en silencio.</li>
+        <li class="fragment">Una función <code>void</code> no devuelve nada. Admite <code>return;</code> a secas para salir antes de tiempo.</li>
+        <li class="fragment">Ignorar el valor devuelto es legal: <code>suma(2, 3);</code> como línea suelta compila y no hace nada útil.</li>
+      </ul>
+      <pre><code class="language-cpp" data-trim>
+void avisar(int n) {
+    if (n &lt; 0) return;                 // salida temprana
+    std::cout &lt;&lt; "valor: " &lt;&lt; n &lt;&lt; '\n';
+}
+      </code></pre>
+    </section>
+
+    <!-- 8 ============ TODOS LOS CAMINOS ============ -->
+    <section>
+      <span class="kicker">R5 · Valor de retorno</span>
+      <h2>Todos los caminos tienen que retornar</h2>
+      <pre><code class="language-plaintext" data-trim>
+$ g++ -std=c++17 -Wall -Wextra clasificar.cpp -o clasificar
+clasificar.cpp:8:1: warning: control reaches end of
+non-void function [-Wreturn-type]
+      </code></pre>
+      <ul>
+        <li class="fragment">Salir de una función con retorno declarado sin ejecutar un <code>return</code> es comportamiento indefinido. El programa no aborta: sigue con el valor que hubiera en el registro de retorno.</li>
+        <li class="fragment">Es una <strong>advertencia</strong>, no un error, así que la compilación termina bien y el binario se genera. Sin <code>-Wall</code> no aparece nada.</li>
+        <li class="fragment">La corrección del arranque es cambiar el último <code>else if</code> por un <code>else</code>, o poner un <code>return 1;</code> al final. Toda cadena de <code>if</code> que produce un valor necesita su rama de cierre.</li>
+      </ul>
+      <div class="box-key">Si <code>-Wall</code> dice <code>control reaches end of non-void function</code>, hay una entrada para la que tu función devuelve basura.</div>
+    </section>
+
+    <!-- 9 ============ CHECKPOINT 2 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="a">
+        <p class="quiz-question">¿Cuál de estas funciones dispara <code>-Wreturn-type</code>?</p>
+        <button class="quiz-option" data-opt="a"><code>bool esPar(int n) { if (n % 2 == 0) return true; }</code></button>
+        <button class="quiz-option" data-opt="b"><code>void log(int n) { if (n &lt; 0) return; }</code></button>
+        <button class="quiz-option" data-opt="c"><code>int main() { std::cout &lt;&lt; "hola\n"; }</code></button>
+        <div class="quiz-explain"><strong>A.</strong> Cuando <code>n</code> es impar la función llega al final sin retornar, y eso es comportamiento indefinido: el compilador deja de garantizar qué hace el programa completo. Sin optimización suele devolver un valor cualquiera; con <code>-O2</code> el programa puede colgarse o saltarse el código que sigue. B es <code>void</code>: no debe devolver nada y <code>return;</code> es una salida temprana válida. C es la excepción del lenguaje que ya vimos en R2: <code>main</code> puede omitir el <code>return</code> y el compilador supone <code>return 0;</code>.</div>
+      </div>
+    </section>
+
+    <!-- 10 ============ ALCANCE ============ -->
+    <section>
+      <span class="kicker">R5 · Alcance</span>
+      <h2>Cada función tiene sus propias variables</h2>
+      <pre data-title="alcance.cpp"><code class="language-cpp" data-trim data-line-numbers="1|4-6|10-11">
+int contador = 0;              // global
+
+void registrar() {
+    int contador = 100;        // oculta a la global
+    contador++;
+    std::cout &lt;&lt; "local: " &lt;&lt; contador &lt;&lt; '\n';   // 101
+}
+
+int main() {
+    registrar();
+    std::cout &lt;&lt; "global: " &lt;&lt; contador &lt;&lt; '\n';  // 0
+}
+      </code></pre>
+      <ul>
+        <li class="fragment">Una variable local nace al entrar a la función y muere al salir. Otra función no puede verla, aunque se llamen igual.</li>
+        <li class="fragment">Un nombre declarado en un alcance interior oculta al del exterior. Aquí <code>registrar</code> nunca toca la global, y el compilador no lo señala.</li>
+        <li class="fragment">Las variables globales permiten que cualquier función modifique el estado sin que se note en la firma. Pasa el dato como parámetro y devuelve el resultado.</li>
+      </ul>
+    </section>
+
+    <!-- 11 ============ CHECKPOINT 3 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="b">
+        <p class="quiz-question">Dentro de una función escribes <code>int total = 0;</code> y dentro de un <code>for</code> de esa misma función, <code>int total = 5;</code>. ¿Qué pasa?</p>
+        <button class="quiz-option" data-opt="a">Error de compilación: <code>total</code> ya estaba declarada</button>
+        <button class="quiz-option" data-opt="b">Compila; dentro del <code>for</code> se ve la nueva y fuera vuelve a verse la primera</button>
+        <button class="quiz-option" data-opt="c">Compila y las dos son la misma variable, que termina valiendo <code>5</code></button>
+        <div class="quiz-explain"><strong>B.</strong> Cada bloque <code>{ }</code> abre un alcance nuevo y una declaración en el interior oculta a la exterior mientras dure ese bloque. Al cerrar el <code>for</code>, <code>total</code> vuelve a ser la de afuera con su valor intacto. No hay conflicto (A) porque están en alcances distintos, y no comparten almacenamiento (C). Es la fuente de errores más difícil de ver al leer código ajeno.</div>
+      </div>
+    </section>
+
+    <!-- 12 ============ SOBRECARGA ============ -->
+    <section>
+      <span class="kicker">R5 · Sobrecarga</span>
+      <h2>Un nombre, varias listas de parámetros</h2>
+      <pre data-title="mayor.cpp"><code class="language-cpp" data-trim>
+int mayor(int a, int b) { return a &gt; b ? a : b; }
+
+double mayor(double a, double b) { return a &gt; b ? a : b; }
+
+std::string mayor(const std::string&amp; a,
+                  const std::string&amp; b) {
+    return a.size() &gt;= b.size() ? a : b;
+}
+
+mayor(3, 9);        // la de int    -&gt; 9
+mayor(2.5, 1.5);    // la de double -&gt; 2.5
+      </code></pre>
+      <ul>
+        <li class="fragment">La <span class="term" data-term="sobrecarga">sobrecarga</span> permite reutilizar un nombre cuando la operación es conceptualmente la misma sobre tipos distintos.</li>
+        <li class="fragment">El compilador elige al compilar, según los tipos de los argumentos. En el ejecutable son tres funciones separadas, con nombres internos distintos.</li>
+      </ul>
+    </section>
+
+    <!-- 13 ============ RESOLUCIÓN ============ -->
+    <section>
+      <span class="kicker">R5 · Sobrecarga</span>
+      <h2>Qué distingue a dos sobrecargas</h2>
+      <table>
+        <tr><th>Diferencia</th><th>¿Sirve para distinguirlas?</th></tr>
+        <tr><td>Número de parámetros</td><td>Sí</td></tr>
+        <tr><td>Tipos de los parámetros</td><td>Sí</td></tr>
+        <tr><td>Orden de los tipos</td><td>Sí</td></tr>
+        <tr><td>Nombres de los parámetros</td><td>No</td></tr>
+        <tr><td>Tipo de retorno</td><td>No</td></tr>
+      </table>
+      <pre><code class="language-plaintext" data-trim>
+int f(int a);
+double f(int a);   // error: ambiguating new declaration
+      </code></pre>
+      <p class="fragment">La <span class="term" data-term="firma">firma</span> de una función no incluye el retorno, porque en <code>f(1);</code> como línea suelta no habría forma de decidir cuál se llama. Si no hay ninguna coincidencia exacta, el compilador intenta conversiones; cuando dos candidatas quedan igual de buenas, el error es <code>call of overloaded … is ambiguous</code>.</p>
+    </section>
+
+    <!-- 14 ============ CHECKPOINT 4 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="b">
+        <p class="quiz-question">Existen <code>void f(int);</code> y <code>void f(double);</code>. Llamas <code>f('a');</code>. ¿Cuál se ejecuta?</p>
+        <button class="quiz-option" data-opt="a">Ninguna: error, porque no hay una sobrecarga para <code>char</code></button>
+        <button class="quiz-option" data-opt="b"><code>f(int)</code>, porque <code>char</code> se promueve a <code>int</code></button>
+        <button class="quiz-option" data-opt="c">Es ambigua: <code>char</code> se convierte igual de bien a los dos</button>
+        <div class="quiz-explain"><strong>B.</strong> Sin coincidencia exacta, el compilador ordena las conversiones posibles por preferencia. La promoción de <code>char</code> a <code>int</code> tiene mayor prioridad que la conversión de <code>char</code> a <code>double</code>, así que gana <code>f(int)</code> sin ambigüedad. No hace falta una sobrecarga por cada tipo (A), y las dos candidatas no están empatadas (C).</div>
+      </div>
+    </section>
+
+    <!-- 15 ============ ARGUMENTOS POR OMISIÓN ============ -->
+    <section>
+      <span class="kicker">R5 · Argumentos por omisión</span>
+      <h2>Valores que el llamador puede no escribir</h2>
+      <pre data-title="saludar.cpp"><code class="language-cpp" data-trim>
+void saludar(const std::string&amp; n, int veces = 1,
+             char sep = '\n') {
+    for (int i = 0; i &lt; veces; i++)
+        std::cout &lt;&lt; "Hola " &lt;&lt; n &lt;&lt; sep;
+}
+
+saludar("Ana");             // 1 vez, salto de línea
+saludar("Luis", 3);         // 3 veces
+saludar("Sam", 2, ' ');     // 2 veces, separadas por espacio
+      </code></pre>
+      <ul>
+        <li class="fragment">Van al final de la lista: una vez que un parámetro tiene valor por omisión, todos los siguientes también deben tenerlo.</li>
+        <li class="fragment">Se escriben en la <strong>declaración</strong>, no en la definición. Si están separadas en <code>.h</code> y <code>.cpp</code> (R11), el valor va en la cabecera.</li>
+        <li class="fragment">Combinados con sobrecarga producen ambigüedad: con <code>void f(int, int = 0);</code> y <code>void f(int);</code>, la llamada <code>f(5)</code> no compila. Elige una de las dos técnicas.</li>
+      </ul>
+    </section>
+
+    <!-- 16 ============ TRAMPAS COMUNES ============ -->
+    <section>
+      <span class="kicker">R5 · Trampas comunes</span>
+      <h2>Cuatro descuidos que el binario no perdona</h2>
+      <ul>
+        <li class="fragment"><strong>No retornar en todos los caminos.</strong> Solo <code>-Wall</code> lo dice, y el valor devuelto cambia entre compiladores y niveles de optimización.</li>
+        <li class="fragment"><strong>Esperar que el parámetro modifique al argumento.</strong> El paso por valor copia; hace falta una referencia (R8).</li>
+        <li class="fragment"><strong>Repetir el valor por omisión en la declaración y en la definición.</strong> El compilador lo rechaza como redefinición.</li>
+        <li class="fragment"><strong>Intentar sobrecargar cambiando solo el tipo de retorno.</strong> El error habla de <code>ambiguating new declaration</code> y no menciona la palabra sobrecarga.</li>
+      </ul>
+      <p class="fragment muted">Sobrecargar es dar varios significados a un nombre según los tipos. En R14 esa idea se aplica a los operadores, y en R16 se contrasta con la sobreescritura, que es otra cosa.</p>
+    </section>
+
+    <!-- 17 ============ EJERCICIO ============ -->
+    <section>
+      <span class="kicker">R5 · Ejercicio</span>
+      <h2>Parte este <code>main</code> en funciones</h2>
+      <pre data-title="monolitico.cpp"><code class="language-cpp" data-trim>
+int main() {
+    double notas[3];
+    double suma = 0;
+    for (int i = 0; i &lt; 3; i++) {
+        std::cout &lt;&lt; "Nota " &lt;&lt; i + 1 &lt;&lt; ": ";
+        std::cin &gt;&gt; notas[i];
+        suma += notas[i];
+    }
+    double prom = suma / 3;
+    std::cout &lt;&lt; "Promedio: " &lt;&lt; prom &lt;&lt; '\n';
+    if (prom &gt;= 70) std::cout &lt;&lt; "Aprobado\n";
+    else            std::cout &lt;&lt; "Reprobado\n";
+}
+      </code></pre>
+      <p class="muted">Extrae tres funciones: pedir las notas, calcular el promedio y decidir si aprueba. Ninguna debe imprimir y calcular a la vez.</p>
+      <div class="solucion">
+        <pre><code class="language-cpp" data-trim>
+void pedirNotas(double n[], int cuantas) {
+    for (int i = 0; i &lt; cuantas; i++) {
+        std::cout &lt;&lt; "Nota " &lt;&lt; i + 1 &lt;&lt; ": ";
+        std::cin &gt;&gt; n[i];
+    }
+}
+double promedio(const double n[], int cuantas) {
+    double s = 0;
+    for (int i = 0; i &lt; cuantas; i++) s += n[i];
+    return s / cuantas;
+}
+bool aprobado(double prom) { return prom &gt;= 70.0; }
+        </code></pre>
+        <p class="muted"><code>promedio</code> y <code>aprobado</code> no imprimen nada, así que pueden probarse con valores fijos sin teclear. El parámetro <code>cuantas</code> viaja aparte porque el arreglo pierde su tamaño al pasarse a una función, lo que se explica en R8.</p>
+      </div>
+    </section>
+
+    <!-- 18 ============ CHECKLIST ============ -->
+    <section>
+      <span class="kicker">R5 · Antes de pasar a R6</span>
+      <h2>Verifica que ya puedes</h2>
+      <ul class="checklist" data-deck="v05">
+        <li>Distinguir declaración de definición y decir quién revisa cada una <span class="cl-ref">slide 4</span></li>
+        <li>Explicar por qué el paso por valor no modifica al argumento <span class="cl-ref">slide 5</span></li>
+        <li>Reconocer <code>control reaches end of non-void function</code> <span class="cl-ref">slide 8</span></li>
+        <li>Escribir sobrecargas válidas y decir qué no las distingue <span class="cl-ref">slide 13</span></li>
+        <li>Usar argumentos por omisión sin provocar ambigüedad <span class="cl-ref">slide 15</span></li>
+      </ul>
+      <p class="muted">Si algo sigue sin marcarse, regresa a ese slide antes de continuar.</p>
+    </section>
+
+    <!-- ============ EL COMMIT DE ESTA SESIÓN ============ -->
+    <section>
+      <span class="kicker">R5 · Tu repositorio</span>
+      <h2>El commit de esta sesión</h2>
+      <pre><code class="language-bash" data-trim>
+cd repaso-cpp
+git add r05-funciones/
+git commit -m "R5: main dividido en funciones"
+git push
+      </code></pre>
+      <p class="muted">Un commit por sesión. Así, cuando algo deje de compilar, <code>git diff</code> te dice exactamente qué cambiaste desde la última vez que funcionaba.</p>
+    </section>
+
+
+    <!-- 19 ============ SIGUIENTE ============ -->
+    <section class="divider">
+      <h2>Siguiente:<br>R6 · El depurador de VS Code en serio</h2>
+      <p class="muted">Con funciones ya hay pila de llamadas que observar, y un programa lo bastante grande como para que valga la pena detenerlo a la mitad.</p>
+      <p><a href="../repaso/">← Volver al índice de la serie</a></p>
+    </section>
+
+    <!-- 20 ============ REFERENCIAS ============ -->
+    <section>
+      <span class="kicker">R5</span>
+      <h2>Referencias y material para profundizar</h2>
+      <div class="refs cols">
+        <div>
+          <h3>Referencias</h3>
+          <ul>
+            <li><span class="ref-type">Libro</span> Lippman, S. et al. <em>C++ Primer</em>, 5.ª ed., Addison-Wesley, 2012. Cap. 6.</li>
+            <li><span class="ref-type">Libro</span> Stroustrup, B. <em>A Tour of C++</em>, 3.ª ed., Addison-Wesley, 2022. Cap. 3.</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Para profundizar</h3>
+          <ul>
+            <li><span class="ref-type">Web</span> <a href="https://en.cppreference.com/w/cpp/language/overload_resolution">cppreference — Overload resolution</a> <span class="ref-nota">— el orden completo de preferencia entre conversiones.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://en.cppreference.com/w/cpp/language/default_arguments">cppreference — Default arguments</a> <span class="ref-nota">— dónde pueden escribirse y dónde no.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#S-functions">C++ Core Guidelines — Functions</a> <span class="ref-nota">— criterios para decidir qué extraer a una función.</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script src="../js/curso-slides.js"></script>
+<script>
+  Reveal.initialize({
+    width: 1280,
+    height: 720,
+    margin: 0.06,
+    hash: true,
+    progress: true,
+    slideNumber: 'c/t',
+    controls: true,
+    transition: 'slide',
+    transitionSpeed: 'fast',
+    plugins: [ RevealHighlight ]
+  }).then(() => {
+    CursoSlides.init({
+      prototipo: {
+        titulo: "Declaración (prototipo)",
+        def: "Línea que anuncia el nombre de una función, los tipos de sus parámetros y su tipo de retorno, terminada en punto y coma. Basta para que el compilador verifique las llamadas; el cuerpo lo aporta la definición."
+      },
+      sobrecarga: {
+        titulo: "Sobrecarga (overloading)",
+        def: "Definir varias funciones con el mismo nombre y distinta lista de parámetros. El compilador elige una al compilar según los tipos de los argumentos. En R14 la idea se aplica a los operadores; no debe confundirse con la sobreescritura de R16."
+      },
+      firma: {
+        titulo: "Firma (signature)",
+        def: "Conjunto de datos que identifican a una función para el compilador: su nombre y los tipos de sus parámetros, en orden. No incluye el tipo de retorno ni los nombres de los parámetros."
+      }
+    });
+  });
+</script>
+</body>
+</html>

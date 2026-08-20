@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Repaso R16 — Polimorfismo</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+  <link rel="stylesheet" href="../css/theme-curso.css">
+</head>
+<body>
+<div class="reveal">
+  <div class="slides">
+
+    <!-- ============ 1 · PORTADA ============ -->
+    <section class="cover">
+      <span class="kicker">Repaso de C++ y POO · Módulo 2 · Programación orientada a objetos</span>
+      <h1>Polimorfismo</h1>
+      <div class="cover-meta">
+        R16 · Auto-estudio · 26 minutos<br>
+        Estructuras de Datos y Algoritmos
+      </div>
+    </section>
+
+    <!-- ============ 2 · OBJETIVO ============ -->
+    <section>
+      <span class="kicker">R16 · Objetivo</span>
+      <h2>Al terminar esta sesión podrás…</h2>
+      <ul>
+        <li class="fragment">Explicar qué cambia <code>virtual</code> en una llamada y por qué el efecto solo se ve por puntero o referencia.</li>
+        <li class="fragment">Distinguir sobrecarga de sobreescritura leyendo dos firmas.</li>
+        <li class="fragment">Declarar una clase abstracta con funciones virtuales puras y usarla como contrato.</li>
+        <li class="fragment">Decir qué se fuga al destruir por puntero a la base sin destructor virtual, y reconocer el slicing en una firma.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 3 · ARRANQUE ============ -->
+    <section>
+      <span class="kicker">R16 · Punto de partida</span>
+      <h2>El mismo objeto, dos áreas distintas</h2>
+      <pre data-title="figuras.cpp"><code class="language-cpp" data-trim>
+class Figura {
+public:
+    double area() const { return 0.0; }
+};
+
+class Circulo : public Figura {
+    double r_;
+public:
+    Circulo(double r) : r_(r) {}
+    double area() const { return 3.14159 * r_ * r_; }
+};
+      </code></pre>
+      <pre><code class="language-cpp" data-trim>
+Circulo c(2.0);
+Figura* f = &amp;c;             // f apunta al mismo objeto
+
+std::cout &lt;&lt; c.area();      // 12.5664
+std::cout &lt;&lt; f-&gt;area();     // 0
+      </code></pre>
+    </section>
+
+    <!-- ============ 4 · VIRTUAL ============ -->
+    <section>
+      <span class="kicker">R16 · Enlace dinámico</span>
+      <h2><code>virtual</code> aplaza la decisión hasta la ejecución</h2>
+      <pre data-title="figuras.h"><code class="language-cpp" data-trim data-line-numbers="1-5|3|10">
+class Figura {
+public:
+    virtual double area() const { return 0.0; }
+    virtual ~Figura() = default;
+};
+
+class Circulo : public Figura {
+    double r_;
+public:
+    double area() const override { return 3.14159 * r_ * r_; }
+};
+// ahora f-&gt;area() devuelve 12.5664
+      </code></pre>
+      <ul>
+        <li class="fragment">Sin <code>virtual</code>, el compilador elige el método al leer la línea, usando el tipo de la expresión: <code>f</code> es <code>Figura*</code>, así que llama a <code>Figura::area</code>.</li>
+        <li class="fragment">Con <code>virtual</code>, la elección la hace el programa en ejecución consultando el objeto al que se llegó. Eso es el <span class="term" data-term="enlace-dinamico">enlace dinámico</span>.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 5 · SVG DESPACHO ============ -->
+    <section>
+      <span class="kicker">R16 · Enlace dinámico</span>
+      <h2>Cómo llega la llamada al método correcto</h2>
+      <svg viewBox="0 0 1120 340">
+        <g class="anim-step" data-step="1">
+          <rect class="svg-node" x="20" y="130" width="190" height="80" rx="10"/>
+          <text class="svg-label" x="115" y="165" text-anchor="middle" style="font-size:22px">Figura* f</text>
+          <text class="svg-label" x="115" y="192" text-anchor="middle" style="font-size:19px;fill:#4b5260">una dirección</text>
+        </g>
+        <g class="anim-step" data-step="2">
+          <path class="svg-edge" d="M210 170 H 290"/>
+          <text class="svg-label" x="425" y="95" text-anchor="middle" style="font-size:20px;fill:#4b5260">objeto Circulo</text>
+          <rect class="svg-node-hl" x="290" y="110" width="270" height="130" rx="10"/>
+          <line class="svg-edge" x1="290" y1="175" x2="560" y2="175"/>
+          <text class="svg-label" x="425" y="152" text-anchor="middle" style="font-size:22px">vptr</text>
+          <text class="svg-label" x="425" y="215" text-anchor="middle" style="font-size:22px">r_ = 2.0</text>
+        </g>
+        <g class="anim-step" data-step="3">
+          <path class="svg-edge" d="M560 143 H 640"/>
+          <text class="svg-label" x="875" y="95" text-anchor="middle" style="font-size:20px;fill:#4b5260">vtable de Circulo</text>
+          <rect class="svg-node-hl" x="640" y="110" width="460" height="130" rx="10"/>
+          <line class="svg-edge" x1="640" y1="175" x2="1100" y2="175"/>
+          <text class="svg-label" x="870" y="152" text-anchor="middle" style="font-size:21px">area() → Circulo::area</text>
+          <text class="svg-label" x="870" y="215" text-anchor="middle" style="font-size:21px">~Figura() → ~Circulo</text>
+        </g>
+        <g class="anim-step" data-step="4">
+          <text class="svg-label" x="20" y="300" style="font-size:23px;fill:#0b57d0">f-&gt;area() sigue el vptr del objeto, así que el tipo de f no interviene.</text>
+        </g>
+      </svg>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <p class="fragment">Cada clase con métodos virtuales tiene una <span class="term" data-term="vtable">vtable</span>, y cada objeto guarda un puntero a la de su clase. El costo por llamada es ese salto adicional.</p>
+    </section>
+
+    <!-- ============ 6 · CHECKPOINT 1 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="b">
+        <p class="quiz-question">Con <code>area()</code> sin <code>virtual</code>, <code>Figura* f = &amp;c;</code> y <code>f-&gt;area()</code> devuelve 0 aunque <code>c</code> es un <code>Circulo</code>. ¿Por qué?</p>
+        <button class="quiz-option" data-opt="a">Porque <code>f</code> apunta a una copia que solo conserva la parte <code>Figura</code></button>
+        <button class="quiz-option" data-opt="b">Porque sin <code>virtual</code> la llamada se resuelve en compilación con el tipo de <code>f</code>, que es <code>Figura*</code></button>
+        <button class="quiz-option" data-opt="c">Porque a <code>Circulo::area</code> le falta <code>override</code></button>
+        <div class="quiz-explain"><strong>B.</strong> El compilador ve una expresión de tipo <code>Figura*</code> y escribe una llamada fija a <code>Figura::area</code>. La opción A describe el slicing, que aquí no ocurre: <code>f</code> apunta al <code>Circulo</code> entero y <code>c.area()</code> sobre ese mismo objeto sí devuelve 12.5664. La C invierte la relación: <code>override</code> solo verifica que la firma coincida con un método virtual de la base, y sin <code>virtual</code> escribirlo es un error de compilación.</div>
+      </div>
+    </section>
+
+    <!-- ============ 7 · PUNTERO O REFERENCIA ============ -->
+    <section>
+      <span class="kicker">R16 · Punteros y referencias</span>
+      <h2>El enlace dinámico viaja por puntero o referencia</h2>
+      <pre data-title="dibujo.cpp"><code class="language-cpp" data-trim data-line-numbers="1|2|3|5-7">
+void porValor(Figura f)        { std::cout &lt;&lt; f.area(); }
+void porRef(const Figura&amp; f)   { std::cout &lt;&lt; f.area(); }
+void porPtr(const Figura* f)   { std::cout &lt;&lt; f-&gt;area(); }
+
+Circulo c(2.0);
+porValor(c);      // 0
+porRef(c);        // 12.5664
+      </code></pre>
+      <ul>
+        <li class="fragment">Una variable de tipo <code>Figura</code> ocupa exactamente lo que ocupa una <code>Figura</code>. Copiar un <code>Circulo</code> ahí deja fuera el radio, y con él la vtable del círculo.</li>
+        <li class="fragment">Una referencia o un puntero guardan dónde vive el objeto. El objeto no cambia de tipo, así que su vtable sigue siendo la que era. Es la razón de que R8 vaya antes que esta sesión.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 8 · OVERRIDE ============ -->
+    <section>
+      <span class="kicker">R16 · override</span>
+      <h2><code>override</code> convierte un error silencioso en uno de compilación</h2>
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-2|4-5|7-8">
+// en la base
+virtual double area() const;
+
+// en la derivada, sin override: compila y no sobreescribe nada
+double area();                 // le falta const
+
+// con override, el compilador lo revisa
+double area() override;        // error claro, en la línea exacta
+      </code></pre>
+      <pre><code class="language-plaintext" data-trim>
+error: 'double D::area()' marked 'override',
+       but does not override
+      </code></pre>
+      <p class="fragment">Escribe <code>override</code> en cada redefinición. Es la única forma barata de enterarte de que una firma dejó de coincidir.</p>
+    </section>
+
+    <!-- ============ 9 · SOBRECARGA vs SOBREESCRITURA ============ -->
+    <section>
+      <span class="kicker">R16 · Sobrecarga y sobreescritura</span>
+      <h2>Dos mecanismos con nombres parecidos</h2>
+      <table>
+        <thead><tr><th></th><th>Sobrecarga (R5, R14)</th><th>Sobreescritura (R16)</th></tr></thead>
+        <tbody>
+          <tr class="fragment"><td>Qué es</td><td>Varias funciones con el mismo nombre en un mismo ámbito</td><td>Un método virtual de la base redefinido en la derivada</td></tr>
+          <tr class="fragment"><td>Firmas</td><td>Tienen que ser distintas</td><td>Tienen que ser idénticas, <code>const</code> incluido</td></tr>
+          <tr class="fragment"><td>Quién elige</td><td>El compilador, por los tipos de los argumentos</td><td>El programa en ejecución, por el objeto real</td></tr>
+          <tr class="fragment"><td>Requiere</td><td>Nada más</td><td><code>virtual</code> en la base y puntero o referencia</td></tr>
+        </tbody>
+      </table>
+      <p class="fragment">Cambiar un parámetro convierte una sobreescritura en una sobrecarga, y el programa sigue compilando.</p>
+    </section>
+
+    <!-- ============ 10 · CHECKPOINT 2 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="c">
+        <p class="quiz-question">La base declara <code>virtual void dibujar(int) const;</code> y la derivada <code>void dibujar(int);</code>. ¿Qué relación hay entre las dos?</p>
+        <button class="quiz-option" data-opt="a">Sobreescritura: mismo nombre y mismo parámetro</button>
+        <button class="quiz-option" data-opt="b">Error de compilación, porque las firmas son incompatibles</button>
+        <button class="quiz-option" data-opt="c">Ninguna: la derivada declara un método nuevo que además oculta el heredado</button>
+        <div class="quiz-explain"><strong>C.</strong> Falta el <code>const</code> final, así que las firmas difieren y no hay sobreescritura; una llamada por <code>Base*</code> sigue ejecutando la versión de la base. La opción A cuenta solo los parámetros y olvida que <code>const</code> forma parte de la firma de un método. La B espera un diagnóstico que no llega: el compilador acepta el código, y ese silencio es justo el motivo de escribir <code>override</code>.</div>
+      </div>
+    </section>
+
+    <!-- ============ 11 · OCULTAMIENTO ============ -->
+    <section>
+      <span class="kicker">R16 · Sobrecarga y sobreescritura</span>
+      <h2>El caso que confunde, ejecutado</h2>
+      <pre data-title="oculta.cpp"><code class="language-cpp" data-trim data-line-numbers="1-4|6-9|11-14">
+class Base {
+public:
+    virtual void f(int x) { std::cout &lt;&lt; "Base::f(int)\n"; }
+};
+
+class Derivada : public Base {
+public:
+    void f(double x) { std::cout &lt;&lt; "Derivada::f(double)\n"; }
+};
+
+Derivada d;
+d.f(3);            // Derivada::f(double)
+Base* p = &amp;d;
+p-&gt;f(3);           // Base::f(int)
+      </code></pre>
+      <p class="fragment">El mismo objeto y el mismo argumento entero producen dos resultados. <code>d.f(3)</code> busca el nombre <code>f</code> en <code>Derivada</code>, lo encuentra y deja de mirar la base, así que convierte el <code>3</code> a <code>double</code>. <code>p-&gt;f(3)</code> parte de <code>Base</code>, donde <code>f(int)</code> es virtual, y no hay ninguna versión que la sobreescriba.</p>
+    </section>
+
+    <!-- ============ 12 · VIRTUAL PURO ============ -->
+    <section>
+      <span class="kicker">R16 · Clases abstractas</span>
+      <h2><code>= 0</code> obliga a la derivada a responder</h2>
+      <pre data-title="figuras.h"><code class="language-cpp" data-trim data-line-numbers="1-6|8-14">
+class Figura {                                  // clase abstracta
+public:
+    virtual double area() const = 0;            // virtual pura
+    virtual std::string nombre() const = 0;
+    virtual ~Figura() = default;
+};
+
+class Rectangulo : public Figura {
+    double a_, b_;
+public:
+    Rectangulo(double a, double b) : a_(a), b_(b) {}
+    double area() const override { return a_ * b_; }
+    std::string nombre() const override { return "Rectangulo"; }
+};
+      </code></pre>
+      <p class="fragment">Una <span class="term" data-term="clase-abstracta">clase abstracta</span> no se puede instanciar: <code>Figura f;</code> da <em>cannot declare variable to be of abstract type</em>. Una derivada que deje sin definir alguna función pura sigue siendo abstracta y tampoco se instancia.</p>
+    </section>
+
+    <!-- ============ 13 · INTERFAZ COMO CONTRATO ============ -->
+    <section>
+      <span class="kicker">R16 · Clases abstractas</span>
+      <h2>La base declara el contrato y nadie más lo repite</h2>
+      <pre data-title="reporte.cpp"><code class="language-cpp" data-trim>
+double areaTotal(const std::vector&lt;Figura*&gt;&amp; figs) {
+    double total = 0.0;
+    for (const Figura* f : figs)
+        total += f-&gt;area();      // no sabe qué figura es
+    return total;
+}
+      </code></pre>
+      <ul>
+        <li class="fragment"><code>areaTotal</code> se escribió una vez y sirve para todas las figuras que existan hoy y para las que se agreguen después, sin recompilarla ni tocarla.</li>
+        <li class="fragment">Agregar un <code>Triangulo</code> requiere una clase nueva que derive de <code>Figura</code> y defina las dos funciones puras. Ningún archivo existente cambia.</li>
+        <li class="fragment">El contenedor guarda <code>Figura*</code> y no <code>Figura</code>, porque un vector de objetos por valor rebanaría cada figura al insertarla.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 14 · CHECKPOINT 3 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="a">
+        <p class="quiz-question">Con <code>Figura</code> declarando <code>virtual double area() const = 0;</code>, ¿cuál de estas líneas <em>no</em> compila?</p>
+        <button class="quiz-option" data-opt="a"><code>Figura f;</code></button>
+        <button class="quiz-option" data-opt="b"><code>Figura* p = new Circulo(2.0);</code></button>
+        <button class="quiz-option" data-opt="c"><code>void dibujar(const Figura&amp; f);</code></button>
+        <div class="quiz-explain"><strong>A.</strong> Crear un objeto exige saber qué hace cada método, y <code>area()</code> no tiene cuerpo en <code>Figura</code>; el compilador responde <em>cannot declare variable to be of abstract type</em>. Las opciones B y C no crean ninguna <code>Figura</code>: declaran un puntero y una referencia que apuntarán a un objeto derivado, que es la única manera de usar una clase abstracta.</div>
+      </div>
+    </section>
+
+    <!-- ============ 15 · DESTRUCTOR VIRTUAL ============ -->
+    <section>
+      <span class="kicker">R16 · Destructor virtual</span>
+      <h2>Qué destructor no se ejecuta</h2>
+      <pre data-title="fuga.cpp"><code class="language-cpp" data-trim data-line-numbers="1-4|5-11|13-14">
+class Base {
+public:
+    ~Base() { std::cout &lt;&lt; "~Base()\n"; }      // sin virtual
+};
+class Derivada : public Base {
+    int* buffer_;
+public:
+    Derivada() : buffer_(new int[1000]) { }
+    ~Derivada() { delete[] buffer_;
+                  std::cout &lt;&lt; "~Derivada()\n"; }
+};
+
+Base* p = new Derivada();
+delete p;
+      </code></pre>
+      <pre><code class="language-plaintext" data-trim>
+sin virtual:   ~Base()
+con virtual:   ~Derivada()   ~Base()
+      </code></pre>
+      <p class="fragment">Sin <code>virtual</code>, <code>delete p</code> mira el tipo del puntero y llama solo a <code>~Base</code>: los 4000 bytes de <code>buffer_</code> se fugan. <code>g++ -Wall -Wextra</code> no dice nada porque <code>Base</code> no tiene ninguna función virtual; <code>-fsanitize=address</code> lo reporta como <em>new-delete-type-mismatch</em>. Toda clase que se use por puntero a la base lleva <code>virtual ~Base();</code>.</p>
+    </section>
+
+    <!-- ============ 16 · TRAMPAS ============ -->
+    <section>
+      <span class="kicker">R16 · Trampas comunes</span>
+      <h2>Tres formas de perder el polimorfismo</h2>
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-5|7-9|11-12">
+class Figura {                    // base concreta, sin = 0
+public:
+    virtual double area() const { return 0.0; }
+    virtual ~Figura() = default;
+};
+
+Circulo c(2.0);
+Figura  g = c;             // slicing: g.area() da 0
+Figura&amp; r = c;             // r.area() da 12.5664
+
+std::vector&lt;Figura&gt;  v1;   // rebana cada figura al insertarla
+std::vector&lt;Figura*&gt; v2;   // conserva el objeto completo
+      </code></pre>
+      <ul>
+        <li class="fragment">Asignar un derivado a una variable de tipo base por valor copia solo el subobjeto base. El compilador lo acepta en silencio y el objeto pierde su comportamiento.</li>
+        <li class="fragment">Con la <code>Figura</code> abstracta del slide 12, la línea 8 no compila y <code>v1.push_back(c)</code> tampoco. Declarar la base con funciones virtuales puras cierra esta puerta desde el principio.</li>
+        <li class="fragment">Las otras dos: destructor de la base sin <code>virtual</code>, y redefinir con una firma distinta creyendo que hubo sobreescritura. Si ves un tipo base por valor en una firma o una redefinición sin <code>override</code>, sospecha.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 17 · CHECKPOINT 4 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="c">
+        <p class="quiz-question">Con <code>~Base</code> sin <code>virtual</code>, ejecutas <code>Base* p = new Derivada(); delete p;</code> y ambos destructores imprimen su nombre. ¿Qué sale?</p>
+        <button class="quiz-option" data-opt="a"><code>~Derivada()</code> y después <code>~Base()</code></button>
+        <button class="quiz-option" data-opt="b">Solo <code>~Derivada()</code>, porque el objeto real es una <code>Derivada</code></button>
+        <button class="quiz-option" data-opt="c">Solo <code>~Base()</code>: <code>~Derivada()</code> nunca se ejecuta</button>
+        <div class="quiz-explain"><strong>C.</strong> <code>delete p</code> a través de un puntero a base con destructor no virtual es comportamiento indefinido; en la práctica el compilador lo resuelve con el tipo del puntero, así que solo corre <code>~Base()</code> y todo lo que <code>~Derivada()</code> iba a liberar se queda reservado. La opción A es lo que ocurre al marcar <code>virtual ~Base()</code>, y también el orden correcto. La B invierte la jerarquía: el destructor de la base se ejecuta siempre, porque el subobjeto base existe en todos los casos.</div>
+      </div>
+    </section>
+
+    <!-- ============ 18 · EJERCICIO ============ -->
+    <section>
+      <span class="kicker">R16 · Ejercicio</span>
+      <h2>Figuras con área polimórfica</h2>
+      <ol>
+        <li>Declara <code>Figura</code> abstracta con <code>area()</code> y <code>nombre()</code> puras y destructor virtual.</li>
+        <li>Deriva <code>Circulo</code> y <code>Rectangulo</code> y define las dos funciones con <code>override</code>.</li>
+        <li>Llena un <code>std::vector&lt;Figura*&gt;</code>, recórrelo imprimiendo nombre y área, acumula el total y libera cada elemento. Compila con <code>-fsanitize=address</code> y verifica que no reporta fugas.</li>
+      </ol>
+      <div class="solucion">
+        <pre><code class="language-cpp" data-trim>
+std::vector&lt;Figura*&gt; figs;
+figs.push_back(new Circulo(1.0));
+figs.push_back(new Rectangulo(3.0, 4.0));
+
+double total = 0.0;
+for (const Figura* f : figs) {
+    std::cout &lt;&lt; f-&gt;nombre() &lt;&lt; ": " &lt;&lt; f-&gt;area() &lt;&lt; '\n';
+    total += f-&gt;area();
+}
+std::cout &lt;&lt; "total: " &lt;&lt; total &lt;&lt; '\n';
+
+for (Figura* f : figs) delete f;   // usa ~Circulo y ~Rectangulo
+        </code></pre>
+        <p class="muted">La salida es <code>Circulo: 3.14159</code>, <code>Rectangulo: 12</code> y <code>total: 15.1416</code>. El <code>delete</code> del final llega al destructor correcto porque <code>~Figura</code> es virtual; sin esa palabra, AddressSanitizer reporta el error de tipo en la liberación.</p>
+      </div>
+    </section>
+
+    <!-- ============ 19 · CONEXIÓN CON EL CURSO ============ -->
+    <section>
+      <span class="kicker">R16 · Dónde vuelve esto</span>
+      <h2>Lo que esta sesión habilita en el curso</h2>
+      <ul>
+        <li class="fragment">Los TDA del semestre —Pila, Cola, Lista, Diccionario— se declaran como una interfaz abstracta y se implementan de varias maneras. Las pruebas trabajan contra la interfaz y no contra la implementación.</li>
+        <li class="fragment">Los recorridos de árboles aplican una operación por nodo. Con un método virtual, el mismo recorrido sirve para imprimir, sumar o copiar, cambiando solo el objeto que se le pasa.</li>
+        <li class="fragment">Los comparadores que ordenan tus estructuras se pasan como objetos con <code>operator()</code> de R14 o como una jerarquía con un método virtual de comparación.</li>
+      </ul>
+      <p class="fragment muted">Los contenedores de objetos polimórficos guardan punteros, y por eso las entregas del curso se auditan con AddressSanitizer.</p>
+    </section>
+
+    <!-- ============ 20 · CHECKLIST ============ -->
+    <section>
+      <span class="kicker">R16 · Antes de pasar a R17</span>
+      <h2>Verifica que ya puedes</h2>
+      <ul class="checklist" data-deck="v16">
+        <li>Explicar qué cambia <code>virtual</code> en una llamada <span class="cl-ref">slide 4</span></li>
+        <li>Reconocer el <span class="term" data-term="slicing">slicing</span> al leer una firma por valor <span class="cl-ref">slide 7</span></li>
+        <li>Distinguir sobrecarga de sobreescritura <span class="cl-ref">slide 9</span></li>
+        <li>Declarar una clase abstracta y usarla como contrato <span class="cl-ref">slide 12</span></li>
+        <li>Decir qué destructor no se ejecuta sin <code>virtual</code> <span class="cl-ref">slide 15</span></li>
+      </ul>
+      <p class="muted">Si algo sigue sin marcarse, regresa a ese slide antes de continuar.</p>
+    </section>
+
+    <!-- ============ EL COMMIT DE ESTA SESIÓN ============ -->
+    <section>
+      <span class="kicker">R16 · Tu repositorio</span>
+      <h2>El commit de esta sesión</h2>
+      <pre><code class="language-bash" data-trim>
+cd repaso-cpp
+git add r16-polimorfismo/
+git commit -m "R16: figuras con area polimorfica"
+git push
+      </code></pre>
+      <p class="muted">Un commit por sesión. Así, cuando algo deje de compilar, <code>git diff</code> te dice exactamente qué cambiaste desde la última vez que funcionaba.</p>
+    </section>
+
+
+    <!-- ============ 21 · SIGUIENTE ============ -->
+    <section class="divider">
+      <h2>Siguiente:<br>R17 · Plantillas</h2>
+      <p class="muted">Con herencia, una familia de clases comparte una interfaz. Con plantillas, un mismo código sirve para tipos que no comparten nada.</p>
+      <p><a href="../repaso/">← Volver al índice de la serie</a></p>
+    </section>
+
+    <!-- ============ 22 · REFERENCIAS ============ -->
+    <section>
+      <span class="kicker">R16</span>
+      <h2>Referencias y material para profundizar</h2>
+      <div class="refs cols">
+        <div>
+          <h3>Referencias</h3>
+          <ul>
+            <li><span class="ref-type">Libro</span> Stroustrup, B. <em>The C++ Programming Language</em>, 4.ª ed., Addison-Wesley, 2013. Cap. 20 (funciones virtuales y clases abstractas).</li>
+            <li><span class="ref-type">Libro</span> Weiss, M. A. <em>Data Structures and Algorithm Analysis in C++</em>, 4.ª ed., Pearson, 2014. Cap. 1 (herencia aplicada a los TDA del curso).</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Para profundizar</h3>
+          <ul>
+            <li><span class="ref-type">Web</span> <a href="https://en.cppreference.com/w/cpp/language/virtual">cppreference — Virtual functions</a> <span class="ref-nota">— las reglas exactas de qué cuenta como sobreescritura.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://www.learncpp.com/cpp-tutorial/object-slicing/">learncpp — Object slicing</a> <span class="ref-nota">— el capítulo 25 completo cubre virtual, override y destructor virtual.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://isocpp.org/wiki/faq/proper-inheritance">isocpp FAQ — Proper inheritance</a> <span class="ref-nota">— por qué el destructor virtual es obligatorio en una base polimórfica.</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script src="../js/curso-slides.js"></script>
+<script>
+  Reveal.initialize({
+    width: 1280,
+    height: 720,
+    margin: 0.06,
+    hash: true,
+    progress: true,
+    slideNumber: 'c/t',
+    controls: true,
+    transition: 'slide',
+    transitionSpeed: 'fast',
+    plugins: [ RevealHighlight ]
+  }).then(() => {
+    CursoSlides.init({
+      "enlace-dinamico": {
+        titulo: "Enlace dinámico",
+        def: "Mecanismo por el que la función que se ejecuta en una llamada se determina durante la ejecución, a partir del tipo real del objeto, y no durante la compilación a partir del tipo de la expresión. En C++ se activa marcando el método <code>virtual</code> en la clase base y llamándolo a través de un puntero o una referencia."
+      },
+      vtable: {
+        titulo: "Tabla de funciones virtuales (vtable)",
+        def: "Tabla que el compilador genera por cada clase con métodos virtuales, con la dirección de la versión que corresponde a esa clase. Cada objeto guarda un puntero oculto (<code>vptr</code>) a la tabla de su clase, y la llamada virtual consulta ese puntero. No es parte del estándar, pero es cómo lo implementan todos los compiladores de uso común."
+      },
+      "clase-abstracta": {
+        titulo: "Clase abstracta",
+        def: "Clase con al menos un método virtual puro (<code>= 0</code>), que por eso no puede instanciarse. Sirve para declarar un contrato: qué operaciones ofrece una familia de clases, dejando el cómo a cada derivada. Se usa siempre a través de referencia o puntero a la base."
+      },
+      slicing: {
+        titulo: "Slicing (rebanado de objetos)",
+        def: "Ocurre al copiar un objeto de una clase derivada dentro de una variable del tipo base: la copia solo conserva la parte de la base y se pierde todo lo que añadía la derivada, incluido el comportamiento virtual. Se evita trabajando con referencias (<code>Base&amp;</code>) o punteros (<code>Base*</code>) en vez de con valores."
+      }
+    });
+  });
+</script>
+</body>
+</html>

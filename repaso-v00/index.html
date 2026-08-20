@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Repaso R0 — ¿Qué pasa realmente cuando compilo?</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+  <link rel="stylesheet" href="../css/theme-curso.css">
+</head>
+<body>
+<div class="reveal">
+  <div class="slides">
+
+    <!-- ============ PORTADA ============ -->
+    <section class="cover">
+      <span class="kicker">Repaso de C++ y POO · Módulo 0 · Entorno</span>
+      <h1>¿Qué pasa realmente cuando&nbsp;compilo?</h1>
+      <div class="cover-meta">
+        R0 · Auto-estudio · 25 minutos<br>
+        Estructuras de Datos y Algoritmos
+      </div>
+    </section>
+
+    <!-- ============ CÓMO USAR ============ -->
+    <section>
+      <span class="kicker">Antes de empezar</span>
+      <h2>Cómo se usa este material</h2>
+      <ul>
+        <li class="fragment">Avanza con las flechas o la barra espaciadora. En celular, con scroll.</li>
+        <li class="fragment">Cada 2 o 3 slides hay un <strong>checkpoint</strong>: contesta antes de seguir. Un intento por carga de página.</li>
+        <li class="fragment">Los ejercicios traen la solución oculta tras un botón. Intenta resolverlos en tu computadora primero.</li>
+        <li class="fragment">Al final hay una <strong>lista de verificación</strong>. Si algo te queda pendiente, regresa al slide indicado.</li>
+      </ul>
+    </section>
+
+    <!-- ============ OBJETIVO ============ -->
+    <section>
+      <span class="kicker">R0 · Objetivo</span>
+      <h2>Al terminar esta sesión podrás…</h2>
+      <ul>
+        <li class="fragment">Nombrar las tres etapas que convierten tu <code>.cpp</code> en un ejecutable.</li>
+        <li class="fragment">Compilar y ejecutar un programa de tres archivos desde la terminal, sin IDE.</li>
+        <li class="fragment">Explicar qué hace cada bandera de <code>-std=c++17 -Wall -Wextra -g</code>.</li>
+        <li class="fragment">Distinguir un error del compilador de uno del enlazador leyendo el mensaje.</li>
+      </ul>
+    </section>
+
+    <!-- ============ ARRANQUE: EL CÓDIGO ROTO ============ -->
+    <section>
+      <span class="kicker">R0 · Punto de partida</span>
+      <h2>Este programa no genera ejecutable</h2>
+      <pre data-title="main.cpp"><code class="language-cpp" data-trim>
+#include &lt;iostream&gt;
+
+int sumar(int a, int b);   // declarado aquí, definido en otro archivo
+
+int main() {
+    std::cout &lt;&lt; sumar(2, 3) &lt;&lt; '\n';
+}
+      </code></pre>
+      <pre><code class="language-plaintext" data-trim>
+$ g++ main.cpp -o programa
+/usr/bin/ld: undefined reference to `sumar(int, int)'
+collect2: error: ld returned 1 exit status
+      </code></pre>
+      <p class="fragment">El compilador aceptó el archivo sin una sola queja. El error viene de <code>ld</code>, un programa distinto que corre después.</p>
+    </section>
+
+    <!-- ============ LAS TRES ETAPAS ============ -->
+    <section>
+      <span class="kicker">R0 · Las tres etapas</span>
+      <h2>De texto a ejecutable</h2>
+      <svg viewBox="0 0 1150 300">
+        <g class="anim-step" data-step="1">
+          <rect class="svg-node" x="20" y="110" width="180" height="80" rx="10"/>
+          <text class="svg-label" x="110" y="145" text-anchor="middle">main.cpp</text>
+          <text class="svg-label" x="110" y="175" text-anchor="middle" style="font-size:20px;fill:#4b5260">texto</text>
+        </g>
+        <g class="anim-step" data-step="2">
+          <path class="svg-edge" d="M200 150 H 280"/>
+          <rect class="svg-node-hl" x="280" y="110" width="200" height="80" rx="10"/>
+          <text class="svg-label" x="380" y="145" text-anchor="middle">Preprocesador</text>
+          <text class="svg-label" x="380" y="175" text-anchor="middle" style="font-size:20px;fill:#4b5260">pega los #include</text>
+        </g>
+        <g class="anim-step" data-step="3">
+          <path class="svg-edge" d="M480 150 H 560"/>
+          <rect class="svg-node-hl" x="560" y="110" width="200" height="80" rx="10"/>
+          <text class="svg-label" x="660" y="145" text-anchor="middle">Compilador</text>
+          <text class="svg-label" x="660" y="175" text-anchor="middle" style="font-size:20px;fill:#4b5260">genera main.o</text>
+        </g>
+        <g class="anim-step" data-step="4">
+          <path class="svg-edge" d="M760 150 H 840"/>
+          <rect class="svg-node-hl" x="840" y="110" width="200" height="80" rx="10"/>
+          <text class="svg-label" x="940" y="145" text-anchor="middle">Enlazador</text>
+          <text class="svg-label" x="940" y="175" text-anchor="middle" style="font-size:20px;fill:#4b5260">une los .o</text>
+        </g>
+      </svg>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <p class="fragment">El error de <code>undefined reference</code> aparece en la cuarta caja: el enlazador buscó el cuerpo de <code>sumar</code> entre los <code>.o</code> que recibió y no lo encontró.</p>
+    </section>
+
+    <!-- ============ VER LAS ETAPAS ============ -->
+    <section>
+      <span class="kicker">R0 · Las tres etapas</span>
+      <h2>Puedes detener el proceso en cada etapa</h2>
+      <pre><code class="language-bash" data-trim data-line-numbers="1-2|4-5|7-8|10-11">
+# 1. Solo preprocesar: imprime el archivo con los #include ya pegados
+g++ -E main.cpp | wc -l          # ~30 000 líneas por incluir &lt;iostream&gt;
+
+# 2. Solo compilar a ensamblador
+g++ -S main.cpp                  # produce main.s
+
+# 3. Compilar a objeto, sin enlazar
+g++ -c main.cpp                  # produce main.o
+
+# 4. Enlazar los objetos en un ejecutable
+g++ main.o suma.o -o programa
+      </code></pre>
+      <p class="fragment">Correr <code>g++ -E main.cpp | wc -l</code> una vez explica por qué compilar tarda: un archivo de siete líneas se convierte en decenas de miles.</p>
+    </section>
+
+    <!-- ============ CHECKPOINT 1 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="c">
+        <p class="quiz-question">Escribes <code>Estudiante e;</code> pero olvidas incluir <code>"estudiante.h"</code>. ¿Qué etapa reporta el error?</p>
+        <button class="quiz-option" data-opt="a">El preprocesador, porque falta un <code>#include</code></button>
+        <button class="quiz-option" data-opt="b">El enlazador, porque no encuentra la clase</button>
+        <button class="quiz-option" data-opt="c">El compilador, porque el nombre <code>Estudiante</code> no está declarado</button>
+        <div class="quiz-explain"><strong>C.</strong> El preprocesador solo pega texto y no revisa nada: si no le pides que incluya el archivo, no se queja. El compilador procesa el resultado, encuentra un nombre que nunca vio declarado y falla ahí. El enlazador ni siquiera llega a ejecutarse.</div>
+      </div>
+    </section>
+
+    <!-- ============ COMPILAR POR CONSOLA ============ -->
+    <section>
+      <span class="kicker">R0 · Compilar por consola</span>
+      <h2>El mismo comando en las tres plataformas</h2>
+      <table>
+        <tr><th>Plataforma</th><th>Compilador</th><th>Comando</th></tr>
+        <tr><td>macOS</td><td><code>clang++</code></td><td><code>clang++ -std=c++17 -Wall -Wextra -g main.cpp -o programa</code></td></tr>
+        <tr><td>Linux / WSL</td><td><code>g++</code></td><td><code>g++ -std=c++17 -Wall -Wextra -g main.cpp -o programa</code></td></tr>
+        <tr><td>Windows nativo</td><td>MinGW <code>g++</code></td><td><code>g++ -std=c++17 -Wall -Wextra -g main.cpp -o programa.exe</code></td></tr>
+      </table>
+      <p class="fragment">Se ejecuta con <code>./programa</code> en macOS, Linux y WSL, y con <code>programa.exe</code> en Windows.</p>
+    </section>
+
+    <!-- ============ RECOMENDACIÓN WSL ============ -->
+    <section>
+      <span class="kicker">R0 · Compilar por consola</span>
+      <h2>Si usas Windows, instala WSL</h2>
+      <ul>
+        <li class="fragment">Con <code>wsl --install</code> en PowerShell como administrador obtienes Ubuntu; después, <code>sudo apt install build-essential gdb</code>.</li>
+        <li class="fragment">El curso entero (compilación, depurador, sanitizers, Makefile) usa las mismas herramientas que Linux y macOS.</li>
+        <li class="fragment">Los tres entornos de Windows —MinGW, MSVC y WSL— producen mensajes de error distintos para el mismo problema, lo que dificulta pedir ayuda y seguir el material.</li>
+      </ul>
+      <div class="box-key">Recomendación del curso: WSL como opción por omisión en Windows.</div>
+    </section>
+
+    <!-- ============ BANDERAS ============ -->
+    <section>
+      <span class="kicker">R0 · Banderas</span>
+      <h2>Qué hace cada bandera</h2>
+      <table>
+        <tr><th>Bandera</th><th>Efecto</th><th>Por qué importa</th></tr>
+        <tr><td><code>-std=c++17</code></td><td>Fija la versión del lenguaje</td><td>Sin ella cada compilador elige una distinta</td></tr>
+        <tr><td><code>-Wall</code></td><td>Activa las advertencias comunes</td><td>Variables sin inicializar, comparaciones sospechosas</td></tr>
+        <tr><td><code>-Wextra</code></td><td>Agrega advertencias adicionales</td><td>Parámetros sin usar, comparaciones con signo</td></tr>
+        <tr><td><code>-g</code></td><td>Incluye símbolos de depuración</td><td>Sin ella los breakpoints no funcionan (R6)</td></tr>
+      </table>
+      <p class="fragment"><span class="term" data-term="warning">Una advertencia</span> no detiene la compilación, así que es fácil ignorarla. Buena parte de los errores en ejecución ya estaban anunciados ahí.</p>
+    </section>
+
+    <!-- ============ ADVERTENCIA REAL ============ -->
+    <section>
+      <span class="kicker">R0 · Banderas</span>
+      <h2>Una advertencia que anticipa una falla</h2>
+      <pre data-title="riesgo.cpp"><code class="language-cpp" data-trim>
+int main() {
+    int total;              // sin inicializar
+    for (int i = 0; i &lt; 5; i++) total += i;
+    return total;
+}
+      </code></pre>
+      <pre><code class="language-plaintext" data-trim>
+$ g++ -std=c++17 riesgo.cpp -o riesgo        # compila en silencio
+$ g++ -std=c++17 -Wall riesgo.cpp -o riesgo
+riesgo.cpp:3:38: warning: 'total' is used uninitialized [-Wuninitialized]
+      </code></pre>
+      <p class="fragment">El programa corre en los dos casos y devuelve un número. Con <code>-Wall</code> sabes que ese número es basura.</p>
+    </section>
+
+    <!-- ============ CHECKPOINT 2 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="b">
+        <p class="quiz-question">Compilas con <code>g++ main.cpp -o app</code> y el programa se comporta raro. Un compañero te dice que agregues <code>-Wall</code>. ¿Qué esperas que ocurra?</p>
+        <button class="quiz-option" data-opt="a">El programa deja de compilar hasta que arregles todo</button>
+        <button class="quiz-option" data-opt="b">Compila igual, pero el compilador imprime advertencias sobre código sospechoso</button>
+        <button class="quiz-option" data-opt="c">El ejecutable queda más rápido porque se optimiza</button>
+        <div class="quiz-explain"><strong>B.</strong> <code>-Wall</code> solo agrega diagnósticos; el ejecutable se genera igual. Para que las advertencias sí detengan la compilación existe <code>-Werror</code>. La optimización es otra bandera (<code>-O2</code>).</div>
+      </div>
+    </section>
+
+    <!-- ============ TRES ARCHIVOS ============ -->
+    <section>
+      <span class="kicker">R0 · Compilación multiarchivo</span>
+      <h2>Un programa en tres archivos</h2>
+      <div class="cols">
+        <div>
+          <pre data-title="suma.h"><code class="language-cpp" data-trim>
+#pragma once
+int sumar(int a, int b);
+          </code></pre>
+          <pre data-title="suma.cpp"><code class="language-cpp" data-trim>
+#include "suma.h"
+int sumar(int a, int b) {
+    return a + b;
+}
+          </code></pre>
+        </div>
+        <div>
+          <pre data-title="main.cpp"><code class="language-cpp" data-trim>
+#include &lt;iostream&gt;
+#include "suma.h"
+
+int main() {
+    std::cout &lt;&lt; sumar(2, 3) &lt;&lt; '\n';
+}
+          </code></pre>
+        </div>
+      </div>
+      <pre><code class="language-bash" data-trim>
+g++ -std=c++17 -Wall -Wextra -g main.cpp suma.cpp -o programa
+      </code></pre>
+    </section>
+
+    <!-- ============ EL ERROR ORIGINAL, RESUELTO ============ -->
+    <section>
+      <span class="kicker">R0 · Compilación multiarchivo</span>
+      <h2>El error del arranque, explicado</h2>
+      <ul>
+        <li class="fragment"><code>#include "suma.h"</code> le dice al compilador <em>cómo se llama y qué firma tiene</em> la función. Con eso basta para compilar <code>main.cpp</code>.</li>
+        <li class="fragment">El cuerpo de la función vive en <code>suma.cpp</code>. Si no lo pasas al comando, el enlazador no tiene de dónde tomarlo.</li>
+        <li class="fragment"><code>undefined reference</code> significa: alguien prometió que esta función existía y nadie la entregó.</li>
+      </ul>
+      <div class="box-key">Declarar es prometer que algo existe. Definir es entregarlo. El enlazador cobra las promesas.</div>
+    </section>
+
+    <!-- ============ TRAMPA COMÚN ============ -->
+    <section>
+      <span class="kicker">R0 · Trampas comunes</span>
+      <h2>Tres formas de perder media hora</h2>
+      <ul>
+        <li class="fragment">Compilar sin <code>-Wall</code> y perseguir en el depurador un error que el compilador ya había señalado.</li>
+        <li class="fragment">Olvidar un <code>.cpp</code> en el comando y leer <code>undefined reference</code> como si fuera un error de sintaxis.</li>
+        <li class="fragment">Editar el archivo, no recompilar, y ejecutar el binario anterior. El programa "ignora" tus cambios porque estás corriendo otro programa.</li>
+      </ul>
+    </section>
+
+    <!-- ============ EJERCICIO ============ -->
+    <section>
+      <span class="kicker">R0 · Ejercicio</span>
+      <h2>Compila tres archivos desde la terminal</h2>
+      <ol>
+        <li>Crea <code>suma.h</code>, <code>suma.cpp</code> y <code>main.cpp</code> como en el slide anterior, en una carpeta sin espacios ni acentos.</li>
+        <li>Compila a objetos por separado y enlaza después, en tres comandos.</li>
+        <li>Provoca a propósito el <code>undefined reference</code> y luego arréglalo.</li>
+      </ol>
+      <div class="solucion">
+        <pre><code class="language-bash" data-trim>
+# compilación separada
+g++ -std=c++17 -Wall -Wextra -g -c main.cpp     # -&gt; main.o
+g++ -std=c++17 -Wall -Wextra -g -c suma.cpp     # -&gt; suma.o
+g++ main.o suma.o -o programa
+./programa                                       # 5
+
+# el error, a propósito:
+g++ main.o -o programa
+# undefined reference to `sumar(int, int)'
+        </code></pre>
+        <p class="muted">La compilación separada es la base del Makefile de R11: al cambiar un solo archivo se recompila ese <code>.o</code> y se vuelve a enlazar.</p>
+      </div>
+    </section>
+
+    <!-- ============ CHECKPOINT 3 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="a">
+        <p class="quiz-question">¿Cuál de estos errores <em>no</em> puede detectar el compilador al procesar un solo archivo?</p>
+        <button class="quiz-option" data-opt="a">Que la función que llamas no esté definida en ninguna parte del proyecto</button>
+        <button class="quiz-option" data-opt="b">Que le pases un <code>std::string</code> a una función que espera <code>int</code></button>
+        <button class="quiz-option" data-opt="c">Que falte un punto y coma al final de una clase</button>
+        <div class="quiz-explain"><strong>A.</strong> El compilador ve un archivo a la vez y confía en las declaraciones. Que el cuerpo exista o no se resuelve al enlazar, cuando ya están todos los <code>.o</code> sobre la mesa. B y C se detectan con la información de ese archivo solo.</div>
+      </div>
+    </section>
+
+    <!-- ============ CHECKLIST ============ -->
+    <section>
+      <span class="kicker">R0 · Antes de pasar a R1</span>
+      <h2>Verifica que ya puedes</h2>
+      <ul class="checklist" data-deck="v00">
+        <li>Nombrar las tres etapas y qué hace cada una <span class="cl-ref">slide 5</span></li>
+        <li>Compilar y ejecutar tres archivos desde la terminal <span class="cl-ref">slide 12</span></li>
+        <li>Explicar las cuatro banderas del curso <span class="cl-ref">slide 9</span></li>
+        <li>Reconocer <code>undefined reference</code> como error de enlazado <span class="cl-ref">slide 13</span></li>
+      </ul>
+      <p class="muted">Si algo sigue sin marcarse, regresa a ese slide antes de continuar.</p>
+    </section>
+
+    <!-- ============ EL COMMIT DE ESTA SESIÓN ============ -->
+    <section>
+      <span class="kicker">R0 · Tu repositorio</span>
+      <h2>Guarda este ejercicio: lo vas a commitear</h2>
+      <ul>
+        <li class="fragment">Deja el ejercicio en una carpeta llamada <code>r00-compilacion/</code>, dentro de una carpeta <code>repaso-cpp/</code>.</li>
+        <li class="fragment">Todavía no tienes repositorio. En <a href="../repaso-g01/">G1 · Tu código deja de perderse</a> lo creas, y este ejercicio será uno de tus primeros commits.</li>
+        <li class="fragment">A partir de R2, cada sesión termina con su propio commit.</li>
+      </ul>
+      <div class="box-key">Mensaje que le pondrás: <code>R0: compilacion de tres archivos desde la terminal</code></div>
+    </section>
+
+
+    <!-- ============ SIGUIENTE ============ -->
+    <section class="divider">
+      <h2>Siguiente:<br>R1 · VS Code sin salir del editor</h2>
+      <p class="muted">Ya compilas a mano. Ahora, el mismo comando con un atajo de teclado.</p>
+      <p><a href="../repaso/">← Volver al índice de la serie</a></p>
+    </section>
+
+    <!-- ============ REFERENCIAS ============ -->
+    <section>
+      <span class="kicker">R0</span>
+      <h2>Referencias y material para profundizar</h2>
+      <div class="refs cols">
+        <div>
+          <h3>Referencias</h3>
+          <ul>
+            <li><span class="ref-type">Libro</span> Stroustrup, B. <em>A Tour of C++</em>, 3.ª ed., Addison-Wesley, 2022. Cap. 1.</li>
+            <li><span class="ref-type">Libro</span> Gregoire, M. <em>Professional C++</em>, 5.ª ed., Wiley, 2021. Cap. 1 y apéndice de compilación.</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Para profundizar</h3>
+          <ul>
+            <li><span class="ref-type">Web</span> <a href="https://gcc.gnu.org/onlinedocs/gcc/Option-Summary.html">GCC — Option Summary</a> <span class="ref-nota">— la lista completa de banderas.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://learn.microsoft.com/windows/wsl/install">Microsoft — Instalar WSL</a> <span class="ref-nota">— si trabajas en Windows, empieza aquí.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://godbolt.org/">Compiler Explorer</a> <span class="ref-nota">— compila en el navegador y muestra el ensamblador generado.</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script src="../js/curso-slides.js"></script>
+<script>
+  Reveal.initialize({
+    width: 1280,
+    height: 720,
+    margin: 0.06,
+    hash: true,
+    progress: true,
+    slideNumber: 'c/t',
+    controls: true,
+    transition: 'slide',
+    transitionSpeed: 'fast',
+    plugins: [ RevealHighlight ]
+  }).then(() => {
+    CursoSlides.init({
+      warning: {
+        titulo: "Advertencia (warning)",
+        def: "Mensaje del compilador sobre código legal pero sospechoso. No detiene la compilación. Con <code>-Werror</code> las advertencias se tratan como errores y sí la detienen."
+      }
+    });
+  });
+</script>
+</body>
+</html>

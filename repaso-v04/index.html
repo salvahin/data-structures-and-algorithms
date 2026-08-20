@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Repaso R4 — Control de flujo</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+  <link rel="stylesheet" href="../css/theme-curso.css">
+</head>
+<body>
+<div class="reveal">
+  <div class="slides">
+
+    <!-- 1 ============ PORTADA ============ -->
+    <section class="cover">
+      <span class="kicker">Repaso de C++ y POO · Módulo 1 · Recapitulación de C++</span>
+      <h1>Control de flujo</h1>
+      <div class="cover-meta">
+        R4 · Auto-estudio · 22 minutos<br>
+        Estructuras de Datos y Algoritmos
+      </div>
+    </section>
+
+    <!-- 2 ============ OBJETIVO ============ -->
+    <section>
+      <span class="kicker">R4 · Objetivo</span>
+      <h2>Al terminar esta sesión podrás…</h2>
+      <ul>
+        <li class="fragment">Elegir entre <code>if</code>, <code>switch</code>, <code>while</code>, <code>for</code> y <code>do-while</code> con un criterio explícito.</li>
+        <li class="fragment">Predecir la salida de un <code>switch</code> sin <code>break</code>.</li>
+        <li class="fragment">Detectar errores de frontera comparando el rango que recorre el ciclo contra el rango válido.</li>
+        <li class="fragment">Explicar por qué el contador se declara dentro del <code>for</code>.</li>
+      </ul>
+    </section>
+
+    <!-- 3 ============ ARRANQUE ============ -->
+    <section>
+      <span class="kicker">R4 · Punto de partida</span>
+      <h2>Un carácter invisible cambia el resultado</h2>
+      <pre data-title="suma.cpp"><code class="language-cpp" data-trim data-line-numbers="|4">
+#include &lt;iostream&gt;
+int main() {
+    int suma = 0, i = 0;
+    for (i = 1; i &lt;= 5; i++);      // suma 1+2+3+4+5
+        suma += i;
+    std::cout &lt;&lt; suma &lt;&lt; '\n';
+}
+      </code></pre>
+      <pre><code class="language-plaintext" data-trim>
+6
+      </code></pre>
+      <p class="fragment">Debía imprimir <code>15</code>. La sangría dice que <code>suma += i;</code> está dentro del ciclo, pero el punto y coma al final de la línea 4 ya cerró el cuerpo: el ciclo dio cinco vueltas sin hacer nada y <code>suma += i</code> se ejecutó una sola vez, con <code>i</code> valiendo <code>6</code>.</p>
+      <p class="fragment muted"><code>-Wall</code> lo avisa: <code>this 'for' clause does not guard... [-Wmisleading-indentation]</code>.</p>
+    </section>
+
+    <!-- 4 ============ IF / ELSE ============ -->
+    <section>
+      <span class="kicker">R4 · Decisiones</span>
+      <h2><code>if</code>, <code>else</code> y los dos signos iguales</h2>
+      <pre data-title="calificar.cpp"><code class="language-cpp" data-trim>
+if (cal &gt;= 90)      std::cout &lt;&lt; "A\n";
+else if (cal &gt;= 80) std::cout &lt;&lt; "B\n";
+else if (cal &gt;= 70) std::cout &lt;&lt; "C\n";
+else                std::cout &lt;&lt; "Reprobado\n";
+      </code></pre>
+      <ul>
+        <li class="fragment">La cadena se evalúa en orden y se detiene en la primera condición verdadera. Por eso <code>cal = 95</code> imprime <code>A</code> y no cuatro líneas.</li>
+        <li class="fragment">Sin llaves, el <code>if</code> gobierna <strong>una sola instrucción</strong>. Agregar una segunda línea con la misma sangría la deja fuera de la condición.</li>
+        <li class="fragment"><code>if (x = 5)</code> compila: asigna <code>5</code> a <code>x</code> y evalúa <code>5</code> como verdadero. El condicional siempre se cumple. Con <code>-Wall</code> el compilador lo señala.</li>
+      </ul>
+      <div class="box-key">Escribe siempre las llaves, aunque el cuerpo tenga una línea. El arranque de este deck es lo que cuesta omitirlas.</div>
+    </section>
+
+    <!-- 5 ============ CHECKPOINT 1 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="a">
+        <p class="quiz-question">Con <code>n</code> valiendo <code>3</code>, ¿qué imprime este fragmento?</p>
+        <pre><code class="language-cpp" data-trim>
+if (n &gt; 10);
+    std::cout &lt;&lt; "grande\n";
+        </code></pre>
+        <button class="quiz-option" data-opt="a"><code>grande</code>, porque el punto y coma cerró el <code>if</code></button>
+        <button class="quiz-option" data-opt="b">Nada, porque <code>3 &gt; 10</code> es falso</button>
+        <button class="quiz-option" data-opt="c">Un error de compilación por el punto y coma</button>
+        <div class="quiz-explain"><strong>A.</strong> El punto y coma es una instrucción vacía y se convierte en el cuerpo del <code>if</code>. La línea siguiente queda fuera y se ejecuta siempre, sin importar el valor de <code>n</code>. B describe lo que el autor quería. C no ocurre: la instrucción vacía es sintaxis válida, y de ahí que el error pase inadvertido.</div>
+      </div>
+    </section>
+
+    <!-- 6 ============ SWITCH Y LA CAÍDA ============ -->
+    <section>
+      <span class="kicker">R4 · switch</span>
+      <h2>Sin <code>break</code> la ejecución sigue de largo</h2>
+      <pre data-title="menu.cpp"><code class="language-cpp" data-trim>
+int op = 2;
+switch (op) {
+    case 1: std::cout &lt;&lt; "Alta\n";
+    case 2: std::cout &lt;&lt; "Baja\n";
+    case 3: std::cout &lt;&lt; "Consulta\n";
+    default: std::cout &lt;&lt; "Fin\n";
+}
+      </code></pre>
+      <pre><code class="language-plaintext" data-trim>
+Baja
+Consulta
+Fin
+      </code></pre>
+      <p class="fragment">Un <code>case</code> es una etiqueta de entrada, no un compartimento cerrado. El programa salta a <code>case 2</code> y de ahí ejecuta todo lo que sigue hasta el final del bloque o hasta un <code>break</code>.</p>
+    </section>
+
+    <!-- 7 ============ CAÍDA INTENCIONAL ============ -->
+    <section>
+      <span class="kicker">R4 · switch</span>
+      <h2>Cuando la caída sí se busca</h2>
+      <pre data-title="menu2.cpp"><code class="language-cpp" data-trim data-line-numbers="3-4|7|9-10">
+switch (op) {
+    case 1:
+    case 2:                       // dos casos, un mismo cuerpo
+        std::cout &lt;&lt; "Modifica el padron\n";
+        [[fallthrough]];          // la caída es deliberada
+    case 3:
+        std::cout &lt;&lt; "Escribe en la bitacora\n";
+        break;
+    default:
+        std::cout &lt;&lt; "Opcion desconocida\n";
+}
+      </code></pre>
+      <ul>
+        <li class="fragment">Dos etiquetas pegadas comparten cuerpo. Es el uso legítimo más frecuente y no necesita marca.</li>
+        <li class="fragment"><code>[[fallthrough]];</code> documenta la caída deliberada y calla la advertencia de <code>-Wextra</code>. Sin ella, quien lea el código no distingue la intención del olvido.</li>
+        <li class="fragment"><code>default</code> atrapa todo lo demás. Escríbelo siempre, aunque solo reporte un valor inesperado.</li>
+      </ul>
+    </section>
+
+    <!-- 8 ============ CHECKPOINT 2 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="c">
+        <p class="quiz-question">¿Sobre qué puede hacerse <code>switch</code> en C++?</p>
+        <button class="quiz-option" data-opt="a">Sobre cualquier expresión, incluidos <code>double</code> y <code>std::string</code></button>
+        <button class="quiz-option" data-opt="b">Solo sobre variables, nunca sobre el resultado de una función</button>
+        <button class="quiz-option" data-opt="c">Sobre expresiones de tipo entero o enumerado, con etiquetas constantes</button>
+        <div class="quiz-explain"><strong>C.</strong> El <code>switch</code> se traduce a un salto según un valor entero, así que admite <code>int</code>, <code>char</code>, <code>bool</code> y enumeraciones, y cada <code>case</code> debe ser una constante conocida al compilar. <code>double</code> y <code>std::string</code> no sirven (A) y hay que usar una cadena de <code>if</code>. Cualquier expresión entera vale, venga de una variable o de una llamada (B).</div>
+      </div>
+    </section>
+
+    <!-- 9 ============ WHILE Y DO-WHILE ============ -->
+    <section>
+      <span class="kicker">R4 · Ciclos</span>
+      <h2><code>while</code> pregunta antes, <code>do-while</code> pregunta después</h2>
+      <div class="cols">
+        <div>
+          <pre><code class="language-cpp" data-trim>
+int n = 3;
+while (n &gt; 0) {
+    std::cout &lt;&lt; n &lt;&lt; ' ';
+    n--;
+}
+// imprime: 3 2 1
+          </code></pre>
+        </div>
+        <div>
+          <pre><code class="language-cpp" data-trim>
+int op = 0;
+do {
+    std::cout &lt;&lt; "vuelta\n";
+    op++;
+} while (op &lt; 1);
+// imprime: vuelta
+          </code></pre>
+        </div>
+      </div>
+      <ul>
+        <li class="fragment"><code>while</code> puede dar cero vueltas. <code>do-while</code> siempre da al menos una, porque la condición se evalúa al final.</li>
+        <li class="fragment"><code>do-while</code> encaja cuando el cuerpo produce el dato que la condición examina: pedir una opción de menú y repetir mientras sea inválida.</li>
+        <li class="fragment">El <code>do-while</code> lleva punto y coma después del <code>while</code> final. Es el único caso en que ese punto y coma es correcto.</li>
+      </ul>
+    </section>
+
+    <!-- 10 ============ FOR ============ -->
+    <section>
+      <span class="kicker">R4 · Ciclos</span>
+      <h2>Las tres partes del <code>for</code></h2>
+      <pre><code class="language-cpp" data-trim>
+for (int i = 0; i &lt; 3; i++)
+    std::cout &lt;&lt; i &lt;&lt; ' ';       // imprime: 0 1 2
+      </code></pre>
+      <table>
+        <tr><th>Parte</th><th>Cuándo se ejecuta</th></tr>
+        <tr><td><code>int i = 0</code></td><td>Una sola vez, antes de la primera vuelta</td></tr>
+        <tr><td><code>i &lt; 3</code></td><td>Antes de cada vuelta. Si es falsa, el ciclo termina</td></tr>
+        <tr><td><code>i++</code></td><td>Al final de cada vuelta, antes de volver a evaluar</td></tr>
+      </table>
+      <p class="fragment">Todo <code>for</code> puede escribirse como <code>while</code> y viceversa. Se elige <code>for</code> cuando el número de vueltas se conoce de antemano y <code>while</code> cuando depende de algo que ocurre dentro del cuerpo, como la lectura de R3.</p>
+    </section>
+
+    <!-- 11 ============ CHECKPOINT 3 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="b">
+        <p class="quiz-question">¿Cuántas veces se ejecuta el cuerpo de <code>for (int i = 10; i &gt; 0; i -= 3)</code>?</p>
+        <button class="quiz-option" data-opt="a">3 veces, con <code>i</code> valiendo 10, 7 y 4</button>
+        <button class="quiz-option" data-opt="b">4 veces, con <code>i</code> valiendo 10, 7, 4 y 1</button>
+        <button class="quiz-option" data-opt="c">Infinitas, porque <code>i</code> nunca vale exactamente 0</button>
+        <div class="quiz-explain"><strong>B.</strong> La secuencia es 10, 7, 4, 1 y después -2, que ya no cumple <code>i &gt; 0</code>. Son cuatro vueltas. La condición compara contra cero, no busca la igualdad, así que el ciclo termina aunque <code>i</code> nunca valga <code>0</code> (C). El error de A es olvidar la última vuelta útil; contar los valores de la secuencia a mano evita ese descuido.</div>
+      </div>
+    </section>
+
+    <!-- 12 ============ ALCANCE DEL CONTADOR ============ -->
+    <section>
+      <span class="kicker">R4 · Alcance</span>
+      <h2>Declara el contador dentro del <code>for</code></h2>
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-2|4-5">
+for (int i = 0; i &lt; 5; i++) { /* … */ }
+// std::cout &lt;&lt; i;   error: 'i' no está declarada aquí
+
+int pos = -1;                        // sí sobrevive al ciclo
+for (int i = 0; i &lt; n; i++)
+    if (dato[i] == buscado) { pos = i; break; }
+      </code></pre>
+      <ul>
+        <li class="fragment">El <span class="term" data-term="alcance">alcance</span> de <code>i</code> termina con el ciclo. El nombre queda libre para el siguiente <code>for</code> y no se puede leer por accidente después.</li>
+        <li class="fragment">Si necesitas el valor final, guárdalo en una variable declarada fuera, como <code>pos</code>. Es más claro que reutilizar el contador.</li>
+        <li class="fragment">Con el contador dentro, el error del arranque se vuelve error de compilación: <code>for (int i = 1; i &lt;= 5; i++); suma += i;</code> no compila, porque <code>i</code> ya no existe en esa línea.</li>
+      </ul>
+    </section>
+
+    <!-- 13 ============ BREAK Y CONTINUE ============ -->
+    <section>
+      <span class="kicker">R4 · <code>break</code> y <code>continue</code></span>
+      <h2>Salir del ciclo o saltar a la siguiente vuelta</h2>
+      <pre><code class="language-cpp" data-trim>
+int i = 0;
+while (i &lt; 5) {
+    if (i == 2) { i++; continue; }   // ojo con el incremento
+    std::cout &lt;&lt; i &lt;&lt; ' ';
+    i++;
+}
+// imprime: 0 1 3 4
+      </code></pre>
+      <ul>
+        <li class="fragment"><code>break</code> termina el ciclo por completo y sigue en la línea posterior. Dentro de un <code>switch</code> anidado en un ciclo, el <code>break</code> corta el <code>switch</code>, no el ciclo.</li>
+        <li class="fragment"><code>continue</code> abandona la vuelta actual y evalúa la condición otra vez. En un <code>while</code>, si el incremento estaba después del <code>continue</code>, no se ejecuta y el ciclo se queda atorado.</li>
+        <li class="fragment">En un <code>for</code> ese riesgo no existe: el incremento es parte del encabezado y <code>continue</code> lo ejecuta de todos modos.</li>
+      </ul>
+    </section>
+
+    <!-- 14 ============ FRONTERAS ============ -->
+    <section>
+      <span class="kicker">R4 · Errores de frontera</span>
+      <h2><code>&lt;</code> frente a <code>&lt;=</code></h2>
+      <pre data-title="frontera.cpp"><code class="language-cpp" data-trim data-line-numbers="3|6">
+const int N = 5;
+int datos[N] = {10, 20, 30, 40, 50};   // índices válidos: 0 a 4
+
+for (int i = 0; i &lt;= N; i++)           // llega hasta datos[5]
+    std::cout &lt;&lt; datos[i] &lt;&lt; ' ';
+// 10 20 30 40 50 65535
+      </code></pre>
+      <ul>
+        <li class="fragment">Con <code>N</code> elementos, los índices van de <code>0</code> a <code>N-1</code>. La condición correcta para recorrer un arreglo es <code>i &lt; N</code>; usar <code>&lt;=</code> produce el clásico <span class="term" data-term="offbyone">error de frontera</span>.</li>
+        <li class="fragment"><code>datos[5]</code> lee memoria que no pertenece al arreglo. El programa no aborta ni avisa: imprime lo que hubiera ahí, y el valor cambia entre ejecuciones.</li>
+        <li class="fragment">Cuando el rango es de conteo y no de índices, <code>&lt;=</code> sí es lo correcto: <code>for (int k = 1; k &lt;= 10; k++)</code> suma del 1 al 10.</li>
+      </ul>
+    </section>
+
+    <!-- 15 ============ CHECKPOINT 4 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="a">
+        <p class="quiz-question">Un arreglo tiene 8 elementos y quieres recorrerlo del último al primero. ¿Cuál encabezado es correcto?</p>
+        <button class="quiz-option" data-opt="a"><code>for (int i = 7; i &gt;= 0; i--)</code></button>
+        <button class="quiz-option" data-opt="b"><code>for (int i = 8; i &gt;= 0; i--)</code></button>
+        <button class="quiz-option" data-opt="c"><code>for (int i = 8; i &gt; 0; i--)</code></button>
+        <div class="quiz-explain"><strong>A.</strong> Los índices válidos son 0 a 7, así que el recorrido inverso arranca en 7 y llega hasta 0 inclusive. B lee <code>datos[8]</code>, fuera del arreglo, en la primera vuelta. C hace ocho vueltas pero con los índices 8 a 1: sale del arreglo al principio y nunca toca el elemento 0. Escribe el primer y el último valor del contador antes de elegir el operador.</div>
+      </div>
+    </section>
+
+    <!-- 16 ============ TRAMPAS COMUNES ============ -->
+    <section>
+      <span class="kicker">R4 · Trampas comunes</span>
+      <h2>Cinco errores que el compilador acepta</h2>
+      <ul>
+        <li class="fragment"><strong>Punto y coma después del <code>for</code> o del <code>if</code>.</strong> El cuerpo se vuelve la instrucción vacía y la línea sangrada queda fuera.</li>
+        <li class="fragment"><strong><code>=</code> en lugar de <code>==</code>.</strong> La condición asigna y evalúa el valor asignado; con cualquier número distinto de cero siempre se cumple.</li>
+        <li class="fragment"><strong><code>&lt;=</code> al recorrer un arreglo.</strong> Toca un elemento que no existe, sin mensaje de error.</li>
+        <li class="fragment"><strong><code>break</code> olvidado en un <code>case</code>.</strong> Se ejecutan los casos siguientes.</li>
+        <li class="fragment"><strong><code>continue</code> antes del incremento en un <code>while</code>.</strong> El contador se congela y el ciclo no termina.</li>
+      </ul>
+    </section>
+
+    <!-- 17 ============ EJERCICIO ============ -->
+    <section>
+      <span class="kicker">R4 · Ejercicio</span>
+      <h2>Corrige tres ciclos sin ejecutarlos</h2>
+      <pre data-title="roto.cpp"><code class="language-cpp" data-trim>
+const int N = 5;
+int d[N] = {10, 20, 30, 40, 50};
+
+int suma = 0;                            // A: sumar todo
+for (int i = 0; i &lt;= N; i++) suma += d[i];
+
+int cuantos = 0;                         // B: contar &gt; 25
+for (int i = 1; i &lt; N; i++)
+    if (d[i] &gt; 25) cuantos++;
+
+int k = 0;                               // C: imprimir todo
+while (k &lt; N) { std::cout &lt;&lt; d[k] &lt;&lt; ' '; }
+      </code></pre>
+      <p class="muted">Di primero qué imprime cada uno y por qué. Después compílalos.</p>
+      <div class="solucion">
+        <pre><code class="language-cpp" data-trim>
+// A: i &lt;= N lee d[5], fuera del arreglo -&gt; basura en la suma
+for (int i = 0; i &lt; N; i++) suma += d[i];
+
+// B: arranca en 1 y nunca examina d[0]
+for (int i = 0; i &lt; N; i++)
+    if (d[i] &gt; 25) cuantos++;
+
+// C: nunca incrementa k -&gt; imprime 10 para siempre
+while (k &lt; N) { std::cout &lt;&lt; d[k] &lt;&lt; ' '; k++; }
+        </code></pre>
+        <p class="muted">Los tres son el mismo error visto de tres formas: el rango que recorre el ciclo no coincide con el rango de datos válidos. Con estos datos B imprime <code>3</code>, el mismo resultado que la versión correcta, porque <code>d[0]</code> no cumplía la condición. Un ciclo que da el resultado esperado con un juego de datos no está por eso bien escrito.</p>
+      </div>
+    </section>
+
+    <!-- 18 ============ CHECKLIST ============ -->
+    <section>
+      <span class="kicker">R4 · Antes de pasar a R5</span>
+      <h2>Verifica que ya puedes</h2>
+      <ul class="checklist" data-deck="v04">
+        <li>Explicar qué hace un punto y coma suelto tras un <code>if</code> o un <code>for</code> <span class="cl-ref">slide 3</span></li>
+        <li>Predecir la salida de un <code>switch</code> sin <code>break</code> <span class="cl-ref">slide 6</span></li>
+        <li>Elegir entre <code>for</code>, <code>while</code> y <code>do-while</code> con un criterio <span class="cl-ref">slide 10</span></li>
+        <li>Justificar por qué el contador se declara dentro del <code>for</code> <span class="cl-ref">slide 12</span></li>
+        <li>Detectar un error de frontera comparando rangos <span class="cl-ref">slide 14</span></li>
+      </ul>
+      <p class="muted">Si algo sigue sin marcarse, regresa a ese slide antes de continuar.</p>
+    </section>
+
+    <!-- ============ EL COMMIT DE ESTA SESIÓN ============ -->
+    <section>
+      <span class="kicker">R4 · Tu repositorio</span>
+      <h2>El commit de esta sesión</h2>
+      <pre><code class="language-bash" data-trim>
+cd repaso-cpp
+git add r04-control-flujo/
+git commit -m "R4: correccion de tres errores de frontera"
+git push
+      </code></pre>
+      <p class="muted">Un commit por sesión. Así, cuando algo deje de compilar, <code>git diff</code> te dice exactamente qué cambiaste desde la última vez que funcionaba.</p>
+    </section>
+
+
+    <!-- 19 ============ SIGUIENTE ============ -->
+    <section class="divider">
+      <h2>Siguiente:<br>R5 · Funciones</h2>
+      <p class="muted">Los ciclos y las decisiones de este deck son las piezas que se van a empaquetar con nombre propio.</p>
+      <p><a href="../repaso/">← Volver al índice de la serie</a></p>
+    </section>
+
+    <!-- 20 ============ REFERENCIAS ============ -->
+    <section>
+      <span class="kicker">R4</span>
+      <h2>Referencias y material para profundizar</h2>
+      <div class="refs cols">
+        <div>
+          <h3>Referencias</h3>
+          <ul>
+            <li><span class="ref-type">Libro</span> Lippman, S. et al. <em>C++ Primer</em>, 5.ª ed., Addison-Wesley, 2012. Cap. 5.</li>
+            <li><span class="ref-type">Libro</span> Stroustrup, B. <em>Programming: Principles and Practice Using C++</em>, 2.ª ed., Addison-Wesley, 2014. Cap. 4.</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Para profundizar</h3>
+          <ul>
+            <li><span class="ref-type">Web</span> <a href="https://en.cppreference.com/w/cpp/language/switch">cppreference — <code>switch</code></a> <span class="ref-nota">— qué tipos admite y cómo funciona la caída.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#S-expr">C++ Core Guidelines — Expresiones y sentencias</a> <span class="ref-nota">— reglas ES.70 a ES.87 sobre ciclos y condicionales.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://godbolt.org/">Compiler Explorer</a> <span class="ref-nota">— compara el ensamblador de un <code>for</code> y su <code>while</code> equivalente.</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script src="../js/curso-slides.js"></script>
+<script>
+  Reveal.initialize({
+    width: 1280,
+    height: 720,
+    margin: 0.06,
+    hash: true,
+    progress: true,
+    slideNumber: 'c/t',
+    controls: true,
+    transition: 'slide',
+    transitionSpeed: 'fast',
+    plugins: [ RevealHighlight ]
+  }).then(() => {
+    CursoSlides.init({
+      alcance: {
+        titulo: "Alcance (scope)",
+        def: "Región del código donde un nombre es visible. Una variable declarada dentro de un bloque <code>{ }</code> deja de existir al cerrarlo. El contador declarado en el encabezado del <code>for</code> tiene por alcance el ciclo completo."
+      },
+      offbyone: {
+        titulo: "Error de frontera (off-by-one)",
+        def: "Recorrer un elemento de más o de menos por confundir <code>&lt;</code> con <code>&lt;=</code>, o el índice del último elemento con el número de elementos. En un arreglo de <code>N</code> elementos los índices válidos van de <code>0</code> a <code>N-1</code>."
+      }
+    });
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Repaso R8 — Arreglos, punteros y referencias</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+  <link rel="stylesheet" href="../css/theme-curso.css">
+</head>
+<body>
+<div class="reveal">
+  <div class="slides">
+
+    <!-- ============ 1 · PORTADA ============ -->
+    <section class="cover">
+      <span class="kicker">Repaso de C++ y POO · Módulo 1 · Recapitulación de C++</span>
+      <h1>Arreglos, punteros y&nbsp;referencias</h1>
+      <div class="cover-meta">
+        R8 · Auto-estudio · 28 minutos<br>
+        Estructuras de Datos y Algoritmos
+      </div>
+    </section>
+
+    <!-- ============ 2 · OBJETIVO ============ -->
+    <section>
+      <span class="kicker">R8 · Objetivo</span>
+      <h2>Al terminar esta sesión podrás…</h2>
+      <ul>
+        <li class="fragment">Declarar y recorrer un arreglo estático, y obtener su tamaño donde todavía se conoce.</li>
+        <li class="fragment">Leer <code>&amp;x</code> como dirección y <code>*p</code> como el valor guardado en esa dirección.</li>
+        <li class="fragment">Explicar por qué un arreglo pierde su tamaño al pasarse a una función.</li>
+        <li class="fragment">Elegir entre paso por valor, por referencia y por referencia constante.</li>
+      </ul>
+      <p class="muted fragment">Sin <code>new</code> ni <code>delete</code>: la memoria dinámica llega en R13, cuando ya exista el destructor que la administre.</p>
+    </section>
+
+    <!-- ============ 3 · ARRANQUE ============ -->
+    <section>
+      <span class="kicker">R8 · Punto de partida</span>
+      <h2>El arreglo encoge al cruzar la puerta</h2>
+      <pre data-title="imprimir.cpp"><code class="language-cpp" data-trim data-line-numbers="3-8|11-13">
+#include &lt;iostream&gt;
+
+void imprimir(int datos[]) {
+    int n = sizeof(datos) / sizeof(datos[0]);
+    for (int i = 0; i &lt; n; i++)
+        std::cout &lt;&lt; datos[i] &lt;&lt; ' ';
+    std::cout &lt;&lt; '\n';
+}
+
+int main() {
+    int v[6] = {1, 2, 3, 4, 5, 6};
+    std::cout &lt;&lt; sizeof(v) / sizeof(v[0]) &lt;&lt; '\n';   // 6
+    imprimir(v);                                      // 1 2
+}
+      </code></pre>
+      <p class="fragment">La misma cuenta da 6 en <code>main</code> y 2 dentro de <code>imprimir</code>, con el mismo arreglo.</p>
+    </section>
+
+    <!-- ============ 4 · ARREGLOS ESTÁTICOS ============ -->
+    <section>
+      <span class="kicker">R8 · Arreglos estáticos</span>
+      <h2>Declarar y recorrer</h2>
+      <pre data-title="arreglos.cpp"><code class="language-cpp" data-trim data-line-numbers="1|2|3-4|6-7">
+int v[5] = {10, 20, 30, 40, 50};
+int n = sizeof(v) / sizeof(v[0]);    // 5
+for (int i = 0; i &lt; n; i++)
+    std::cout &lt;&lt; v[i] &lt;&lt; ' ';
+
+int ceros[4] = {};                    // 0 0 0 0
+int parcial[5] = {1, 2};              // 1 2 0 0 0
+      </code></pre>
+      <ul>
+        <li class="fragment">El tamaño entre corchetes es una constante fijada al compilar. El arreglo vive en la pila y no puede crecer.</li>
+        <li class="fragment"><code>sizeof(v)</code> son los bytes que ocupa el arreglo completo, 20 en este caso, y <code>sizeof(v[0])</code> son los de un elemento. La división da la cantidad de elementos.</li>
+        <li class="fragment">Los índices válidos van de <code>0</code> a <code>n - 1</code>. Salirse no produce error: lee o escribe la memoria que esté ahí.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 5 · DIRECCIÓN DE MEMORIA ============ -->
+    <section>
+      <span class="kicker">R8 · Direcciones</span>
+      <h2>Toda variable tiene una dirección</h2>
+      <pre data-title="direcciones.cpp"><code class="language-cpp" data-trim data-line-numbers="3|4|5">
+int x = 42;
+double d = 3.5;
+std::cout &lt;&lt; x &lt;&lt; '\n';                     // 42
+std::cout &lt;&lt; &amp;x &lt;&lt; '\n';                    // 0xffffd597228c
+std::cout &lt;&lt; sizeof(x) &lt;&lt; ' ' &lt;&lt; sizeof(d); // 4 8
+      </code></pre>
+      <ul>
+        <li class="fragment">Una variable ocupa un bloque de bytes consecutivos. Su dirección es la del primero de esos bytes.</li>
+        <li class="fragment"><code>&amp;x</code> se lee “la dirección de <code>x</code>”. El valor cambia en cada ejecución, así que solo importa como identidad, no como número.</li>
+        <li class="fragment">En un arreglo, los elementos están pegados: si <code>v[0]</code> está en la dirección <code>D</code>, <code>v[1]</code> está en <code>D + sizeof(v[0])</code>.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 6 · CHECKPOINT 1 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="c">
+        <p class="quiz-question">Con <code>int v[10];</code> declarado en <code>main</code>, ¿cuál de estas expresiones da la cantidad de elementos?</p>
+        <button class="quiz-option" data-opt="a"><code>sizeof(v)</code></button>
+        <button class="quiz-option" data-opt="b"><code>v.size()</code></button>
+        <button class="quiz-option" data-opt="c"><code>sizeof(v) / sizeof(v[0])</code></button>
+        <div class="quiz-explain"><strong>C.</strong> <code>sizeof(v)</code> devuelve bytes, no elementos: aquí serían 40. Un arreglo estático no tiene métodos, así que <code>v.size()</code> no compila; ese es el <code>std::vector</code> de R18. La división de los bytes totales entre los de un elemento sí da 10, y funciona solo mientras <code>v</code> siga siendo un arreglo.</div>
+      </div>
+    </section>
+
+    <!-- ============ 7 · PUNTEROS ============ -->
+    <section>
+      <span class="kicker">R8 · Punteros</span>
+      <h2>Una variable que guarda una dirección</h2>
+      <pre data-title="punteros.cpp"><code class="language-cpp" data-trim data-line-numbers="2|3|4-5|7-8">
+int x = 42;
+int* p = &amp;x;                 // p guarda la direccion de x
+std::cout &lt;&lt; *p &lt;&lt; '\n';     // 42, desreferencia
+*p = 7;
+std::cout &lt;&lt; x &lt;&lt; '\n';      // 7, se modifico x
+
+int* q = nullptr;            // no apunta a nada
+if (q != nullptr) std::cout &lt;&lt; *q &lt;&lt; '\n';
+      </code></pre>
+      <ul>
+        <li class="fragment"><code>int*</code> se lee “puntero a <code>int</code>”. El tipo apuntado le dice al compilador cuántos bytes leer al desreferenciar.</li>
+        <li class="fragment"><code>*p</code> del lado derecho lee el valor apuntado; del lado izquierdo lo escribe.</li>
+        <li class="fragment">Desreferenciar un puntero nulo o sin inicializar termina el programa. Por eso todo puntero se inicializa, aunque sea con <span class="term" data-term="nullptr"><code>nullptr</code></span>.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 8 · DIAGRAMA DE MEMORIA ============ -->
+    <section>
+      <span class="kicker">R8 · Punteros</span>
+      <h2>Cómo se ve en memoria</h2>
+      <svg viewBox="0 0 1150 320">
+        <g class="anim-step" data-step="1">
+          <rect class="svg-node" x="90" y="100" width="290" height="120" rx="10"/>
+          <text class="svg-label" x="90" y="80">int x = 42;</text>
+          <text class="svg-label" x="235" y="155" text-anchor="middle" style="font-size:38px">42</text>
+          <text class="svg-label" x="235" y="195" text-anchor="middle" style="font-size:20px;fill:#4b5260">en 0x7ffd228c</text>
+        </g>
+        <g class="anim-step" data-step="2">
+          <rect class="svg-node" x="720" y="100" width="340" height="120" rx="10"/>
+          <text class="svg-label" x="720" y="80">int* p = &amp;x;</text>
+          <text class="svg-label" x="890" y="155" text-anchor="middle" style="font-size:32px">0x7ffd228c</text>
+          <text class="svg-label" x="890" y="195" text-anchor="middle" style="font-size:20px;fill:#4b5260">en 0x7ffd2290</text>
+        </g>
+        <g class="anim-step" data-step="3">
+          <path class="svg-edge" d="M720 160 H 400"/>
+          <path class="svg-edge" d="M420 148 L 400 160 L 420 172"/>
+          <text class="svg-label" x="560" y="130" text-anchor="middle" style="fill:#0b57d0">*p</text>
+        </g>
+      </svg>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <p class="fragment"><code>p</code> es una variable con su propia dirección; lo que guarda dentro es la dirección de <code>x</code>. La flecha existe solo mientras <code>p</code> tenga ese valor.</p>
+    </section>
+
+    <!-- ============ 9 · CHECKPOINT 2 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="b">
+        <p class="quiz-question">Después de <code>int x = 5; int* p = &amp;x; *p = *p + 1;</code>, ¿cuánto vale <code>x</code>?</p>
+        <button class="quiz-option" data-opt="a">5, porque solo se modificó el puntero</button>
+        <button class="quiz-option" data-opt="b">6, porque <code>*p</code> es otra forma de nombrar a <code>x</code></button>
+        <button class="quiz-option" data-opt="c">No se puede saber: depende de la dirección que le tocó a <code>x</code></button>
+        <div class="quiz-explain"><strong>B.</strong> <code>*p</code> designa la variable que está en la dirección guardada en <code>p</code>, que es <code>x</code>. Asignar ahí escribe en <code>x</code>. Para modificar el puntero mismo habría que escribir <code>p = ...</code> sin asterisco (A). La dirección concreta cambia en cada ejecución, pero eso no altera el resultado (C).</div>
+      </div>
+    </section>
+
+    <!-- ============ 10 · DUALIDAD ARREGLO / PUNTERO ============ -->
+    <section>
+      <span class="kicker">R8 · Arreglo y puntero</span>
+      <h2>El arreglo se convierte en puntero</h2>
+      <pre data-title="imprimir.cpp"><code class="language-cpp" data-trim data-line-numbers="1|2">
+void imprimir(int datos[]) {     // el compilador lee: int* datos
+    int n = sizeof(datos) / sizeof(datos[0]);   // 8 / 4 = 2
+      </code></pre>
+      <pre><code class="language-plaintext" data-trim>
+imprimir.cpp:4:20: warning: 'sizeof' on array function parameter
+'datos' will return size of 'int*' [-Wsizeof-array-argument]
+      </code></pre>
+      <ul>
+        <li class="fragment">Al pasar un arreglo a una función, lo que viaja es la dirección de su primer elemento. La conversión se llama <span class="term" data-term="decay">decaimiento</span> y ocurre siempre.</li>
+        <li class="fragment">Dentro de la función <code>datos</code> es un puntero, así que <code>sizeof(datos)</code> son los 8 bytes de un puntero y la división da 2. El resultado no depende del arreglo original.</li>
+        <li class="fragment">Escribir <code>int datos[]</code>, <code>int datos[6]</code> o <code>int* datos</code> como parámetro produce exactamente el mismo código. El número entre corchetes se ignora.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 11 · PASAR EL TAMAÑO ============ -->
+    <section>
+      <span class="kicker">R8 · Arreglo y puntero</span>
+      <h2>El tamaño viaja aparte</h2>
+      <pre data-title="suma.cpp"><code class="language-cpp" data-trim data-line-numbers="1|8|9">
+int suma(const int datos[], int n) {
+    int total = 0;
+    for (int i = 0; i &lt; n; i++) total += datos[i];
+    return total;
+}
+
+int main() {
+    int v[6] = {1, 2, 3, 4, 5, 6};
+    int n = sizeof(v) / sizeof(v[0]);   // aqui v aun es arreglo
+    std::cout &lt;&lt; suma(v, n) &lt;&lt; '\n';    // 21
+}
+      </code></pre>
+      <ul>
+        <li class="fragment">El tamaño se calcula en el ámbito donde el arreglo fue declarado y se pasa como parámetro. Toda función de biblioteca que recibe arreglos crudos hace lo mismo.</li>
+        <li class="fragment"><code>const int datos[]</code> anuncia que la función solo lee. Si intenta escribir, el compilador la detiene.</li>
+        <li class="fragment"><code>v[i]</code> y <code>*(v + i)</code> son la misma expresión escrita de dos formas.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 12 · CHECKPOINT 3 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="a">
+        <p class="quiz-question">¿Por qué <code>sizeof(datos)/sizeof(datos[0])</code> da 2 dentro de <code>void imprimir(int datos[])</code> en una máquina de 64 bits?</p>
+        <button class="quiz-option" data-opt="a">Porque <code>datos</code> es un puntero de 8 bytes y cada <code>int</code> ocupa 4</button>
+        <button class="quiz-option" data-opt="b">Porque la función solo recibe una copia de los dos primeros elementos</button>
+        <button class="quiz-option" data-opt="c">Porque <code>sizeof</code> no funciona dentro de funciones</button>
+        <div class="quiz-explain"><strong>A.</strong> El parámetro decayó a <code>int*</code>, y <code>sizeof</code> de un puntero son 8 bytes en 64 bits: 8 entre 4 da 2. No se copia ningún elemento del arreglo (B); solo viaja la dirección del primero. <code>sizeof</code> funciona en cualquier ámbito (C), lo que cambia es el tipo sobre el que se aplica.</div>
+      </div>
+    </section>
+
+    <!-- ============ 13 · VALOR Y REFERENCIA ============ -->
+    <section>
+      <span class="kicker">R8 · Paso de parámetros</span>
+      <h2>Por valor y por referencia</h2>
+      <pre data-title="parametros.cpp"><code class="language-cpp" data-trim data-line-numbers="1|2|6-7">
+void porValor(int a) { a = 99; }
+void porRef(int&amp; a)  { a = 99; }
+
+int main() {
+    int x = 1, y = 1;
+    porValor(x);      // x sigue valiendo 1
+    porRef(y);        // y ahora vale 99
+    std::cout &lt;&lt; x &lt;&lt; ' ' &lt;&lt; y &lt;&lt; '\n';   // 1 99
+}
+      </code></pre>
+      <ul>
+        <li class="fragment">El paso por valor copia el argumento. La función trabaja sobre su copia y el original queda intacto.</li>
+        <li class="fragment"><span class="term" data-term="referencia">Una referencia</span> <code>int&amp;</code> es otro nombre para la misma variable. No se copia nada y toda escritura afecta al original.</li>
+        <li class="fragment">Una referencia se enlaza al declararse y no puede reasignarse a otra variable. Tampoco puede quedar nula.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 14 · REFERENCIA CONSTANTE ============ -->
+    <section>
+      <span class="kicker">R8 · Paso de parámetros</span>
+      <h2>Referencia constante y criterio para elegir</h2>
+      <pre data-title="criterio.cpp"><code class="language-cpp" data-trim>
+void mostrar(const std::string&amp; s) { std::cout &lt;&lt; s; }
+void agregar(std::string&amp; s)       { s += " y Algoritmos"; }
+int  doble(int n)                  { return 2 * n; }
+      </code></pre>
+      <table>
+        <tr><th>Situación</th><th>Forma</th></tr>
+        <tr><td>Tipo pequeño y la función solo lee</td><td><code>int n</code></td></tr>
+        <tr><td>Objeto grande y la función solo lee</td><td><code>const std::string&amp; s</code></td></tr>
+        <tr><td>La función debe modificar el argumento</td><td><code>std::string&amp; s</code></td></tr>
+      </table>
+      <p class="fragment">La referencia constante evita la copia de un objeto grande y deja escrito en la firma que el argumento no se modifica. Para un <code>int</code> la copia cuesta menos que la referencia, así que ahí se pasa por valor.</p>
+    </section>
+
+    <!-- ============ 15 · CHECKPOINT 4 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="c">
+        <p class="quiz-question">Una función recibe un <code>std::string</code> de 4000 caracteres y solo necesita contar sus vocales. ¿Cómo se declara el parámetro?</p>
+        <button class="quiz-option" data-opt="a"><code>std::string s</code>, porque así la función no puede dañar el original</button>
+        <button class="quiz-option" data-opt="b"><code>std::string&amp; s</code>, porque evita la copia</button>
+        <button class="quiz-option" data-opt="c"><code>const std::string&amp; s</code>, porque evita la copia y prohíbe modificarla</button>
+        <div class="quiz-explain"><strong>C.</strong> A protege el original pero copia los 4000 caracteres en cada llamada. B evita la copia y deja abierta la puerta a modificar el argumento, lo que obliga a leer el cuerpo de la función para saber si lo hace. La referencia constante junta las dos garantías y es la forma por omisión para objetos grandes de solo lectura.</div>
+      </div>
+    </section>
+
+    <!-- ============ 16 · TRAMPAS COMUNES ============ -->
+    <section>
+      <span class="kicker">R8 · Trampas comunes</span>
+      <h2>Cuatro errores de esta sesión</h2>
+      <ul>
+        <li class="fragment">Calcular <code>sizeof</code> del arreglo dentro de la función que lo recibe. Ahí ya es un puntero.</li>
+        <li class="fragment">Declarar <code>int* p, q;</code> creyendo que ambos son punteros. El asterisco se aplica solo a <code>p</code>; <code>q</code> es un <code>int</code>.</li>
+        <li class="fragment">Devolver la dirección de una variable local. Al terminar la función esa variable deja de existir y el puntero apunta a memoria reutilizable.</li>
+        <li class="fragment">Recorrer con <code>i &lt;= n</code>. El último índice válido es <code>n - 1</code>, y el compilador no revisa los límites.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 17 · EJERCICIO ============ -->
+    <section>
+      <span class="kicker">R8 · Ejercicio</span>
+      <h2>Tres versiones de <code>intercambiar</code></h2>
+      <p class="muted">Escribe las tres, llámalas desde <code>main</code> con <code>x = 1</code> y <code>y = 2</code>, e imprime después de cada llamada.</p>
+      <pre data-title="intercambiar.cpp"><code class="language-cpp" data-trim>
+void intercambiar1(int a, int b);      // por valor
+void intercambiar2(int* a, int* b);    // por puntero
+void intercambiar3(int&amp; a, int&amp; b);    // por referencia
+      </code></pre>
+      <div class="solucion">
+        <pre><code class="language-cpp" data-trim>
+void intercambiar1(int a, int b) {
+    int t = a; a = b; b = t;           // no cambia nada afuera
+}
+void intercambiar2(int* a, int* b) {
+    int t = *a; *a = *b; *b = t;       // se llama: (&amp;x, &amp;y)
+}
+void intercambiar3(int&amp; a, int&amp; b) {
+    int t = a; a = b; b = t;           // se llama: (x, y)
+}
+        </code></pre>
+        <p class="muted"><code>intercambiar1</code> recibe copias: intercambia los valores de sus dos parámetros locales y los descarta al terminar. Las otras dos reciben la ubicación del original, una escrita con asteriscos y otra sin ellos. Compilar con <code>-Wall -Wextra</code> anticipa el problema: el compilador advierte que los parámetros de la primera versión se asignan y nunca se usan.</p>
+      </div>
+    </section>
+
+    <!-- ============ 18 · CHECKLIST ============ -->
+    <section>
+      <span class="kicker">R8 · Antes de pasar a R9</span>
+      <h2>Verifica que ya puedes</h2>
+      <ul class="checklist" data-deck="v08">
+        <li>Recorrer un arreglo y calcular su tamaño donde aún se conoce <span class="cl-ref">slide 4</span></li>
+        <li>Leer <code>&amp;x</code> como dirección y <code>*p</code> como valor apuntado <span class="cl-ref">slide 7</span></li>
+        <li>Explicar por qué el arreglo pierde su tamaño en una función <span class="cl-ref">slide 10</span></li>
+        <li>Elegir entre valor, referencia y referencia constante <span class="cl-ref">slide 14</span></li>
+        <li>Justificar cuál versión de <code>intercambiar</code> no funciona <span class="cl-ref">slide 17</span></li>
+      </ul>
+      <p class="muted">Si algo sigue sin marcarse, regresa a ese slide antes de continuar.</p>
+    </section>
+
+    <!-- ============ EL COMMIT DE ESTA SESIÓN ============ -->
+    <section>
+      <span class="kicker">R8 · Tu repositorio</span>
+      <h2>El commit de esta sesión</h2>
+      <pre><code class="language-bash" data-trim>
+cd repaso-cpp
+git add r08-punteros/
+git commit -m "R8: intercambiar en tres versiones"
+git push
+      </code></pre>
+      <p class="muted">Un commit por sesión. Así, cuando algo deje de compilar, <code>git diff</code> te dice exactamente qué cambiaste desde la última vez que funcionaba.</p>
+    </section>
+
+
+    <!-- ============ 19 · SIGUIENTE ============ -->
+    <section class="divider">
+      <h2>Siguiente:<br>R9 · De <code>struct</code> a <code>class</code></h2>
+      <p class="muted">Con esto cierra la recapitulación de C++. El módulo siguiente empieza la programación orientada a objetos.</p>
+      <p><a href="../repaso/">← Volver al índice de la serie</a></p>
+    </section>
+
+    <!-- ============ 20 · REFERENCIAS ============ -->
+    <section>
+      <span class="kicker">R8</span>
+      <h2>Referencias y material para profundizar</h2>
+      <div class="refs cols">
+        <div>
+          <h3>Referencias</h3>
+          <ul>
+            <li><span class="ref-type">Libro</span> Stroustrup, B. <em>A Tour of C++</em>, 3.ª ed., Addison-Wesley, 2022. Cap. 1, secciones de punteros, arreglos y referencias.</li>
+            <li><span class="ref-type">Libro</span> Gregoire, M. <em>Professional C++</em>, 5.ª ed., Wiley, 2021. Cap. 7, “Memory Management”, primera mitad.</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Para profundizar</h3>
+          <ul>
+            <li><span class="ref-type">Web</span> <a href="https://en.cppreference.com/w/cpp/language/array">cppreference — Array declaration</a> <span class="ref-nota">— la regla de conversión a puntero, con ejemplos.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#f16-for-in-parameters-pass-cheaply-copied-types-by-value-and-others-by-reference-to-const">C++ Core Guidelines F.16</a> <span class="ref-nota">— el criterio de paso de parámetros, con el umbral de tamaño.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://godbolt.org/">Compiler Explorer</a> <span class="ref-nota">— compara el ensamblador de paso por valor y por referencia.</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script src="../js/curso-slides.js"></script>
+<script>
+  Reveal.initialize({
+    width: 1280,
+    height: 720,
+    margin: 0.06,
+    hash: true,
+    progress: true,
+    slideNumber: 'c/t',
+    controls: true,
+    transition: 'slide',
+    transitionSpeed: 'fast',
+    plugins: [ RevealHighlight ]
+  }).then(() => {
+    CursoSlides.init({
+      decay: {
+        titulo: "Decaimiento a puntero (array decay)",
+        def: "Conversión implícita de un arreglo en un puntero a su primer elemento. Ocurre al pasarlo como argumento, al asignarlo a un puntero y en casi cualquier expresión. El tipo resultante ya no incluye la cantidad de elementos, así que el tamaño debe viajar por separado."
+      },
+      nullptr: {
+        titulo: "nullptr",
+        def: "Literal de C++11 que representa un puntero que no apunta a ningún objeto. Sustituye a <code>NULL</code> y al literal <code>0</code>, que en C++ son enteros y pueden elegir la sobrecarga equivocada de una función. Desreferenciar un puntero nulo termina el programa."
+      },
+      referencia: {
+        titulo: "Referencia",
+        def: "Nombre alternativo para un objeto que ya existe, declarado con <code>&amp;</code> junto al tipo: <code>int&amp; r = x;</code>. Se enlaza al declararse y no puede reenlazarse ni quedar nula. Usarla como parámetro evita la copia del argumento."
+      }
+    });
+  });
+</script>
+</body>
+</html>

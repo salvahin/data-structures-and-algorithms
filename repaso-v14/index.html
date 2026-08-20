@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Repaso R14 — Sobrecarga de operadores</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+  <link rel="stylesheet" href="../css/theme-curso.css">
+</head>
+<body>
+<div class="reveal">
+  <div class="slides">
+
+    <!-- ============ 1 · PORTADA ============ -->
+    <section class="cover">
+      <span class="kicker">Repaso de C++ y POO · Módulo 2 · Programación orientada a objetos</span>
+      <h1>Sobrecarga de&nbsp;operadores</h1>
+      <div class="cover-meta">
+        R14 · Auto-estudio · 22 minutos<br>
+        Estructuras de Datos y Algoritmos
+      </div>
+    </section>
+
+    <!-- ============ 2 · OBJETIVO ============ -->
+    <section>
+      <span class="kicker">R14 · Objetivo</span>
+      <h2>Al terminar esta sesión podrás…</h2>
+      <ul>
+        <li class="fragment">Escribir <code>operator+</code>, <code>operator==</code> y <code>operator[]</code> como métodos de tu clase.</li>
+        <li class="fragment">Explicar por qué <code>operator&lt;&lt;</code> tiene que ser una función libre y qué papel juega <code>friend</code>.</li>
+        <li class="fragment">Decidir si un operador va como miembro o como función libre, con un criterio y no por costumbre.</li>
+        <li class="fragment">Escribir un <code>operator=</code> que maneje la autoasignación y devuelva una referencia.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 3 · ARRANQUE ============ -->
+    <section>
+      <span class="kicker">R14 · Punto de partida</span>
+      <h2>Dos líneas que el compilador rechaza</h2>
+      <pre data-title="fraccion.cpp"><code class="language-cpp" data-trim>
+class Fraccion {
+    int num_, den_;
+public:
+    Fraccion(int n, int d) : num_(n), den_(d) {}
+};
+
+int main() {
+    Fraccion a(1, 2), b(1, 3);
+    Fraccion c = a + b;
+    std::cout &lt;&lt; c &lt;&lt; '\n';
+}
+      </code></pre>
+      <pre><code class="language-plaintext" data-trim>
+error: no match for 'operator+' (operand types are
+       'Fraccion' and 'Fraccion')
+error: no match for 'operator&lt;&lt;' (operand types are
+       'std::ostream' and 'Fraccion')
+      </code></pre>
+    </section>
+
+    <!-- ============ 4 · YA LO HICISTE ============ -->
+    <section>
+      <span class="kicker">R14 · De dónde viene</span>
+      <h2>En R13 ya sobrecargaste un operador</h2>
+      <pre data-title="arreglo.h (R13)"><code class="language-cpp" data-trim>
+class Arreglo {
+    int* datos_;
+    int n_;
+public:
+    Arreglo(const Arreglo&amp; otro);              // constructor de copia
+    Arreglo&amp; operator=(const Arreglo&amp; otro);   // esto ya era sobrecarga
+    ~Arreglo();
+};
+      </code></pre>
+      <ul>
+        <li class="fragment">La <span class="term" data-term="regla-de-tres">regla de tres</span> te pidió escribir <code>operator=</code> porque la copia por omisión duplicaba el puntero.</li>
+        <li class="fragment">Ese método define qué significa <code>a = b</code> cuando <code>a</code> y <code>b</code> son objetos de tu clase. El resto de los operadores se definen igual.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 5 · OPERATOR+ ============ -->
+    <section>
+      <span class="kicker">R14 · Operadores aritméticos</span>
+      <h2><code>a + b</code> es una llamada a un método</h2>
+      <pre data-title="fraccion.h"><code class="language-cpp" data-trim data-line-numbers="1-10|6-9|11">
+class Fraccion {
+    int num_, den_;
+public:
+    Fraccion(int n = 0, int d = 1) : num_(n), den_(d) {}
+
+    Fraccion operator+(const Fraccion&amp; o) const {
+        return Fraccion(num_ * o.den_ + o.num_ * den_,
+                        den_ * o.den_);
+    }
+};
+// el compilador traduce  a + b  a  a.operator+(b)
+      </code></pre>
+      <ul>
+        <li class="fragment">El operando izquierdo es el objeto sobre el que se llama el método, así que dentro accedes a sus campos sin calificarlos. El derecho llega como parámetro.</li>
+        <li class="fragment">Devuelve <code>Fraccion</code> por valor: la suma es un objeto nuevo que se construye dentro de la función. Devolver <code>Fraccion&amp;</code> apuntaría a algo que deja de existir al retornar.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 6 · CHECKPOINT 1 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="b">
+        <p class="quiz-question">¿Por qué <code>operator+</code> devuelve <code>Fraccion</code> por valor y no <code>Fraccion&amp;</code>?</p>
+        <button class="quiz-option" data-opt="a">Porque el estándar prohíbe devolver referencias desde un operador</button>
+        <button class="quiz-option" data-opt="b">Porque el resultado se construye dentro de la función y muere al salir; la referencia quedaría colgando</button>
+        <button class="quiz-option" data-opt="c">Porque copiar dos enteros es más rápido que devolver una referencia</button>
+        <div class="quiz-explain"><strong>B.</strong> La suma no existe antes de la llamada: se crea en el cuerpo de la función y se destruye al terminar, así que una referencia a ella apunta a memoria liberada. La opción A es falsa, y <code>operator=</code> y <code>operator[]</code> sí devuelven referencias, porque ahí el objeto referido sobrevive a la llamada. La C invierte el argumento: el costo de la copia no es lo que decide, el tiempo de vida sí.</div>
+      </div>
+    </section>
+
+    <!-- ============ 7 · OPERATOR== ============ -->
+    <section>
+      <span class="kicker">R14 · Operadores de comparación</span>
+      <h2>Comparar con <code>==</code> y definir el resto encima</h2>
+      <pre data-title="fraccion.h"><code class="language-cpp" data-trim data-line-numbers="1-3|5-7">
+bool operator==(const Fraccion&amp; o) const {
+    return num_ * o.den_ == o.num_ * den_;   // producto cruzado
+}
+
+bool operator!=(const Fraccion&amp; o) const {
+    return !(*this == o);                    // reusa el anterior
+}
+      </code></pre>
+      <ul>
+        <li class="fragment">El parámetro es <code>const Fraccion&amp;</code> para no copiar y el método es <code>const</code> porque comparar no modifica nada. Sin ese <code>const</code> no puedes comparar objetos constantes.</li>
+        <li class="fragment">El producto cruzado hace que <code>1/2 == 2/4</code> sea cierto aunque los campos difieran. Comparar campo por campo daría falso.</li>
+        <li class="fragment"><code>!=</code>, <code>&gt;</code>, <code>&lt;=</code> y <code>&gt;=</code> se escriben en términos de <code>==</code> y <code>&lt;</code>. Definir solo esos dos y derivar los demás evita que un día dejen de ser coherentes entre sí.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 8 · OPERATOR[] ============ -->
+    <section>
+      <span class="kicker">R14 · Acceso indexado</span>
+      <h2><code>operator[]</code> se escribe dos veces</h2>
+      <pre data-title="arreglo.h"><code class="language-cpp" data-trim data-line-numbers="1-6|8-11">
+class Arreglo {
+    int* datos_;
+public:
+    int&amp; operator[](int i) { return datos_[i]; }
+    const int&amp; operator[](int i) const { return datos_[i]; }
+};
+
+Arreglo a(3);
+a[0] = 7;                    // usa la primera: int&amp; es asignable
+const Arreglo b = a;
+std::cout &lt;&lt; b[0];           // usa la segunda: b es const
+      </code></pre>
+      <ul>
+        <li class="fragment">Devolver <code>int&amp;</code> es lo que permite que <code>a[0]</code> aparezca a la izquierda de un igual. Con <code>int</code> a secas devolverías una copia y la asignación no llegaría al arreglo.</li>
+        <li class="fragment">La segunda versión existe para los objetos <code>const</code>, que solo pueden llamar métodos <code>const</code>. El compilador elige una u otra según el objeto.</li>
+        <li class="fragment"><code>[]</code> no verifica el índice, igual que en <code>std::vector</code>. La versión que sí lanza excepción se llama <code>at()</code> y aparece en R18.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 9 · CHECKPOINT 2 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="c">
+        <p class="quiz-question">Declaras únicamente <code>int operator[](int i) const;</code> y la línea <code>a[0] = 7;</code> no compila. ¿Qué falta?</p>
+        <button class="quiz-option" data-opt="a">Marcar el operador como <code>friend</code> para que pueda escribir en <code>datos_</code></button>
+        <button class="quiz-option" data-opt="b">Quitar el <code>const</code> del final, con eso ya se puede asignar</button>
+        <button class="quiz-option" data-opt="c">Una versión que devuelva <code>int&amp;</code>, porque una copia no se puede asignar</button>
+        <div class="quiz-explain"><strong>C.</strong> <code>a[0]</code> devuelve una copia del elemento; asignarle un valor no tendría a dónde llegar, y el compilador lo rechaza. La opción B quita el <code>const</code> del método pero el retorno sigue siendo <code>int</code> por valor, así que el error persiste. La A confunde <code>friend</code>, que da acceso a lo privado desde fuera de la clase, con el tipo de retorno: un método ya tiene ese acceso.</div>
+      </div>
+    </section>
+
+    <!-- ============ 10 · << NO PUEDE SER MIEMBRO ============ -->
+    <section>
+      <span class="kicker">R14 · Operador de salida</span>
+      <h2>Como miembro, <code>&lt;&lt;</code> queda al revés</h2>
+      <pre data-title="intento.cpp"><code class="language-cpp" data-trim data-line-numbers="1-7|9-11">
+class Fraccion {
+    int num_ = 1, den_ = 2;
+public:
+    std::ostream&amp; operator&lt;&lt;(std::ostream&amp; os) const {
+        return os &lt;&lt; num_ &lt;&lt; '/' &lt;&lt; den_;
+    }
+};
+
+Fraccion f;
+f &lt;&lt; std::cout;      // compila e imprime 1/2
+std::cout &lt;&lt; f;      // error: ostream no tiene ese operator&lt;&lt;
+      </code></pre>
+      <ul>
+        <li class="fragment">En un operador binario escrito como miembro, el operando izquierdo es siempre el objeto de la clase. Eso fija el orden en <code>f &lt;&lt; std::cout</code>, que nadie escribe.</li>
+        <li class="fragment">Para <code>std::cout &lt;&lt; f</code> el método tendría que vivir dentro de <code>std::ostream</code>, y esa clase es de la biblioteca estándar.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 11 · << COMO FUNCIÓN LIBRE ============ -->
+    <section>
+      <span class="kicker">R14 · Operador de salida</span>
+      <h2><code>&lt;&lt;</code> como función libre y amiga</h2>
+      <pre data-title="fraccion.h"><code class="language-cpp" data-trim data-line-numbers="1-6|8-10">
+class Fraccion {
+    int num_, den_;
+public:
+    friend std::ostream&amp; operator&lt;&lt;(std::ostream&amp; os,
+                                    const Fraccion&amp; f);
+};
+
+std::ostream&amp; operator&lt;&lt;(std::ostream&amp; os, const Fraccion&amp; f) {
+    return os &lt;&lt; f.num_ &lt;&lt; '/' &lt;&lt; f.den_;
+}
+      </code></pre>
+      <ul>
+        <li class="fragment">Fuera de la clase el operador recibe dos parámetros y el flujo va primero, así que <code>std::cout &lt;&lt; f</code> encaja.</li>
+        <li class="fragment">Devuelve el mismo flujo por referencia: eso permite encadenar <code>std::cout &lt;&lt; f &lt;&lt; '\n'</code>, donde el resultado de la primera llamada es el operando izquierdo de la segunda.</li>
+        <li class="fragment">La declaración <span class="term" data-term="friend">amiga</span> le da acceso a <code>num_</code> y <code>den_</code>. Si la clase ya expone <code>num()</code> y <code>den()</code> públicos, <code>friend</code> sobra.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 12 · CHECKPOINT 3 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="a">
+        <p class="quiz-question">¿Qué se rompe si <code>operator&lt;&lt;</code> devuelve <code>void</code> en lugar de <code>std::ostream&amp;</code>?</p>
+        <button class="quiz-option" data-opt="a">Deja de compilar <code>std::cout &lt;&lt; f &lt;&lt; '\n';</code>, porque la segunda salida se queda sin flujo</button>
+        <button class="quiz-option" data-opt="b">Nada: el tipo de retorno de un operador de salida es indiferente</button>
+        <button class="quiz-option" data-opt="c">La fracción se imprime después del salto de línea</button>
+        <div class="quiz-explain"><strong>A.</strong> <code>std::cout &lt;&lt; f &lt;&lt; '\n'</code> se agrupa como <code>(std::cout &lt;&lt; f) &lt;&lt; '\n'</code>: el resultado de la primera llamada es el operando izquierdo de la segunda. Con <code>void</code> ese operando no existe y el compilador falla. La opción B ignora ese encadenamiento, que es la única razón del tipo de retorno. La C describe un problema de orden de impresión que no ocurre: cada llamada escribe cuando se evalúa.</div>
+      </div>
+    </section>
+
+    <!-- ============ 13 · MIEMBRO O LIBRE ============ -->
+    <section>
+      <span class="kicker">R14 · Miembro o función libre</span>
+      <h2>Dónde va cada operador</h2>
+      <table>
+        <thead><tr><th>Operadores</th><th>Dónde</th><th>Razón</th></tr></thead>
+        <tbody>
+          <tr class="fragment"><td><code>=</code> <code>[]</code> <code>()</code> <code>-&gt;</code></td><td>Miembro, obligatorio</td><td>El estándar solo los admite dentro de la clase</td></tr>
+          <tr class="fragment"><td><code>+</code> <code>-</code> <code>*</code> <code>==</code> <code>&lt;</code></td><td>Cualquiera de las dos</td><td>Como función libre, el operando izquierdo también admite conversión</td></tr>
+          <tr class="fragment"><td><code>&lt;&lt;</code> <code>&gt;&gt;</code></td><td>Función libre</td><td>El operando izquierdo es el flujo, no tu objeto</td></tr>
+        </tbody>
+      </table>
+      <p class="fragment">Con <code>operator+</code> como miembro, <code>f + 2</code> compila porque el <code>2</code> se convierte a <code>Fraccion</code> con el constructor, pero <code>2 + f</code> falla: el operando izquierdo debe ser ya un objeto de la clase. Como función libre funcionan los dos casos.</p>
+    </section>
+
+    <!-- ============ 14 · CRITERIO ============ -->
+    <section>
+      <span class="kicker">R14 · Criterio</span>
+      <h2>Cuándo conviene sobrecargar</h2>
+      <ul>
+        <li class="fragment">Cuando el operador significa sobre tu tipo lo mismo que sobre los tipos que ya conoce quien lee: <code>+</code> suma, <code>==</code> compara, <code>&lt;&lt;</code> imprime.</li>
+        <li class="fragment">Cuando conservas las expectativas asociadas: <code>==</code> no modifica los operandos, <code>+</code> produce un objeto nuevo, <code>a + b</code> vale lo mismo que <code>b + a</code> en un tipo numérico.</li>
+        <li class="fragment">Si hace falta un comentario para explicar qué hace el operador, escribe un método con nombre. <code>lista + x</code> para agregar un elemento se lee peor que <code>lista.agregar(x)</code>.</li>
+      </ul>
+      <div class="box-key">Sobrecarga cuando el significado del operador se entienda leyendo la expresión, sin abrir la definición de la clase.</div>
+    </section>
+
+    <!-- ============ 15 · TRAMPA operator= ============ -->
+    <section>
+      <span class="kicker">R14 · Trampas comunes</span>
+      <h2>El <code>operator=</code> incompleto</h2>
+      <pre data-title="arreglo.cpp"><code class="language-cpp" data-trim data-line-numbers="1|2|3-6|7">
+Arreglo&amp; Arreglo::operator=(const Arreglo&amp; o) {
+    if (this == &amp;o) return *this;     // 1. autoasignación
+    delete[] datos_;
+    datos_ = new int[o.n_];
+    n_ = o.n_;
+    for (int i = 0; i &lt; n_; ++i) datos_[i] = o.datos_[i];
+    return *this;                     // 2. referencia al objeto
+}
+      </code></pre>
+      <ul>
+        <li class="fragment">Sin la línea 2, <code>a = a;</code> libera el arreglo y después copia desde memoria recién pedida. Los valores quedan basura y no hay ningún aviso.</li>
+        <li class="fragment">Sin <code>return *this;</code> y con retorno <code>void</code>, la cadena <code>c = b = a;</code> deja de compilar.</li>
+        <li class="fragment">El caso realista de <span class="term" data-term="autoasignacion">autoasignación</span> no es <code>a = a</code> escrito a mano, sino <code>v[i] = v[j]</code> dentro de un ciclo cuando <code>i</code> y <code>j</code> coinciden.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 16 · CHECKPOINT 4 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="b">
+        <p class="quiz-question">Tu <code>operator=</code> libera y copia sin verificar <code>this == &amp;o</code>. Ejecutas <code>a = a;</code>. ¿Qué ocurre?</p>
+        <button class="quiz-option" data-opt="a">El compilador detecta que ambos lados son el mismo objeto y omite la llamada</button>
+        <button class="quiz-option" data-opt="b">Se libera el arreglo y luego se copia desde memoria recién pedida: los datos quedan basura</button>
+        <button class="quiz-option" data-opt="c">Nada, asignar un objeto a sí mismo siempre deja el objeto igual</button>
+        <div class="quiz-explain"><strong>B.</strong> Como <code>o</code> es el mismo objeto, el <code>delete[]</code> destruye justo lo que se va a copiar; la copia lee de un bloque nuevo sin inicializar. El programa no aborta, así que el error aparece más tarde y lejos. La opción A atribuye al compilador una comprobación que solo tú puedes hacer en tiempo de ejecución. La C describe el resultado deseado, que es exactamente lo que la verificación consigue.</div>
+      </div>
+    </section>
+
+    <!-- ============ 17 · EJERCICIO ============ -->
+    <section>
+      <span class="kicker">R14 · Ejercicio</span>
+      <h2>Completa la clase <code>Fraccion</code></h2>
+      <ol>
+        <li>Parte de una clase con <code>num_</code>, <code>den_</code>, un método privado <code>reducir()</code> y el constructor <code>Fraccion(int n = 0, int d = 1)</code> que lo llama.</li>
+        <li>Agrega <code>+</code>, <code>*</code>, <code>==</code> y <code>&lt;</code> como métodos, y <code>&lt;&lt;</code> como función libre declarada amiga.</li>
+        <li>Comprueba que <code>Fraccion(1,2) + Fraccion(1,3)</code> imprime <code>5/6</code> y que <code>Fraccion(6,-8)</code> imprime <code>-3/4</code>.</li>
+      </ol>
+      <div class="solucion">
+        <pre><code class="language-cpp" data-trim>
+Fraccion Fraccion::operator+(const Fraccion&amp; o) const {
+    return Fraccion(num_ * o.den_ + o.num_ * den_,
+                    den_ * o.den_);        // el ctor reduce
+}
+bool Fraccion::operator==(const Fraccion&amp; o) const {
+    return num_ * o.den_ == o.num_ * den_;
+}
+bool Fraccion::operator&lt;(const Fraccion&amp; o) const {
+    return num_ * o.den_ &lt; o.num_ * den_;  // den_ &gt; 0 siempre
+}
+std::ostream&amp; operator&lt;&lt;(std::ostream&amp; os, const Fraccion&amp; f) {
+    return os &lt;&lt; f.num_ &lt;&lt; '/' &lt;&lt; f.den_;
+}
+        </code></pre>
+        <p class="muted"><code>reducir()</code> divide numerador y denominador entre <code>std::gcd</code> y deja el signo en el numerador. Con el denominador siempre positivo, <code>&lt;</code> puede comparar productos cruzados sin invertir la desigualdad.</p>
+      </div>
+    </section>
+
+    <!-- ============ 18 · CHECKLIST ============ -->
+    <section>
+      <span class="kicker">R14 · Antes de pasar a R15</span>
+      <h2>Verifica que ya puedes</h2>
+      <ul class="checklist" data-deck="v14">
+        <li>Escribir <code>operator+</code> y <code>operator==</code> como métodos <span class="cl-ref">slide 5</span></li>
+        <li>Sobrecargar <code>operator[]</code> en sus dos versiones <span class="cl-ref">slide 8</span></li>
+        <li>Explicar por qué <code>&lt;&lt;</code> va como función libre <span class="cl-ref">slide 10</span></li>
+        <li>Decidir entre miembro y función libre con un criterio <span class="cl-ref">slide 13</span></li>
+        <li>Escribir un <code>operator=</code> que verifique la autoasignación <span class="cl-ref">slide 15</span></li>
+      </ul>
+      <p class="muted">Si algo sigue sin marcarse, regresa a ese slide antes de continuar.</p>
+    </section>
+
+    <!-- ============ EL COMMIT DE ESTA SESIÓN ============ -->
+    <section>
+      <span class="kicker">R14 · Tu repositorio</span>
+      <h2>El commit de esta sesión</h2>
+      <pre><code class="language-bash" data-trim>
+cd repaso-cpp
+git add r14-operadores/
+git commit -m "R14: clase Fraccion con operadores"
+git push
+      </code></pre>
+      <p class="muted">Un commit por sesión. Así, cuando algo deje de compilar, <code>git diff</code> te dice exactamente qué cambiaste desde la última vez que funcionaba.</p>
+    </section>
+
+
+    <!-- ============ 19 · SIGUIENTE ============ -->
+    <section class="divider">
+      <h2>Siguiente:<br>R15 · Herencia</h2>
+      <p class="muted">Ya sabes definir el comportamiento de una clase. Ahora, cómo una clase parte de otra que ya existe.</p>
+      <p><a href="../repaso/">← Volver al índice de la serie</a></p>
+    </section>
+
+    <!-- ============ 20 · REFERENCIAS ============ -->
+    <section>
+      <span class="kicker">R14</span>
+      <h2>Referencias y material para profundizar</h2>
+      <div class="refs cols">
+        <div>
+          <h3>Referencias</h3>
+          <ul>
+            <li><span class="ref-type">Libro</span> Stroustrup, B. <em>The C++ Programming Language</em>, 4.ª ed., Addison-Wesley, 2013. Cap. 18 (sobrecarga de operadores).</li>
+            <li><span class="ref-type">Libro</span> Gregoire, M. <em>Professional C++</em>, 5.ª ed., Wiley, 2021. Cap. 15 (sobrecarga de operadores en C++).</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Para profundizar</h3>
+          <ul>
+            <li><span class="ref-type">Web</span> <a href="https://en.cppreference.com/w/cpp/language/operators">cppreference — Operator overloading</a> <span class="ref-nota">— la lista de qué operadores admiten sobrecarga y cuáles solo como miembro.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://www.learncpp.com/cpp-tutorial/introduction-to-operator-overloading/">learncpp — Operator overloading</a> <span class="ref-nota">— capítulo 21 completo, con el caso de <code>&lt;&lt;</code> paso a paso.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#c-overloading-and-operator-overloading">C++ Core Guidelines — Overloading</a> <span class="ref-nota">— las reglas C.160 a C.168 son el criterio de esta sesión.</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script src="../js/curso-slides.js"></script>
+<script>
+  Reveal.initialize({
+    width: 1280,
+    height: 720,
+    margin: 0.06,
+    hash: true,
+    progress: true,
+    slideNumber: 'c/t',
+    controls: true,
+    transition: 'slide',
+    transitionSpeed: 'fast',
+    plugins: [ RevealHighlight ]
+  }).then(() => {
+    CursoSlides.init({
+      friend: {
+        titulo: "Función amiga (friend)",
+        def: "Función declarada dentro de una clase con la palabra <code>friend</code>, que no es un método pero recibe acceso a los miembros privados y protegidos. Se usa sobre todo en <code>operator&lt;&lt;</code> y <code>operator&gt;&gt;</code>, donde el operando izquierdo es el flujo y el operador no puede ser miembro. Si la clase ya expone consultas públicas suficientes, la amistad no hace falta."
+      },
+      "regla-de-tres": {
+        titulo: "Regla de tres",
+        def: "Si una clase necesita destructor, constructor de copia u <code>operator=</code> definidos a mano, casi siempre necesita los tres. Aparece cuando el objeto administra un recurso propio, típicamente memoria pedida con <code>new</code>. Es el tema de R13."
+      },
+      autoasignacion: {
+        titulo: "Autoasignación",
+        def: "Asignar un objeto a sí mismo, <code>a = a</code>. Ocurre de forma indirecta con dos referencias o punteros al mismo objeto, o con <code>v[i] = v[j]</code> cuando los índices coinciden. Un <code>operator=</code> que libera su recurso antes de copiar destruye los datos de origen si no la detecta con <code>if (this == &amp;o)</code>."
+      }
+    });
+  });
+</script>
+</body>
+</html>

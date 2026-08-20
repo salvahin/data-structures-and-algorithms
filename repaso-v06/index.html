@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Repaso R6 — El depurador de VS Code en serio</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+  <link rel="stylesheet" href="../css/theme-curso.css">
+</head>
+<body>
+<div class="reveal">
+  <div class="slides">
+
+    <!-- ============ 1 · PORTADA ============ -->
+    <section class="cover">
+      <span class="kicker">Repaso de C++ y POO · Módulo 1 · Recapitulación de C++</span>
+      <h1>El depurador de VS Code en&nbsp;serio</h1>
+      <div class="cover-meta">
+        R6 · Auto-estudio · 32 minutos<br>
+        Estructuras de Datos y Algoritmos
+      </div>
+    </section>
+
+    <!-- ============ 2 · OBJETIVO ============ -->
+    <section>
+      <span class="kicker">R6 · Objetivo</span>
+      <h2>Al terminar esta sesión podrás…</h2>
+      <ul>
+        <li class="fragment">Explicar qué agrega <code>-g</code> al ejecutable y reconocer el síntoma de compilar sin ella.</li>
+        <li class="fragment">Escribir un <code>launch.json</code> con <code>preLaunchTask</code> para tu plataforma.</li>
+        <li class="fragment">Usar F5, F10, F11 y Shift+F11 sabiendo qué hace cada uno.</li>
+        <li class="fragment">Leer la pila de llamadas de una función recursiva.</li>
+        <li class="fragment">Detener el programa en la iteración 47 de un ciclo de mil, sin tocar el código.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 3 · ARRANQUE ============ -->
+    <section>
+      <span class="kicker">R6 · Punto de partida</span>
+      <h2>Este programa suma mal</h2>
+      <pre data-title="suma.cpp"><code class="language-cpp" data-trim>
+#include &lt;iostream&gt;
+const int N = 8;
+
+int sumar(const int datos[], int n) {
+    int total = 0;
+    for (int i = 1; i &lt; n; i++)
+        total += datos[i];
+    return total;
+}
+
+int main() {
+    int datos[N] = {3, 1, 4, 1, 5, 9, 2, 6};
+    std::cout &lt;&lt; "Suma: " &lt;&lt; sumar(datos, N) &lt;&lt; '\n';
+}
+      </code></pre>
+      <pre><code class="language-plaintext" data-trim>
+$ ./suma
+Suma: 28          # a mano, 3+1+4+1+5+9+2+6 = 31
+      </code></pre>
+    </section>
+
+    <!-- ============ 4 · EL PLAN ============ -->
+    <section>
+      <span class="kicker">R6 · Punto de partida</span>
+      <h2>El compromiso: cero <code>cout</code></h2>
+      <ul>
+        <li class="fragment">Un <code>cout</code> de diagnóstico obliga a recompilar cada vez que quieres ver otra variable, y hay que borrarlo después.</li>
+        <li class="fragment">Solo muestra lo que se te ocurrió imprimir. Si el error está en una variable que no imprimiste, el ciclo empieza otra vez.</li>
+        <li class="fragment">El depurador congela el programa en cualquier línea y te deja inspeccionar todo el estado: variables locales, parámetros, el arreglo completo y quién llamó a quién.</li>
+      </ul>
+      <div class="box-key">Vamos a encontrar el error de <code>suma.cpp</code> con el depurador y sin modificar el archivo.</div>
+    </section>
+
+    <!-- ============ 5 · POR QUÉ -g ============ -->
+    <section>
+      <span class="kicker">R6 · La bandera -g</span>
+      <h2>El breakpoint hueco y gris</h2>
+      <pre><code class="language-bash" data-trim data-line-numbers="1-2|4-5">
+# sin simbolos: el punto rojo se vuelve un circulo gris hueco
+g++ -std=c++17 suma.cpp -o suma
+
+# con simbolos: el punto rojo engancha
+g++ -std=c++17 -Wall -Wextra -g suma.cpp -o suma
+      </code></pre>
+      <p class="fragment">Al lanzar la sesión, VS Code descolora el breakpoint y muestra el aviso <em>“the breakpoint address could not be obtained”</em>. El ejecutable no contiene la tabla que asocia cada instrucción de máquina con su línea de código.</p>
+      <p class="fragment"><code>-g</code> agrega esa tabla y los nombres de las variables. Sin ella, <span class="term" data-term="simbolos">los símbolos de depuración</span> no existen y el depurador no tiene dónde detenerse.</p>
+    </section>
+
+    <!-- ============ 6 · LAUNCH.JSON macOS ============ -->
+    <section>
+      <span class="kicker">R6 · launch.json</span>
+      <h2>La configuración de arranque: macOS</h2>
+      <pre data-title=".vscode/launch.json"><code class="language-json" data-trim data-line-numbers="4-5|6|7-9|10">
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Depurar (macOS, CodeLLDB)",
+      "type": "lldb",
+      "request": "launch",
+      "program": "${workspaceFolder}/programa",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "compilar"
+    }
+  ]
+}
+      </code></pre>
+      <p class="fragment">En macOS se usa la extensión <strong>CodeLLDB</strong> (<code>"type": "lldb"</code>), que envuelve al depurador del sistema.</p>
+    </section>
+
+    <!-- ============ 7 · LAUNCH.JSON linux + tasks ============ -->
+    <section>
+      <span class="kicker">R6 · launch.json</span>
+      <h2>Linux, WSL y la tarea previa</h2>
+      <div class="cols">
+        <div>
+          <pre data-title="launch.json (fragmento)"><code class="language-json" data-trim>
+{
+  "name": "Depurar (Linux/WSL)",
+  "type": "cppdbg",
+  "request": "launch",
+  "program": "${workspaceFolder}/programa",
+  "cwd": "${workspaceFolder}",
+  "MIMode": "gdb",
+  "externalConsole": false,
+  "preLaunchTask": "compilar"
+}
+          </code></pre>
+        </div>
+        <div>
+          <pre data-title="tasks.json (fragmento)"><code class="language-json" data-trim>
+{
+  "label": "compilar",
+  "type": "shell",
+  "command": "g++",
+  "args": ["-std=c++17", "-Wall",
+           "-Wextra", "-g",
+           "main.cpp", "-o", "programa"]
+}
+          </code></pre>
+        </div>
+      </div>
+      <p class="fragment"><code>preLaunchTask</code> busca la tarea que se llame <code>compilar</code> y la ejecuta antes de lanzar el programa. Con eso nunca depuras un binario viejo.</p>
+    </section>
+
+    <!-- ============ 8 · CHECKPOINT 1 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="b">
+        <p class="quiz-question">Pones un breakpoint, presionas F5 y el punto se vuelve un círculo gris hueco. ¿Qué revisas primero?</p>
+        <button class="quiz-option" data-opt="a">Que el archivo esté guardado, porque VS Code depura la versión en disco</button>
+        <button class="quiz-option" data-opt="b">Que el ejecutable se haya compilado con <code>-g</code></button>
+        <button class="quiz-option" data-opt="c">Que el breakpoint esté en una línea con código y no en una línea en blanco</button>
+        <div class="quiz-explain"><strong>B.</strong> El círculo hueco significa que el depurador no pudo traducir esa línea a una dirección del ejecutable, y eso pasa cuando faltan los símbolos de <code>-g</code>. Guardar el archivo (A) no cambia el binario ya generado. Un breakpoint en línea en blanco (C) VS Code lo mueve solo a la siguiente línea ejecutable en vez de desactivarlo.</div>
+      </div>
+    </section>
+
+    <!-- ============ 9 · LOS CUATRO MOVIMIENTOS ============ -->
+    <section>
+      <span class="kicker">R6 · Los cuatro movimientos</span>
+      <h2>Cuatro teclas y nada más</h2>
+      <table>
+        <tr><th>Tecla</th><th>Nombre</th><th>Qué hace</th></tr>
+        <tr><td><code>F5</code></td><td>Continuar</td><td>Corre hasta el siguiente breakpoint o hasta el final</td></tr>
+        <tr><td><code>F10</code></td><td>Step over</td><td>Ejecuta la línea completa; si hay una llamada, la corre entera</td></tr>
+        <tr><td><code>F11</code></td><td>Step into</td><td>Entra al cuerpo de la función que se llama en esa línea</td></tr>
+        <tr><td><code>Shift+F11</code></td><td>Step out</td><td>Termina la función actual y regresa a quien la llamó</td></tr>
+      </table>
+      <p class="fragment">Con F10 recorres la lógica de una función. Con F11 bajas un nivel. Con Shift+F11 subes uno.</p>
+    </section>
+
+    <!-- ============ 10 · F10 vs F11 ============ -->
+    <section>
+      <span class="kicker">R6 · Los cuatro movimientos</span>
+      <h2>La diferencia entre F10 y F11</h2>
+      <pre data-title="suma.cpp"><code class="language-cpp" data-trim data-line-numbers="13|4-8">
+#include &lt;iostream&gt;
+const int N = 8;
+
+int sumar(const int datos[], int n) {
+    int total = 0;
+    for (int i = 1; i &lt; n; i++)
+        total += datos[i];
+    return total;
+}
+
+int main() {
+    int datos[N] = {3, 1, 4, 1, 5, 9, 2, 6};
+    std::cout &lt;&lt; "Suma: " &lt;&lt; sumar(datos, N) &lt;&lt; '\n';
+}
+      </code></pre>
+      <p class="fragment">Detenido en la línea 13: <code>F10</code> ejecuta <code>sumar</code> completa y te deja en la llave de cierre con el resultado ya calculado. <code>F11</code> te deja en la línea 5, dentro de <code>sumar</code>, con <code>datos</code> y <code>n</code> a la vista.</p>
+      <p class="fragment">Como el error está adentro, aquí se entra con F11.</p>
+    </section>
+
+    <!-- ============ 11 · VARIABLES Y WATCH ============ -->
+    <section>
+      <span class="kicker">R6 · Variables y seguimiento</span>
+      <h2>Ver el estado sin imprimirlo</h2>
+      <ul>
+        <li class="fragment">El panel <strong>Variables</strong> lista los parámetros y las locales del punto donde estás detenido. Se actualizan solas en cada paso.</li>
+        <li class="fragment">Los arreglos se despliegan elemento por elemento, así que puedes revisar <code>datos[0]</code> hasta <code>datos[7]</code> sin escribir nada.</li>
+        <li class="fragment">El panel <strong>Watch</strong> evalúa expresiones que tú escribes, no solo nombres de variables.</li>
+      </ul>
+      <pre><code class="language-plaintext" data-trim>
+Watch
+  i              1
+  total          0
+  datos[i]       1
+  total + datos[i]   1
+      </code></pre>
+      <p class="fragment">Poner <code>i</code> y <code>total</code> en Watch y presionar F10 en cada vuelta muestra la aritmética del ciclo paso a paso.</p>
+    </section>
+
+    <!-- ============ 12 · CHECKPOINT 2 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="c">
+        <p class="quiz-question">Estás detenido en <code>std::cout &lt;&lt; sumar(datos, N);</code> y quieres ver el valor de <code>total</code> en la primera vuelta del ciclo. ¿Qué tecla usas?</p>
+        <button class="quiz-option" data-opt="a"><code>F10</code>, porque avanza a la siguiente línea</button>
+        <button class="quiz-option" data-opt="b"><code>Shift+F11</code>, porque sale hacia la función llamada</button>
+        <button class="quiz-option" data-opt="c"><code>F11</code>, porque entra al cuerpo de <code>sumar</code></button>
+        <div class="quiz-explain"><strong>C.</strong> <code>total</code> es local de <code>sumar</code>, así que hay que estar dentro de esa función para verla. F10 ejecutaría la llamada completa y te perderías el ciclo. Shift+F11 sale de la función actual hacia quien la llamó, es decir, en dirección contraria.</div>
+      </div>
+    </section>
+
+    <!-- ============ 13 · PILA DE LLAMADAS ============ -->
+    <section>
+      <span class="kicker">R6 · Pila de llamadas</span>
+      <h2>Una recursión para ver la pila</h2>
+      <pre data-title="factorial.cpp"><code class="language-cpp" data-trim data-line-numbers="4|5">
+#include &lt;iostream&gt;
+
+long long factorial(int n) {
+    if (n &lt;= 1) return 1;
+    return n * factorial(n - 1);
+}
+
+int main() {
+    std::cout &lt;&lt; factorial(5) &lt;&lt; '\n';
+}
+      </code></pre>
+      <p class="fragment">Pon el breakpoint en la línea 4 y presiona F5 cinco veces. Cada llamada suspendida se apila y el panel <span class="term" data-term="pila">Call Stack</span> crece.</p>
+    </section>
+
+    <!-- ============ 14 · LEER LA PILA ============ -->
+    <section>
+      <span class="kicker">R6 · Pila de llamadas</span>
+      <h2>Qué dice el panel Call Stack</h2>
+      <pre><code class="language-plaintext" data-trim>
+CALL STACK
+  factorial(int)  n = 1   factorial.cpp:4   &lt;- aqui estas
+  factorial(int)  n = 2   factorial.cpp:5
+  factorial(int)  n = 3   factorial.cpp:5
+  factorial(int)  n = 4   factorial.cpp:5
+  factorial(int)  n = 5   factorial.cpp:5
+  main()                  factorial.cpp:9
+      </code></pre>
+      <ul>
+        <li class="fragment">Se lee de arriba hacia abajo: el marco superior es donde estás; los de abajo son las llamadas que siguen esperando su resultado.</li>
+        <li class="fragment">Al hacer clic en cualquier marco, el panel Variables cambia a las locales de <em>esa</em> llamada. Cada nivel tiene su propia <code>n</code>.</li>
+        <li class="fragment">Cuando el programa aborta, este panel muestra la ruta exacta que llevó a la línea que falló.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 15 · BREAKPOINTS CONDICIONALES ============ -->
+    <section>
+      <span class="kicker">R6 · Breakpoints condicionales</span>
+      <h2>Detenerse en la vuelta 47 de mil</h2>
+      <pre data-title="ciclo.cpp"><code class="language-cpp" data-trim data-line-numbers="4">
+int main() {
+    long long acum = 0;
+    for (int i = 0; i &lt; 1000; i++) {
+        acum += i * i;      // breakpoint condicional aqui
+    }
+}
+      </code></pre>
+      <ul>
+        <li class="fragment">Clic derecho sobre el punto rojo, <em>Edit Breakpoint</em>, y en <strong>Expression</strong> escribes <code>i == 47</code>.</li>
+        <li class="fragment">El programa corre a toda velocidad y se detiene una sola vez, con <code>i</code> valiendo 47.</li>
+        <li class="fragment">El mismo menú ofrece <strong>Hit Count</strong>, que se detiene en la enésima vez que pasa por la línea, y funciona cuando no hay una variable de control a la mano.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 16 · CHECKPOINT 3 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="a">
+        <p class="quiz-question">Un ciclo de 5000 vueltas falla cerca del final. Pones un breakpoint normal y presionas F5. ¿Qué pasa?</p>
+        <button class="quiz-option" data-opt="a">Se detiene en cada vuelta, así que necesitas una condición o un contador de impactos</button>
+        <button class="quiz-option" data-opt="b">Se detiene solo la primera vez, porque un breakpoint se consume al usarse</button>
+        <button class="quiz-option" data-opt="c">Se detiene solo cuando el valor de alguna variable cambia respecto a la vuelta anterior</button>
+        <div class="quiz-explain"><strong>A.</strong> Un breakpoint sin condición detiene el programa cada vez que la ejecución pasa por esa línea. No se consume (B) ni observa cambios de variables (C); esa última idea corresponde a los <em>data breakpoints</em>, que son otra herramienta. Para llegar a la vuelta 4900 se usa una expresión como <code>i == 4900</code> o un Hit Count.</div>
+      </div>
+    </section>
+
+    <!-- ============ 17 · LOGPOINTS ============ -->
+    <section>
+      <span class="kicker">R6 · Logpoints</span>
+      <h2>Imprimir sin tocar el código fuente</h2>
+      <ul>
+        <li class="fragment">Clic derecho en el margen, <em>Add Logpoint</em>, y escribes un mensaje con expresiones entre llaves. Eso crea <span class="term" data-term="logpoint">un logpoint</span>.</li>
+      </ul>
+      <pre><code class="language-plaintext" data-trim>
+Logpoint en suma.cpp:7
+  vuelta i={i}  total={total}  datos[i]={datos[i]}
+
+DEBUG CONSOLE
+  vuelta i=1  total=0  datos[i]=1
+  vuelta i=2  total=1  datos[i]=4
+      </code></pre>
+      <ul>
+        <li class="fragment">El programa no se detiene: escribe la línea en la consola de depuración y sigue.</li>
+        <li class="fragment">No se recompila nada y el archivo <code>.cpp</code> queda intacto, así que no hay líneas de diagnóstico que borrar después.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 18 · CIERRE: EL ERROR ============ -->
+    <section>
+      <span class="kicker">R6 · El error del arranque</span>
+      <h2>Un minuto con el depurador</h2>
+      <ol>
+        <li class="fragment">F11 en la línea 13 para entrar a <code>sumar</code>.</li>
+        <li class="fragment"><code>i</code> y <code>total</code> al panel Watch.</li>
+        <li class="fragment">Primer F10 dentro del ciclo: <code>i</code> vale <strong>1</strong>, no 0. El primer elemento nunca se suma.</li>
+      </ol>
+      <pre data-title="suma.cpp · corregido"><code class="language-cpp" data-trim data-line-numbers="2">
+    int total = 0;
+    for (int i = 0; i &lt; n; i++)      // antes: i = 1
+        total += datos[i];
+      </code></pre>
+      <p class="fragment">28 más <code>datos[0]</code>, que vale 3, da 31. El síntoma numérico y la causa quedan conectados sin haber recompilado ni una vez para investigar.</p>
+    </section>
+
+    <!-- ============ 19 · CHECKPOINT 4 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="b">
+        <p class="quiz-question">Lanzas la sesión, el programa se detiene resaltando una línea en amarillo y aparece la barra de control. ¿Qué ocurrió?</p>
+        <button class="quiz-option" data-opt="a">El programa falló en esa línea; ahí está el error</button>
+        <button class="quiz-option" data-opt="b">El programa llegó a un breakpoint y está suspendido, esperando que tú decidas cómo seguir</button>
+        <button class="quiz-option" data-opt="c">El programa terminó y VS Code muestra la última línea ejecutada</button>
+        <div class="quiz-explain"><strong>B.</strong> El resaltado amarillo marca la línea que está <em>a punto</em> de ejecutarse, con el proceso vivo y congelado. Una falla real se anuncia con un mensaje de señal en la consola de depuración, del tipo <code>EXC_BAD_ACCESS</code> o <code>SIGSEGV</code> (A). Si el programa hubiera terminado, la barra de control desaparecería (C).</div>
+      </div>
+    </section>
+
+    <!-- ============ 20 · TRAMPAS COMUNES ============ -->
+    <section>
+      <span class="kicker">R6 · Trampas comunes</span>
+      <h2>Tres formas de pelearse con el depurador</h2>
+      <ul>
+        <li class="fragment"><strong>Depurar un binario viejo.</strong> Editas el <code>.cpp</code>, lanzas la sesión y el depurador salta líneas o se detiene donde ya no hay nada. Con <code>preLaunchTask</code> configurado esto deja de ocurrir.</li>
+        <li class="fragment"><strong>La consola que se cierra.</strong> Con <code>"externalConsole": true</code> se abre una ventana aparte que desaparece al terminar el programa. La terminal integrada de VS Code conserva la salida.</li>
+        <li class="fragment"><strong>Confundir la detención con la falla.</strong> Detenerse en un breakpoint es el comportamiento normal. Un fallo real imprime una señal en la consola de depuración y deja la pila de llamadas en el punto del accidente.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 21 · EJERCICIO ============ -->
+    <section>
+      <span class="kicker">R6 · Ejercicio</span>
+      <h2>Tres funciones, un error cada una</h2>
+      <p class="muted">Cópialas a tres archivos, compílalas con <code>-g</code> y localiza cada error solo con el depurador.</p>
+      <div class="cols">
+        <div>
+          <pre data-title="A y B"><code class="language-cpp" data-trim>
+int suma(const int v[], int n) {
+    int s = 0;
+    for (int i = 0; i &lt;= n; i++)
+        s += v[i];
+    return s;
+}
+int pares(const int v[], int n) {
+    int c = 0;
+    for (int i = 0; i &lt; n; i++)
+        if (v[i] % 2 != 0) c++;
+    return c;
+}
+          </code></pre>
+        </div>
+        <div>
+          <pre data-title="C"><code class="language-cpp" data-trim>
+int maximo(const int v[], int n) {
+    int mejor;
+    for (int i = 0; i &lt; n; i++)
+        if (v[i] &gt; mejor)
+            mejor = v[i];
+    return mejor;
+}
+          </code></pre>
+        </div>
+      </div>
+      <div class="solucion">
+        <pre><code class="language-cpp" data-trim>
+// A: Watch sobre i y n. En la ultima vuelta i == n y se
+//    lee v[n], fuera del arreglo.
+for (int i = 0; i &lt; n; i++) s += v[i];
+
+// B: logpoint "i={i} v[i]={v[i]} c={c}". Cuenta impares.
+if (v[i] % 2 == 0) c++;
+
+// C: el panel Variables muestra 'mejor' con basura antes
+//    de la primera vuelta.
+int mejor = v[0];
+for (int i = 1; i &lt; n; i++)
+    if (v[i] &gt; mejor) mejor = v[i];
+        </code></pre>
+        <p class="muted">En A y en C el depurador enseña el valor incorrecto antes de que el programa produzca salida. En B todo se ve normal, y ahí el logpoint dentro del <code>if</code> es lo que delata la condición invertida.</p>
+      </div>
+    </section>
+
+    <!-- ============ 22 · CHECKLIST ============ -->
+    <section>
+      <span class="kicker">R6 · Antes de pasar a R7</span>
+      <h2>Verifica que ya puedes</h2>
+      <ul class="checklist" data-deck="v06">
+        <li>Explicar qué agrega <code>-g</code> y reconocer el breakpoint hueco <span class="cl-ref">slide 5</span></li>
+        <li>Escribir un <code>launch.json</code> con <code>preLaunchTask</code> <span class="cl-ref">slide 7</span></li>
+        <li>Elegir entre F10, F11 y Shift+F11 según lo que buscas <span class="cl-ref">slide 9</span></li>
+        <li>Leer la pila de llamadas de una recursión <span class="cl-ref">slide 14</span></li>
+        <li>Poner un breakpoint condicional y un logpoint <span class="cl-ref">slide 15</span></li>
+      </ul>
+      <p class="muted">Si algo sigue sin marcarse, regresa a ese slide antes de continuar.</p>
+    </section>
+
+    <!-- ============ EL COMMIT DE ESTA SESIÓN ============ -->
+    <section>
+      <span class="kicker">R6 · Tu repositorio</span>
+      <h2>El commit de esta sesión</h2>
+      <pre><code class="language-bash" data-trim>
+cd repaso-cpp
+git add r06-depurador/
+git commit -m "R6: tres errores localizados con el depurador"
+git push
+      </code></pre>
+      <p class="muted">Un commit por sesión. Así, cuando algo deje de compilar, <code>git diff</code> te dice exactamente qué cambiaste desde la última vez que funcionaba.</p>
+    </section>
+
+
+    <!-- ============ 23 · SIGUIENTE ============ -->
+    <section class="divider">
+      <h2>Siguiente:<br>R7 · <code>std::string</code> y espacios de nombres</h2>
+      <p class="muted">Ya sabes observar un programa por dentro. Ahora, el tipo con el que vas a trabajar todo el curso.</p>
+      <p><a href="../repaso/">← Volver al índice de la serie</a></p>
+    </section>
+
+    <!-- ============ 24 · REFERENCIAS ============ -->
+    <section>
+      <span class="kicker">R6</span>
+      <h2>Referencias y material para profundizar</h2>
+      <div class="refs cols">
+        <div>
+          <h3>Referencias</h3>
+          <ul>
+            <li><span class="ref-type">Libro</span> Gregoire, M. <em>Professional C++</em>, 5.ª ed., Wiley, 2021. Cap. 31, “Becoming Adept at Debugging”.</li>
+            <li><span class="ref-type">Libro</span> Matloff, N. y Salzman, P. J. <em>The Art of Debugging with GDB, DDD, and Eclipse</em>, No Starch Press, 2008. Caps. 1–3.</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Para profundizar</h3>
+          <ul>
+            <li><span class="ref-type">Web</span> <a href="https://code.visualstudio.com/docs/cpp/cpp-debug">VS Code — Debug C++</a> <span class="ref-nota">— la referencia de <code>launch.json</code> por plataforma.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://code.visualstudio.com/docs/debugtest/debugging">VS Code — Debugging</a> <span class="ref-nota">— breakpoints condicionales, logpoints y paneles.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://github.com/vadimcn/codelldb/blob/master/MANUAL.md">CodeLLDB — Manual</a> <span class="ref-nota">— opciones específicas de macOS.</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script src="../js/curso-slides.js"></script>
+<script>
+  Reveal.initialize({
+    width: 1280,
+    height: 720,
+    margin: 0.06,
+    hash: true,
+    progress: true,
+    slideNumber: 'c/t',
+    controls: true,
+    transition: 'slide',
+    transitionSpeed: 'fast',
+    plugins: [ RevealHighlight ]
+  }).then(() => {
+    CursoSlides.init({
+      simbolos: {
+        titulo: "Símbolos de depuración",
+        def: "Tabla que el compilador agrega al ejecutable con <code>-g</code>. Asocia cada instrucción de máquina con su archivo, su línea y los nombres de las variables de ese punto. Sin ella el depurador puede correr el programa pero no sabe dónde detenerse ni cómo se llaman los datos."
+      },
+      pila: {
+        titulo: "Pila de llamadas (call stack)",
+        def: "Lista de las funciones que están en curso, de la más reciente a la más antigua. Cada entrada es un marco con sus propios parámetros y variables locales. Al terminar una función su marco se descarta y la ejecución vuelve al marco de abajo."
+      },
+      logpoint: {
+        titulo: "Logpoint",
+        def: "Breakpoint que, en lugar de detener el programa, escribe un mensaje en la consola de depuración. Las expresiones entre llaves se evalúan en ese punto: <code>total={total}</code>. Se configura desde el editor y no modifica el código fuente."
+      }
+    });
+  });
+</script>
+</body>
+</html>

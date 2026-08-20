@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Repaso R18 — std::vector a fondo</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+  <link rel="stylesheet" href="../css/theme-curso.css">
+</head>
+<body>
+<div class="reveal">
+  <div class="slides">
+
+    <!-- ============ 1. PORTADA ============ -->
+    <section class="cover">
+      <span class="kicker">Repaso de C++ y POO · Módulo 3 · Plantillas y STL</span>
+      <h1><code>std::vector</code> a&nbsp;fondo</h1>
+      <div class="cover-meta">
+        R18 · Auto-estudio · 25 minutos<br>
+        Estructuras de Datos y Algoritmos
+      </div>
+    </section>
+
+    <!-- ============ 2. OBJETIVO ============ -->
+    <section>
+      <span class="kicker">R18 · Objetivo</span>
+      <h2>Al terminar esta sesión podrás…</h2>
+      <ul>
+        <li class="fragment">Construir un <code>vector</code> de varias formas y agregar, leer y quitar elementos.</li>
+        <li class="fragment">Explicar la diferencia entre <code>size()</code> y <code>capacity()</code>, y qué cuesta hacer crecer un vector.</li>
+        <li class="fragment">Elegir entre <code>[]</code> y <code>at()</code> con un criterio, y capturar <code>std::out_of_range</code>.</li>
+        <li class="fragment">Recorrer un vector con iteradores y reconocer cuándo un iterador queda invalidado.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 3. ARRANQUE ============ -->
+    <section>
+      <span class="kicker">R18 · Punto de partida</span>
+      <h2>Este programa lee fuera del vector y no se queja</h2>
+      <pre data-title="fuera.cpp"><code class="language-cpp" data-trim>
+std::vector&lt;int&gt; v{10, 20, 30};
+
+std::cout &lt;&lt; "v[10] = " &lt;&lt; v[10]     &lt;&lt; '\n';
+std::cout &lt;&lt; "size  = " &lt;&lt; v.size()  &lt;&lt; '\n';
+      </code></pre>
+      <pre><code class="language-plaintext" data-trim>
+$ g++ -std=c++17 -Wall -Wextra fuera.cpp -o fuera &amp;&amp; ./fuera
+v[10] = 0
+size  = 3
+      </code></pre>
+      <p class="fragment">Ni el compilador ni el programa avisaron nada. <code>v[10]</code> leyó memoria que no le pertenece; en esta ejecución salió 0, en otra puede salir basura o abortar. Ese comportamiento tiene nombre y consecuencias, y lo vemos en el slide 10.</p>
+    </section>
+
+    <!-- ============ 4. CONSTRUIR Y MODIFICAR ============ -->
+    <section>
+      <span class="kicker">R18 · Operaciones básicas</span>
+      <h2>Construir un vector y moverle elementos</h2>
+      <div class="cols">
+        <div>
+          <pre><code class="language-cpp" data-trim>
+std::vector&lt;int&gt; a;          // vacío
+std::vector&lt;int&gt; b(5);       // 5 ceros
+std::vector&lt;int&gt; c(5, 7);    // 5 sietes
+std::vector&lt;int&gt; d{1, 2, 3}; // esos 3
+std::vector&lt;int&gt; e(d);       // copia de d
+          </code></pre>
+        </div>
+        <div>
+          <pre><code class="language-cpp" data-trim>
+d.push_back(4);   // agrega al final
+d.pop_back();     // quita el último
+d[0] = 99;        // acceso indexado
+d.front();        // primer elemento
+d.back();         // último
+d.size();         // cuántos hay
+d.empty();        // ¿ninguno?
+          </code></pre>
+        </div>
+      </div>
+      <p class="fragment"><code>pop_back()</code> no devuelve nada: para usar el último elemento se lee con <code>back()</code> y después se quita. <code>push_back</code> y <code>pop_back</code> trabajan solo en el final, que es donde el vector es rápido.</p>
+    </section>
+
+    <!-- ============ 5. CHECKPOINT 1 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="b">
+        <p class="quiz-question">¿Qué contiene <code>std::vector&lt;int&gt; v(3);</code> justo después de construirse?</p>
+        <button class="quiz-option" data-opt="a">Nada: está vacío y tiene espacio reservado para 3</button>
+        <button class="quiz-option" data-opt="b">Tres elementos con valor 0</button>
+        <button class="quiz-option" data-opt="c">Un solo elemento con valor 3</button>
+        <div class="quiz-explain"><strong>B.</strong> El constructor con un número crea esa cantidad de elementos, inicializados por omisión (0 para <code>int</code>). A describe lo que hace <code>v.reserve(3)</code>, que aparta memoria sin crear elementos. C sería <code>std::vector&lt;int&gt; v{3};</code>, con llaves: la lista de inicialización enumera valores.</div>
+      </div>
+    </section>
+
+    <!-- ============ 6. SIZE VS CAPACITY ============ -->
+    <section>
+      <span class="kicker">R18 · Size y capacity</span>
+      <h2>Dos números que se confunden</h2>
+      <table>
+        <thead><tr><th></th><th><code>size()</code></th><th><code>capacity()</code></th></tr></thead>
+        <tbody>
+          <tr><td>Qué mide</td><td>Elementos que existen</td><td>Espacio reservado</td></tr>
+          <tr><td>Lo cambia</td><td><code>push_back</code>, <code>pop_back</code>, <code>resize</code></td><td>Crecer más allá del espacio, <code>reserve</code></td></tr>
+          <tr><td>Índices válidos</td><td><code>0</code> a <code>size()-1</code></td><td>No define índices válidos</td></tr>
+        </tbody>
+      </table>
+      <p class="fragment">Un vector guarda sus elementos en un bloque contiguo de memoria dinámica. <span class="term" data-term="capacidad">La capacidad</span> es el tamaño de ese bloque; el tamaño es cuánto de él está ocupado.</p>
+      <p class="fragment muted">Leer <code>v[i]</code> con <code>i</code> entre <code>size()</code> y <code>capacity()</code> toca memoria del bloque que todavía no contiene ningún elemento construido. Es tan inválido como leer más allá del bloque.</p>
+    </section>
+
+    <!-- ============ 7. SVG CRECIMIENTO ============ -->
+    <section>
+      <span class="kicker">R18 · Size y capacity</span>
+      <h2>Qué ocurre cuando ya no cabe</h2>
+      <svg viewBox="0 0 1100 400">
+        <g class="anim-step" data-step="0" data-step-off="4">
+          <text class="svg-label" x="60" y="45" style="font-size:22px;fill:#4b5260">bloque actual · capacity 4 · size 4</text>
+          <rect class="svg-node" x="60"  y="60" width="80" height="70" rx="8"/>
+          <rect class="svg-node" x="140" y="60" width="80" height="70" rx="8"/>
+          <rect class="svg-node" x="220" y="60" width="80" height="70" rx="8"/>
+          <rect class="svg-node" x="300" y="60" width="80" height="70" rx="8"/>
+          <text class="svg-label" x="100" y="105" text-anchor="middle">10</text>
+          <text class="svg-label" x="180" y="105" text-anchor="middle">20</text>
+          <text class="svg-label" x="260" y="105" text-anchor="middle">30</text>
+          <text class="svg-label" x="340" y="105" text-anchor="middle">40</text>
+        </g>
+        <g class="anim-step" data-step="1">
+          <text class="svg-label" x="430" y="105" style="font-size:22px">v.push_back(50); no cabe</text>
+        </g>
+        <g class="anim-step" data-step="2">
+          <text class="svg-label" x="60" y="235" style="font-size:22px;fill:#4b5260">bloque nuevo · capacity 8</text>
+          <rect class="svg-node" x="60"  y="250" width="80" height="70" rx="8"/>
+          <rect class="svg-node" x="140" y="250" width="80" height="70" rx="8"/>
+          <rect class="svg-node" x="220" y="250" width="80" height="70" rx="8"/>
+          <rect class="svg-node" x="300" y="250" width="80" height="70" rx="8"/>
+          <rect class="svg-node" x="380" y="250" width="80" height="70" rx="8"/>
+          <rect class="svg-node" x="460" y="250" width="80" height="70" rx="8"/>
+          <rect class="svg-node" x="540" y="250" width="80" height="70" rx="8"/>
+          <rect class="svg-node" x="620" y="250" width="80" height="70" rx="8"/>
+        </g>
+        <g class="anim-step" data-step="3" data-step-off="4">
+          <path class="svg-edge" d="M100 130 V 245"/>
+          <path class="svg-edge" d="M180 130 V 245"/>
+          <path class="svg-edge" d="M260 130 V 245"/>
+          <path class="svg-edge" d="M340 130 V 245"/>
+          <text class="svg-label" x="430" y="200" style="font-size:22px">se copia cada elemento</text>
+        </g>
+        <g class="anim-step" data-step="3">
+          <text class="svg-label" x="100" y="295" text-anchor="middle">10</text>
+          <text class="svg-label" x="180" y="295" text-anchor="middle">20</text>
+          <text class="svg-label" x="260" y="295" text-anchor="middle">30</text>
+          <text class="svg-label" x="340" y="295" text-anchor="middle">40</text>
+        </g>
+        <g class="anim-step" data-step="4">
+          <rect class="svg-node-hl" x="380" y="250" width="80" height="70" rx="8"/>
+          <text class="svg-label" x="420" y="295" text-anchor="middle">50</text>
+          <text class="svg-label" x="60" y="105" style="font-size:22px;fill:#4b5260">el bloque viejo se libera</text>
+        </g>
+      </svg>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <p class="fragment">Reservar, copiar y liberar cuesta tiempo proporcional al número de elementos. Las direcciones de todos los elementos cambian.</p>
+    </section>
+
+    <!-- ============ 8. EL PATRÓN ============ -->
+    <section>
+      <span class="kicker">R18 · Size y capacity</span>
+      <h2>El bloque nuevo mide el doble</h2>
+      <pre><code class="language-plaintext" data-trim>
+capacity observada al agregar 1000 enteros (g++ 11, libstdc++):
+
+0  1  2  4  8  16  32  64  128  256  512  1024
+      </code></pre>
+      <ul>
+        <li class="fragment">Once reasignaciones para mil elementos. Si el bloque creciera de uno en uno serían 999, cada una copiando todo lo anterior.</li>
+        <li class="fragment">Duplicar reparte el costo: mil <code>push_back</code> provocaron 1023 copias de elementos en total, menos de 1.1 copias por elemento. Por eso se dice que <code>push_back</code> cuesta \(O(1)\) amortizado.</li>
+        <li class="fragment">El factor de crecimiento no lo fija el estándar. libstdc++ duplica; la biblioteca de MSVC multiplica por 1.5. Los números de arriba son los de una implementación concreta.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 9. CHECKPOINT 2 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="a">
+        <p class="quiz-question">Guardas <code>int* p = &amp;v[0];</code> y luego haces <code>v.push_back(x)</code>, que provoca una reasignación. ¿Qué pasa con <code>p</code>?</p>
+        <button class="quiz-option" data-opt="a">Apunta al bloque viejo, que ya se liberó: leerlo es un error</button>
+        <button class="quiz-option" data-opt="b">El vector actualiza <code>p</code> para que siga apuntando al primer elemento</button>
+        <button class="quiz-option" data-opt="c">Sigue siendo válido porque el primer elemento no se movió</button>
+        <div class="quiz-explain"><strong>A.</strong> La reasignación copia los elementos a un bloque nuevo y libera el viejo; todas las direcciones cambian. El vector no tiene forma de conocer los punteros que guardaste, así que no puede actualizarlos (B). Y no queda ningún elemento en el bloque anterior, ni siquiera el primero (C).</div>
+      </div>
+    </section>
+
+    <!-- ============ 10. AT VS [] ============ -->
+    <section>
+      <span class="kicker">R18 · Acceso seguro</span>
+      <h2><code>at()</code> revisa el índice; <code>[]</code> no</h2>
+      <pre data-title="acceso.cpp"><code class="language-cpp" data-trim data-line-numbers="1-3|5-9">
+std::vector&lt;int&gt; v{10, 20, 30};
+
+v[7];        // sin revisión: lee lo que haya en esa dirección
+
+try {
+    std::cout &lt;&lt; v.at(7) &lt;&lt; '\n';
+} catch (const std::out_of_range&amp; e) {
+    std::cout &lt;&lt; "out_of_range: " &lt;&lt; e.what() &lt;&lt; '\n';
+}
+      </code></pre>
+      <pre><code class="language-plaintext" data-trim>
+out_of_range: vector::_M_range_check: __n (which is 7)
+              &gt;= this-&gt;size() (which is 3)
+      </code></pre>
+      <p class="fragment"><code>at()</code> lanza una <span class="term" data-term="excepcion">excepción</span> que puedes capturar. Sin <code>try</code>/<code>catch</code>, la excepción termina el programa con un mensaje, que sigue siendo mejor que un número inventado.</p>
+    </section>
+
+    <!-- ============ 11. ITERADORES ============ -->
+    <section>
+      <span class="kicker">R18 · Iteradores</span>
+      <h2>Recorrer sin índices</h2>
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-3|5-6|8">
+for (auto it = v.begin(); it != v.end(); ++it) {
+    std::cout &lt;&lt; *it &lt;&lt; ' ';
+}
+
+for (int x : v)          std::cout &lt;&lt; x &lt;&lt; ' ';   // copia
+for (const int&amp; x : v)   std::cout &lt;&lt; x &lt;&lt; ' ';   // no copia
+
+for (int&amp; x : v)         x *= 2;   // modifica el vector
+      </code></pre>
+      <ul>
+        <li class="fragment">Un <span class="term" data-term="iterador">iterador</span> señala una posición; <code>*it</code> da el elemento y <code>++it</code> avanza. <code>v.end()</code> señala <em>una posición después</em> del último, así que nunca se desreferencia.</li>
+        <li class="fragment">El ciclo <code>range-for</code> es la forma corta de lo mismo: el compilador lo traduce a <code>begin</code>/<code>end</code>. Se usa cuando no necesitas el índice.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 12. CHECKPOINT 3 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="c">
+        <p class="quiz-question">En <code>for (int x : v) x *= 2;</code>, ¿qué le pasa al vector?</p>
+        <button class="quiz-option" data-opt="a">Todos sus elementos quedan al doble</button>
+        <button class="quiz-option" data-opt="b">No compila: dentro del <code>range-for</code> no se puede asignar</button>
+        <button class="quiz-option" data-opt="c">Queda igual: <code>x</code> es una copia y se descarta en cada vuelta</button>
+        <div class="quiz-explain"><strong>C.</strong> Sin <code>&amp;</code>, la variable del ciclo es una copia del elemento; modificarla no toca el vector. Compila sin problema y hasta sin advertencia con <code>-Wall -Wextra</code> (B). Para el efecto de A hay que escribir <code>for (int&amp; x : v)</code>.</div>
+      </div>
+    </section>
+
+    <!-- ============ 13. OBJETOS Y PUNTEROS ============ -->
+    <section>
+      <span class="kicker">R18 · Qué guardar adentro</span>
+      <h2>Vector de objetos y vector de punteros</h2>
+      <div class="cols">
+        <div>
+          <pre><code class="language-cpp" data-trim>
+std::vector&lt;Alumno&gt; grupo;
+grupo.push_back({"Ana", 9.1});
+
+for (const Alumno&amp; a : grupo)
+    std::cout &lt;&lt; a.nombre;
+          </code></pre>
+          <p class="muted">Los objetos viven dentro del bloque. Al crecer, se copian todos.</p>
+        </div>
+        <div>
+          <pre><code class="language-cpp" data-trim>
+std::vector&lt;Figura*&gt; figuras;
+figuras.push_back(new Circulo(2));
+
+for (Figura* f : figuras)
+    std::cout &lt;&lt; f-&gt;area();
+          </code></pre>
+          <p class="muted">El bloque guarda direcciones. Al crecer se copian punteros, no objetos.</p>
+        </div>
+      </div>
+      <p class="fragment">El vector de punteros es lo que necesita el polimorfismo de R16: un <code>vector&lt;Figura&gt;</code> recortaría la parte derivada de cada objeto. A cambio, <code>delete</code> queda a tu cargo: el vector destruye los punteros, no lo apuntado.</p>
+    </section>
+
+    <!-- ============ 14. INVALIDAR ITERADORES ============ -->
+    <section>
+      <span class="kicker">R18 · Iteradores invalidados</span>
+      <h2>Modificar el vector mientras lo recorres</h2>
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-3|5-8">
+for (auto it = v.begin(); it != v.end(); ++it) {
+    if (*it % 2 == 0) v.erase(it);   // it queda inválido
+}                                    // y ++it lo usa
+
+for (auto it = v.begin(); it != v.end(); ) {
+    if (*it % 2 == 0) it = v.erase(it);  // erase devuelve
+    else              ++it;              // el iterador válido
+}
+      </code></pre>
+      <p class="fragment"><code>erase</code> recorre los elementos siguientes una posición hacia la izquierda, así que el iterador que le pasaste deja de ser válido. Devuelve uno que sí lo es, apuntando al elemento que ocupó ese lugar; por eso el segundo ciclo no lleva <code>++it</code> en la cabecera.</p>
+    </section>
+
+    <!-- ============ 15. CHECKPOINT 4 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="b">
+        <p class="quiz-question">Compilas el primer ciclo del slide anterior con <code>-fsanitize=address</code> y lo ejecutas. ¿Qué esperas ver?</p>
+        <button class="quiz-option" data-opt="a">Nada: el programa corre bien porque <code>erase</code> ajusta el iterador</button>
+        <button class="quiz-option" data-opt="b">Un reporte del sanitizer señalando la línea del acceso inválido</button>
+        <button class="quiz-option" data-opt="c">Un error de compilación al detectar el <code>erase</code> dentro del ciclo</button>
+        <div class="quiz-explain"><strong>B.</strong> El sanitizer instrumenta el programa y detecta el acceso inválido en ejecución, con la pila de llamadas del lugar exacto. Según los datos, el reporte llega como <code>negative-size-param</code> dentro del <code>memmove</code> que hace <code>erase</code>, o como <code>heap-buffer-overflow</code> al desreferenciar un iterador que se pasó de <code>end()</code>. Con ciertos datos el programa incluso termina sin reporte, que es lo que hace peligroso este error. Nada de esto se ve en compilación (C). Y <code>erase</code> devuelve un iterador válido, pero no modifica la variable <code>it</code> que tú declaraste (A).</div>
+      </div>
+    </section>
+
+    <!-- ============ 16. TRAMPAS COMUNES ============ -->
+    <section>
+      <span class="kicker">R18 · Trampas comunes</span>
+      <h2>Cuatro formas de perder media hora</h2>
+      <ul>
+        <li class="fragment">Guardar un puntero, una referencia o un iterador a un elemento y seguir usándolo después de un <code>push_back</code>.</li>
+        <li class="fragment">Borrar o insertar dentro de un <code>range-for</code>. Ese ciclo toma <code>begin</code> y <code>end</code> al empezar y no los vuelve a pedir.</li>
+        <li class="fragment">Usar <code>[]</code> con un índice calculado y depurar el resultado extraño durante una hora. Cambiarlo a <code>at()</code> mientras desarrollas convierte el síntoma en un mensaje con el índice culpable.</li>
+        <li class="fragment">Comparar <code>v.size()</code> con un <code>int</code> negativo. <code>size()</code> devuelve un tipo sin signo y la comparación convierte el negativo en un número enorme.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 17. EJERCICIO ============ -->
+    <section>
+      <span class="kicker">R18 · Ejercicio</span>
+      <h2>Mide cómo crece la capacidad</h2>
+      <ol>
+        <li>Escribe un programa que agregue mil enteros a un <code>vector</code> vacío e imprima el tamaño y la capacidad cada vez que la capacidad cambie.</li>
+        <li>Cuenta cuántas reasignaciones ocurrieron y cuántos elementos se copiaron en total.</li>
+        <li>Repite con <code>v.reserve(1000)</code> antes del ciclo y compara.</li>
+      </ol>
+      <div class="solucion">
+        <pre><code class="language-cpp" data-trim>
+std::vector&lt;int&gt; v;
+std::size_t cap = v.capacity();
+std::cout &lt;&lt; "size 0 -&gt; capacity " &lt;&lt; cap &lt;&lt; '\n';
+for (int i = 0; i &lt; 1000; ++i) {
+    v.push_back(i);
+    if (v.capacity() != cap) {
+        cap = v.capacity();
+        std::cout &lt;&lt; "size " &lt;&lt; v.size()
+                  &lt;&lt; " -&gt; capacity " &lt;&lt; cap &lt;&lt; '\n';
+    }
+}
+        </code></pre>
+        <pre><code class="language-plaintext" data-trim>
+size 0 -&gt; capacity 0      size 17  -&gt; capacity 32
+size 1 -&gt; capacity 1      size 33  -&gt; capacity 64
+size 2 -&gt; capacity 2      size 65  -&gt; capacity 128
+size 3 -&gt; capacity 4      size 129 -&gt; capacity 256
+size 5 -&gt; capacity 8      size 257 -&gt; capacity 512
+size 9 -&gt; capacity 16     size 513 -&gt; capacity 1024
+        </code></pre>
+        <p class="muted">Las doce líneas de salida, acomodadas en dos columnas para que quepan. Salida real de <code>g++ 11.4 -std=c++17</code> con libstdc++: once reasignaciones y 1023 elementos copiados para mil <code>push_back</code>. Con <code>reserve(1000)</code> el bloque se aparta una vez y ningún <code>push_back</code> reasigna. Otra implementación de la biblioteca estándar dará otra serie de números.</p>
+      </div>
+    </section>
+
+    <!-- ============ 18. CHECKLIST ============ -->
+    <section>
+      <span class="kicker">R18 · Antes de pasar a R19</span>
+      <h2>Verifica que ya puedes</h2>
+      <ul class="checklist" data-deck="v18">
+        <li>Construir un vector de varias formas y agregar o quitar elementos <span class="cl-ref">slide 4</span></li>
+        <li>Explicar la diferencia entre <code>size()</code> y <code>capacity()</code> <span class="cl-ref">slide 6</span></li>
+        <li>Describir qué ocurre en una reasignación y qué cuesta <span class="cl-ref">slide 7</span></li>
+        <li>Elegir entre <code>[]</code> y <code>at()</code> con un criterio <span class="cl-ref">slide 10</span></li>
+        <li>Recorrer con iteradores y reconocer cuándo se invalidan <span class="cl-ref">slide 14</span></li>
+      </ul>
+      <p class="muted">Si algo sigue sin marcarse, regresa a ese slide antes de continuar.</p>
+    </section>
+
+    <!-- ============ EL COMMIT DE ESTA SESIÓN ============ -->
+    <section>
+      <span class="kicker">R18 · Tu repositorio</span>
+      <h2>El commit de esta sesión</h2>
+      <pre><code class="language-bash" data-trim>
+cd repaso-cpp
+git add r18-vector/
+git commit -m "R18: medicion del crecimiento de capacity"
+git push
+      </code></pre>
+      <p class="muted">Un commit por sesión. Así, cuando algo deje de compilar, <code>git diff</code> te dice exactamente qué cambiaste desde la última vez que funcionaba.</p>
+    </section>
+
+
+    <!-- ============ 19. SIGUIENTE ============ -->
+    <section class="divider">
+      <h2>Siguiente:<br>R19 · Panorama de la STL</h2>
+      <p class="muted">Ya conoces el contenedor que usarás más. Ahora, los otros cuatro y cuándo convienen.</p>
+      <p><a href="../repaso/">← Volver al índice de la serie</a></p>
+    </section>
+
+    <!-- ============ 20. REFERENCIAS ============ -->
+    <section>
+      <span class="kicker">R18</span>
+      <h2>Referencias y material para profundizar</h2>
+      <div class="refs cols">
+        <div>
+          <h3>Referencias</h3>
+          <ul>
+            <li><span class="ref-type">Libro</span> Stroustrup, B. <em>A Tour of C++</em>, 3.ª ed., Addison-Wesley, 2022. Caps. 11 y 12.</li>
+            <li><span class="ref-type">Libro</span> Weiss, M. A. <em>Data Structures and Algorithm Analysis in C++</em>, 4.ª ed., Pearson, 2014. Cap. 3.</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Para profundizar</h3>
+          <ul>
+            <li><span class="ref-type">Web</span> <a href="https://en.cppreference.com/w/cpp/container/vector">cppreference — std::vector</a> <span class="ref-nota">— incluye la tabla de qué operación invalida qué.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://github.com/google/sanitizers/wiki/AddressSanitizer">AddressSanitizer</a> <span class="ref-nota">— la bandera que delata los accesos inválidos.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://quick-bench.com/">Quick Bench</a> <span class="ref-nota">— mide en el navegador el efecto de <code>reserve</code>.</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script src="../js/curso-slides.js"></script>
+<script>
+  Reveal.initialize({
+    width: 1280,
+    height: 720,
+    margin: 0.06,
+    hash: true,
+    progress: true,
+    slideNumber: 'c/t',
+    controls: true,
+    transition: 'slide',
+    transitionSpeed: 'fast',
+    plugins: [ RevealHighlight ]
+  }).then(() => {
+    CursoSlides.init({
+      capacidad: {
+        titulo: "Capacidad y costo amortizado",
+        def: "<code>capacity()</code> es el número de elementos que caben en el bloque reservado antes de que haga falta uno nuevo. Como el bloque se duplica en cada reasignación, el costo total de \\(n\\) inserciones al final es proporcional a \\(n\\): eso es lo que significa que <code>push_back</code> cueste \\(O(1)\\) amortizado."
+      },
+      iterador: {
+        titulo: "Iterador",
+        def: "Objeto que señala una posición dentro de un contenedor y ofrece <code>*</code> para leer el elemento y <code>++</code> para avanzar. Generaliza al puntero: los algoritmos de la STL trabajan con iteradores y por eso sirven para <code>vector</code>, <code>list</code>, <code>map</code> y el resto sin cambiar de código."
+      },
+      excepcion: {
+        titulo: "Excepción",
+        def: "Mecanismo para señalar un error interrumpiendo el flujo normal. <code>throw</code> lanza el objeto, <code>try</code> delimita la zona vigilada y <code>catch</code> recibe el error. Si nadie captura, el programa termina. <code>at()</code> lanza <code>std::out_of_range</code>, definida en <code>&lt;stdexcept&gt;</code>."
+      }
+    });
+  });
+</script>
+</body>
+</html>

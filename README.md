@@ -10,6 +10,8 @@ Cada deck es un `index.html` autocontenido hecho con [reveal.js](https://revealj
 
 ## Contenido publicado
 
+### Sesiones del curso
+
 | Ruta | Deck |
 |---|---|
 | `sesion-02/` | S2 — Recursión |
@@ -17,8 +19,23 @@ Cada deck es un `index.html` autocontenido hecho con [reveal.js](https://revealj
 | `sesion-04/` | S4 — Análisis de algoritmos recursivos |
 | `taller-01-two-pointers/` | T1 — Patrones de LeetCode: two pointers |
 
-El resto de las sesiones se publica conforme avanza el semestre. La serie de repaso
-de C++ y POO aparece como pendiente en el índice.
+El resto de las sesiones se publica conforme avanza el semestre.
+
+### Serie de repaso de C++ y POO
+
+Veintidós decks de auto-estudio previos al curso, más el diagnóstico que dice
+cuáles saltarse:
+
+| Ruta | Contenido |
+|---|---|
+| `repaso/` | Índice de la serie |
+| `repaso/plantilla/` | Archivos para arrancar el repositorio de ejercicios |
+| `repaso-diagnostico/` | Diagnóstico de 15 reactivos |
+| `repaso-v00/` … `repaso-v19/` | R0–R19 — C++, POO, plantillas y STL |
+| `repaso-g01/`, `repaso-g02/` | G1–G2 — git y GitHub |
+
+**Pendiente:** el índice de la serie y el cierre de R19 enlazan a `../sesion-01/`,
+que todavía no está publicada. Los dos enlaces dan 404 hasta que suba la sesión 1.
 
 ## Publicar un deck nuevo
 

@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Repaso G1 — Tu código deja de perderse</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+  <link rel="stylesheet" href="../css/theme-curso.css">
+</head>
+<body>
+<div class="reveal">
+  <div class="slides">
+
+    <!-- 1 ============ PORTADA ============ -->
+    <section class="cover">
+      <span class="kicker">Repaso de C++ y POO · Módulo 0 · Entorno</span>
+      <h1>Tu código deja de perderse</h1>
+      <div class="cover-meta">
+        G1 · Auto-estudio · 28 minutos<br>
+        Estructuras de Datos y Algoritmos
+      </div>
+    </section>
+
+    <!-- 2 ============ OBJETIVO ============ -->
+    <section>
+      <span class="kicker">G1 · Objetivo</span>
+      <h2>Al terminar esta sesión podrás…</h2>
+      <ul>
+        <li class="fragment">Explicar qué hace <code>git add</code> y qué hace <code>git commit</code>, y por qué son dos pasos.</li>
+        <li class="fragment">Crear un repositorio con un <code>.gitignore</code> que deje fuera objetos y binarios.</li>
+        <li class="fragment">Volver al último estado que compilaba con <code>git restore</code>.</li>
+        <li class="fragment">Publicar tu repositorio en GitHub y subir los commits de cada sesión.</li>
+      </ul>
+    </section>
+
+    <!-- 3 ============ EL PROBLEMA ============ -->
+    <section>
+      <span class="kicker">G1 · Punto de partida</span>
+      <h2>La carpeta que ya conoces</h2>
+      <pre><code class="language-plaintext" data-trim>
+$ ls
+arreglo.cpp        arreglo_bueno.cpp        arreglo_final.cpp
+arreglo2.cpp       arreglo_final_ESTE_SI.cpp
+      </code></pre>
+      <p class="fragment">Ninguno de esos nombres dice qué cambió respecto al anterior ni cuándo se cambió. Para saber cuál compila hay que compilarlos todos, y para saber qué le hiciste al que sí compilaba hay que leerlos línea por línea.</p>
+      <p class="fragment">Git guarda esa información por ti: qué archivos cambiaron, qué líneas, en qué momento y con qué descripción.</p>
+    </section>
+
+    <!-- 4 ============ LAS TRES ÁREAS ============ -->
+    <section>
+      <span class="kicker">G1 · Modelo mental</span>
+      <h2>Tres áreas, dos comandos</h2>
+      <svg viewBox="0 0 1150 300">
+        <g class="anim-step" data-step="1">
+          <rect class="svg-node" x="10" y="80" width="300" height="95" rx="10"/>
+          <text class="svg-label" x="160" y="118" text-anchor="middle">Directorio de trabajo</text>
+          <text class="svg-label" x="160" y="150" text-anchor="middle" style="font-size:20px;fill:#4b5260">tus archivos, como están hoy</text>
+        </g>
+        <g class="anim-step" data-step="2">
+          <text class="svg-label" x="367" y="105" text-anchor="middle" style="font-size:22px">git add</text>
+          <path class="svg-edge" d="M310 127 H 425"/>
+          <rect class="svg-node-hl" x="425" y="80" width="300" height="95" rx="10"/>
+          <text class="svg-label" x="575" y="118" text-anchor="middle">Staging</text>
+          <text class="svg-label" x="575" y="150" text-anchor="middle" style="font-size:20px;fill:#4b5260">lo que entrará al próximo commit</text>
+        </g>
+        <g class="anim-step" data-step="3">
+          <text class="svg-label" x="782" y="105" text-anchor="middle" style="font-size:22px">git commit</text>
+          <path class="svg-edge" d="M725 127 H 840"/>
+          <rect class="svg-node-hl" x="840" y="80" width="300" height="95" rx="10"/>
+          <text class="svg-label" x="990" y="118" text-anchor="middle">Repositorio</text>
+          <text class="svg-label" x="990" y="150" text-anchor="middle" style="font-size:20px;fill:#4b5260">la historia, dentro de .git/</text>
+        </g>
+        <g class="anim-step" data-step="4">
+          <path class="svg-edge" d="M575 175 V 255 H 160 V 175"/>
+          <text class="svg-label" x="368" y="245" text-anchor="middle" style="font-size:22px">git restore</text>
+        </g>
+      </svg>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <p class="fragment"><code>git add</code> copia el contenido actual del archivo al <span class="term" data-term="staging">staging</span>. <code>git commit</code> guarda lo que haya en el staging como un punto de la historia, un <span class="term" data-term="commit">commit</span>. La flecha de regreso es <code>git restore</code>, que copia el staging sobre el archivo del disco: el comando del slide 14.</p>
+    </section>
+
+    <!-- 5 ============ CONFIGURACIÓN ============ -->
+    <section>
+      <span class="kicker">G1 · Configuración</span>
+      <h2>Cuatro líneas, una sola vez por computadora</h2>
+      <pre><code class="language-bash" data-trim>
+git config --global user.name "Tu Nombre"
+git config --global user.email "a01234567@tec.mx"
+git config --global init.defaultBranch main
+git config --global core.editor "code --wait"
+      </code></pre>
+      <p class="fragment">Las cuatro quedan escritas en <code>~/.gitconfig</code> y aplican a todos tus repositorios. El nombre y el correo se graban dentro de cada commit.</p>
+      <div class="box-key">Sin <code>core.editor</code>, un <code>git commit</code> sin <code>-m</code> abre el editor que traiga el sistema: nano en Linux y WSL, vim en macOS. Si no reconoces la pantalla, el slide de trampas tiene la salida de emergencia de cada uno.</div>
+    </section>
+
+    <!-- 6 ============ GIT INIT ============ -->
+    <section>
+      <span class="kicker">G1 · Crear el repositorio</span>
+      <h2><code>git init</code> y el aviso de <code>master</code></h2>
+      <pre><code class="language-plaintext" data-trim>
+$ mkdir repaso-cpp &amp;&amp; cd repaso-cpp
+$ git init
+hint: Using 'master' as the name for the initial branch. [...]
+hint:
+hint: 	git config --global init.defaultBranch &lt;name&gt;
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. [...]
+hint: 	git branch -m &lt;name&gt;
+Initialized empty Git repository in /ruta/repaso-cpp/.git/
+      </code></pre>
+      <p class="fragment">Con <code>init.defaultBranch main</code> configurado, git imprime solo la última línea. Esa línea anuncia la carpeta oculta <code>.git/</code>, donde vive la historia.</p>
+    </section>
+
+    <!-- 7 ============ CHECKPOINT 1 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="b">
+        <p class="quiz-question">Ejecutas <code>git add main.cpp</code>, cierras la terminal y apagas la computadora. ¿Qué quedó registrado en la historia del repositorio?</p>
+        <button class="quiz-option" data-opt="a">El archivo, porque <code>git add</code> lo guardó en el repositorio</button>
+        <button class="quiz-option" data-opt="b">Nada: <code>git add</code> solo pasó el archivo al staging</button>
+        <button class="quiz-option" data-opt="c">El archivo, y además quedó una copia en GitHub</button>
+        <div class="quiz-explain"><strong>B.</strong> El staging es la lista de lo que entrará al próximo commit, y la historia solo cambia cuando corres <code>git commit</code>. A confunde el staging con el repositorio. C agrega un error más: nada sale de tu computadora sin <code>git push</code>, y en este punto ni siquiera existe un repositorio remoto.</div>
+      </div>
+    </section>
+
+    <!-- 8 ============ .GITIGNORE ============ -->
+    <section>
+      <span class="kicker">G1 · Qué no se versiona</span>
+      <h2>El <code>.gitignore</code> va en el primer commit</h2>
+      <pre data-title=".gitignore"><code class="language-plaintext" data-trim>
+# Binarios y objetos: se regeneran al compilar
+*.o
+*.out
+*.exe
+programa
+
+# Sistema operativo y editor
+.DS_Store
+.vscode/
+*.dSYM/
+      </code></pre>
+      <p class="fragment">En R0 viste que <code>main.o</code> y <code>programa</code> salen de <code>main.cpp</code> cada vez que compilas. Versionarlos agrega megabytes que cambian en cada compilación.</p>
+    </section>
+
+    <!-- 9 ============ GIT STATUS ============ -->
+    <section>
+      <span class="kicker">G1 · Qué ve git</span>
+      <h2><code>git status</code> antes del primer commit</h2>
+      <pre><code class="language-plaintext" data-trim>
+$ git status
+On branch main
+
+No commits yet
+
+Untracked files:
+  (use "git add &lt;file&gt;..." to include in what will be committed)
+	.gitignore
+	r00-compilacion/
+
+nothing added to commit but untracked files present [...]
+      </code></pre>
+      <p class="fragment">Untracked significa que git ve el archivo y todavía no lo sigue. Este comando dice en qué rama estás y qué cambió desde el último commit.</p>
+    </section>
+
+    <!-- 10 ============ ADD Y COMMIT ============ -->
+    <section>
+      <span class="kicker">G1 · Guardar</span>
+      <h2>Del disco al staging, del staging a la historia</h2>
+      <pre><code class="language-plaintext" data-trim>
+$ git add .
+$ git status --short
+A  .gitignore
+A  r00-compilacion/main.cpp
+
+$ git commit -m "R0: compilacion desde la terminal"
+[main (root-commit) 6050ad0] R0: compilacion desde la terminal
+ 2 files changed, 12 insertions(+)
+ create mode 100644 .gitignore
+ create mode 100644 r00-compilacion/main.cpp
+      </code></pre>
+      <p class="fragment">El binario <code>programa</code> está en la carpeta y no aparece en ninguna de las dos salidas: el <code>.gitignore</code> lo dejó fuera. <code>6050ad0</code> es el identificador del commit.</p>
+    </section>
+
+    <!-- 11 ============ LOG Y MENSAJES ============ -->
+    <section>
+      <span class="kicker">G1 · La historia</span>
+      <h2><code>git log --oneline</code> se lee como una lista</h2>
+      <pre><code class="language-plaintext" data-trim>
+$ git log --oneline
+650683f R11: ejercicio de la sesion
+ed4156c R10: ejercicio de la sesion
+cf91ed7 R9: ejercicio de la sesion
+203e666 R8: ejercicio de la sesion
+b5cee31 R7: ejercicio de la sesion
+6f3feea R6: ejercicio de la sesion
+      </code></pre>
+      <p class="muted">Cada línea es un commit: identificador y mensaje. Esta historia lleva seis sesiones guardadas.</p>
+      <div class="cols">
+        <div>
+          <p><strong>Sirven:</strong> qué se hizo, en una línea, sin punto final.</p>
+          <ul>
+            <li><code>R5: arreglo dinamico con destructor</code></li>
+            <li><code>R8: corrige el indice fuera de rango</code></li>
+          </ul>
+        </div>
+        <div>
+          <p><strong>No sirven:</strong> no dicen qué cambió.</p>
+          <ul>
+            <li><code>cambios</code></li>
+            <li><code>asdf</code></li>
+            <li><code>arreglé cosas</code></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 12 ============ CHECKPOINT 2 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="c">
+        <p class="quiz-question">Commiteaste el binario <code>programa</code> por error. Después agregas la línea <code>programa</code> a tu <code>.gitignore</code> y vuelves a commitear. ¿Qué pasa con el binario?</p>
+        <button class="quiz-option" data-opt="a">Se borra de tu carpeta, porque git ya no lo quiere</button>
+        <button class="quiz-option" data-opt="b">Desaparece del repositorio, incluida la historia anterior</button>
+        <button class="quiz-option" data-opt="c">Git lo sigue rastreando: <code>.gitignore</code> solo aplica a archivos sin seguimiento</button>
+        <div class="quiz-explain"><strong>C.</strong> Un archivo que ya entró a un commit queda bajo seguimiento y sus cambios aparecen en <code>git status</code> aunque su nombre esté en el <code>.gitignore</code>. Para sacarlo hay que ejecutar <code>git rm --cached programa</code> y commitear esa eliminación. A es falso: <code>.gitignore</code> nunca borra archivos del disco. B también: los commits viejos no cambian, el binario sigue en ellos.</div>
+      </div>
+    </section>
+
+    <!-- 13 ============ GIT DIFF ============ -->
+    <section>
+      <span class="kicker">G1 · Qué cambié</span>
+      <h2>Dejó de compilar y no sabes qué tocaste</h2>
+      <pre><code class="language-plaintext" data-trim>
+$ cd r00-compilacion
+$ g++ -std=c++17 main.cpp -o programa
+main.cpp: In function 'int main()':
+main.cpp:2:18: error: 'cot' is not a member of 'std'; [...]
+    2 | int main(){ std::cot &lt;&lt; "hola\n"; }
+      |                  ^~~
+      </code></pre>
+      <pre><code class="language-plaintext" data-trim>
+$ git diff
+diff --git a/r00-compilacion/main.cpp b/r00-compilacion/main.cpp
+index 2481a48..0e9df85 100644
+--- a/r00-compilacion/main.cpp
++++ b/r00-compilacion/main.cpp
+@@ -1,2 +1,2 @@
+ #include &lt;iostream&gt;
+-int main(){ std::cout &lt;&lt; "hola\n"; }
++int main(){ std::cot &lt;&lt; "hola\n"; }
+      </code></pre>
+      <p class="fragment">La línea con <code>-</code> es la del último commit y la del <code>+</code> es la que tienes ahora.</p>
+    </section>
+
+    <!-- 14 ============ GIT RESTORE ============ -->
+    <section>
+      <span class="kicker">G1 · Deshacer</span>
+      <h2>Volver al último estado que compilaba</h2>
+      <pre><code class="language-plaintext" data-trim>
+$ git status --short
+ M r00-compilacion/main.cpp
+
+$ git restore r00-compilacion/main.cpp
+
+$ git status --short
+      </code></pre>
+      <p><code>git restore</code> no imprime nada y <code>git status --short</code> queda vacío: el archivo volvió al contenido que tenía en el staging y el programa compila otra vez. Como no habías hecho <code>git add</code>, el staging todavía guardaba lo del último commit, así que el archivo quedó como en <span class="term" data-term="head">HEAD</span>.</p>
+      <div class="box-key">Los cambios que descarta <code>git restore</code> no estaban en ningún commit y no se recuperan. Commitear cuando algo funciona es lo que hace barata esta operación.</div>
+    </section>
+
+    <!-- 15 ============ RESTORE --STAGED ============ -->
+    <section>
+      <span class="kicker">G1 · Deshacer</span>
+      <h2>Las dos columnas de <code>git status --short</code></h2>
+      <pre><code class="language-plaintext" data-trim>
+# tras editar main.cpp otra vez
+$ git add r00-compilacion/main.cpp
+$ git status --short
+M  r00-compilacion/main.cpp     &lt;- primera columna: staging
+
+$ git restore --staged r00-compilacion/main.cpp
+$ git status --short
+ M r00-compilacion/main.cpp     &lt;- segunda columna: disco
+      </code></pre>
+      <p class="fragment">La primera columna describe el staging y la segunda el directorio de trabajo. <code>git restore --staged</code> saca el archivo del staging y deja el contenido del disco intacto; <code>git restore</code> sin bandera sobrescribe el archivo del disco con lo que haya en el staging.</p>
+      <p class="fragment muted">Si ya hiciste <code>git add</code> de una versión rota y quieres volver al último commit, hacen falta los dos: <code>git restore --staged archivo</code> y después <code>git restore archivo</code>. En un solo comando, <code>git restore --source=HEAD --staged --worktree archivo</code>.</p>
+    </section>
+
+    <!-- 16 ============ CHECKPOINT 3 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="b">
+        <p class="quiz-question">Modificaste <code>main.cpp</code>, no has hecho commit y ejecutas <code>git restore main.cpp</code>. ¿Qué le pasó a la historia del repositorio?</p>
+        <button class="quiz-option" data-opt="a">Se eliminó el último commit, que era el que tenía el archivo</button>
+        <button class="quiz-option" data-opt="b">No cambió: se perdieron los cambios del disco que no estaban commiteados</button>
+        <button class="quiz-option" data-opt="c">Se agregó un commit nuevo que deshace el cambio</button>
+        <div class="quiz-explain"><strong>B.</strong> <code>git restore</code> copia sobre el archivo lo que hay en el staging, que aquí coincide con el último commit, y no toca los commits. A describe un comando que borra historia, que no es este. C describe <code>git revert</code>, que sí crea un commit nuevo para deshacer uno anterior y se usa cuando el cambio ya estaba guardado.</div>
+      </div>
+    </section>
+
+    <!-- 17 ============ GITHUB ============ -->
+    <section>
+      <span class="kicker">G1 · Publicar</span>
+      <h2>Una copia fuera de tu computadora</h2>
+      <ul>
+        <li class="fragment">Crea tu cuenta en <code>github.com</code> con un correo al que tengas acceso permanente.</li>
+        <li class="fragment">Instala GitHub CLI: <code>brew install gh</code> en macOS, <code>sudo apt install gh</code> en Linux o WSL.</li>
+      </ul>
+      <pre><code class="language-bash" data-trim>
+gh auth login    # GitHub.com, HTTPS, "Login with a web browser"
+gh repo create repaso-cpp --public --source . --push
+      </code></pre>
+      <p class="fragment"><code>gh auth login</code> imprime un código corto y te pide pegarlo en el navegador. <code>--source .</code> publica el repositorio local que ya está en esa carpeta, <code>--push</code> sube los commits y <code>gh</code> imprime la dirección del <span class="term" data-term="remoto">repositorio remoto</span>.</p>
+    </section>
+
+    <!-- 18 ============ GIT PUSH ============ -->
+    <section>
+      <span class="kicker">G1 · Publicar</span>
+      <h2>Los días siguientes: <code>git push</code></h2>
+      <pre><code class="language-plaintext" data-trim>
+$ git push
+To https://github.com/USUARIO/repaso-cpp.git
+   4f155c6..34197bb  main -&gt; main
+
+$ git status
+On branch main
+Your branch is up to date with 'origin/main'.
+
+nothing to commit, working tree clean
+      </code></pre>
+      <p class="fragment">Los dos identificadores son el último commit que tenía GitHub y el que tiene ahora. Si creas el repositorio desde la página en vez de con <code>gh</code>, la primera vez se usa <code>git push -u origin main</code> y git responde <code>* [new branch]      main -&gt; main</code>.</p>
+    </section>
+
+    <!-- 19 ============ CHECKPOINT 4 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="a">
+        <p class="quiz-question">Trabajaste toda la tarde, hiciste <code>git add</code> y <code>git commit</code> tres veces, no ejecutaste <code>git push</code> y tu disco duro deja de funcionar. ¿Qué hay en GitHub?</p>
+        <button class="quiz-option" data-opt="a">Lo que subiste en el último <code>push</code>; los tres commits nuevos solo existían en tu disco</button>
+        <button class="quiz-option" data-opt="b">Todo, porque cada <code>git commit</code> envía el cambio al servidor</button>
+        <button class="quiz-option" data-opt="c">Nada, porque el repositorio remoto se arma en el momento del <code>push</code></button>
+        <div class="quiz-explain"><strong>A.</strong> <code>git commit</code> escribe en la carpeta <code>.git/</code> de tu máquina y no usa la red. B supone que commit y push son lo mismo. C ignora que el remoto ya existía con los commits del último push; esos no se pierden.</div>
+      </div>
+    </section>
+
+    <!-- 20 ============ TRAMPAS ============ -->
+    <section>
+      <span class="kicker">G1 · Trampas comunes</span>
+      <h2>Cuatro maneras de complicarte</h2>
+      <ul>
+        <li class="fragment">Commitear binarios: quitarlos después exige <code>git rm --cached</code> y siguen pesando en los commits viejos. Por eso el <code>.gitignore</code> va en el primero.</li>
+        <li class="fragment">Escribir <code>git add .</code> sin leer antes <code>git status</code>.</li>
+        <li class="fragment">Ejecutar <code>git commit</code> sin <code>-m</code> y caer en un editor desconocido.</li>
+        <li class="fragment">Creer que <code>git push</code> respalda el trabajo del día. Envía commits; lo que no commiteaste se queda en tu máquina.</li>
+      </ul>
+      <pre><code class="language-plaintext" data-trim>
+$ git commit
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+
+   nano (Linux, WSL):  Ctrl+X
+   vim  (macOS):       Esc  luego  :q!  y Enter
+
+Aborting commit due to empty commit message.
+      </code></pre>
+      <p class="muted">Para saber cuál te va a abrir: <code>git var GIT_EDITOR</code>.</p>
+    </section>
+
+    <!-- 21 ============ EJERCICIO ============ -->
+    <section>
+      <span class="kicker">G1 · Ejercicio</span>
+      <h2>Arma el repositorio de la serie</h2>
+      <pre><code class="language-plaintext" data-trim>
+repaso-cpp/
+├── .gitignore
+├── README.md
+├── r00-compilacion/
+├── r01-vscode/
+└── …   una carpeta por sesión, hasta r19-stl/
+      </code></pre>
+      <ol>
+        <li>Crea el repositorio y mueve ahí lo que escribiste en R0 y en R1.</li>
+        <li>Haz dos commits separados, uno por sesión, con el <code>.gitignore</code> en el primero.</li>
+        <li>Publícalo en GitHub con <code>gh</code> y revísalo en el navegador.</li>
+      </ol>
+      <div class="solucion">
+        <pre><code class="language-bash" data-trim>
+mkdir repaso-cpp &amp;&amp; cd repaso-cpp
+git init
+# crea .gitignore, README.md, r00-compilacion/ y r01-vscode/
+git add .gitignore README.md r00-compilacion
+git commit -m "R0: compilacion desde la terminal"
+git add r01-vscode
+git commit -m "R1: tareas de compilacion en VS Code"
+git log --oneline
+gh repo create repaso-cpp --public --source . --push
+        </code></pre>
+        <p class="muted">El <code>.gitignore</code>, el <code>README.md</code> y un script que crea las veinte carpetas están en <a href="../repaso/plantilla/">la plantilla del repositorio</a>. Nombrar los archivos en <code>git add</code> en vez de usar <code>.</code> es lo que permite separar los dos commits.</p>
+      </div>
+    </section>
+
+    <!-- 22 ============ CHECKLIST ============ -->
+    <section>
+      <span class="kicker">G1 · Antes de pasar a R2</span>
+      <h2>Verifica que ya puedes</h2>
+      <ul class="checklist" data-deck="g01">
+        <li>Explicar la diferencia entre <code>git add</code> y <code>git commit</code> <span class="cl-ref">slide 4</span></li>
+        <li>Crear un repositorio con <code>.gitignore</code> desde el primer commit <span class="cl-ref">slide 8</span></li>
+        <li>Escribir un mensaje de commit que se entienda seis semanas después <span class="cl-ref">slide 11</span></li>
+        <li>Volver al último commit que compilaba con <code>git restore</code> <span class="cl-ref">slide 14</span></li>
+        <li>Publicar el repositorio en GitHub y subir los commits nuevos <span class="cl-ref">slide 17</span></li>
+      </ul>
+      <p class="muted">Si algo sigue sin marcarse, regresa a ese slide antes de continuar.</p>
+    </section>
+
+    <!-- 23 ============ SIGUIENTE ============ -->
+    <section class="divider">
+      <h2>Siguiente:<br>R2 · Anatomía de un programa y tipos básicos</h2>
+      <p class="muted">A partir de R2, cada sesión termina con su commit en la carpeta que le corresponde.</p>
+      <p><a href="../repaso/">← Volver al índice de la serie</a></p>
+    </section>
+
+    <!-- 24 ============ REFERENCIAS ============ -->
+    <section>
+      <span class="kicker">G1</span>
+      <h2>Referencias y material para profundizar</h2>
+      <div class="refs cols">
+        <div>
+          <h3>Referencias</h3>
+          <ul>
+            <li><span class="ref-type">Libro</span> Chacon, S. y Straub, B. <em>Pro Git</em>, 2.ª ed., Apress, 2014. Caps. 1 y 2.</li>
+            <li><span class="ref-type">Web</span> <a href="https://git-scm.com/docs">Git — Reference</a> <span class="ref-nota">— la documentación de cada comando, con sus banderas.</span></li>
+          </ul>
+        </div>
+        <div>
+          <h3>Para profundizar</h3>
+          <ul>
+            <li><span class="ref-type">Web</span> <a href="https://cli.github.com/manual/">GitHub CLI — Manual</a> <span class="ref-nota">— todas las opciones de <code>gh repo create</code>.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://github.com/github/gitignore">github/gitignore</a> <span class="ref-nota">— plantillas de <code>.gitignore</code> por lenguaje, incluida la de C++.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://docs.github.com/get-started">GitHub Docs — Get started</a> <span class="ref-nota">— cuenta, llaves y publicación paso a paso.</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script src="../js/curso-slides.js"></script>
+<script>
+  Reveal.initialize({
+    width: 1280,
+    height: 720,
+    margin: 0.06,
+    hash: true,
+    progress: true,
+    slideNumber: 'c/t',
+    controls: true,
+    transition: 'slide',
+    transitionSpeed: 'fast',
+    plugins: [ RevealHighlight ]
+  }).then(() => {
+    CursoSlides.init({
+      staging: {
+        titulo: "Staging (índice)",
+        def: "Área intermedia donde git guarda la versión de los archivos que entrará en el próximo commit. <code>git add</code> copia ahí el contenido actual del archivo; si lo editas después, el staging conserva la versión que copiaste."
+      },
+      commit: {
+        titulo: "Commit",
+        def: "Punto guardado de la historia: el contenido completo del proyecto en ese momento, más autor, fecha, mensaje y el commit anterior. Se identifica con un hash abreviado como <code>6050ad0</code>."
+      },
+      head: {
+        titulo: "HEAD",
+        def: "Referencia al commit en el que estás parado, normalmente la punta de la rama actual. <code>git commit</code> crea un commit nuevo y mueve HEAD hasta él. Justo después de un commit, HEAD, el staging y tus archivos del disco tienen el mismo contenido."
+      },
+      remoto: {
+        titulo: "Repositorio remoto",
+        def: "Copia del repositorio alojada en otra máquina, casi siempre GitHub. Por omisión se llama <code>origin</code>. <code>git push</code> envía tus commits al remoto y <code>git pull</code> trae los que no tengas."
+      }
+    });
+  });
+</script>
+</body>
+</html>

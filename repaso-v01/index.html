@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Repaso R1 — VS Code: compilar sin salir del editor</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+  <link rel="stylesheet" href="../css/theme-curso.css">
+</head>
+<body>
+<div class="reveal">
+  <div class="slides">
+
+    <!-- 1 ============ PORTADA ============ -->
+    <section class="cover">
+      <span class="kicker">Repaso de C++ y POO · Módulo 0 · Entorno</span>
+      <h1>VS Code: compilar sin salir&nbsp;del&nbsp;editor</h1>
+      <div class="cover-meta">
+        R1 · Auto-estudio · 20 minutos<br>
+        Estructuras de Datos y Algoritmos
+      </div>
+    </section>
+
+    <!-- 2 ============ OBJETIVO ============ -->
+    <section>
+      <span class="kicker">R1 · Objetivo</span>
+      <h2>Al terminar esta sesión podrás…</h2>
+      <ul>
+        <li class="fragment">Instalar la extensión de C/C++ y explicar qué hace y qué no hace.</li>
+        <li class="fragment">Escribir un <code>tasks.json</code> que compile con las banderas del curso.</li>
+        <li class="fragment">Compilar con <code>Ctrl+Shift+B</code> y saltar al error desde el panel de problemas.</li>
+        <li class="fragment">Colocar un punto de interrupción, ejecutar y ver el programa detenerse ahí.</li>
+      </ul>
+    </section>
+
+    <!-- 3 ============ ARRANQUE ============ -->
+    <section>
+      <span class="kicker">R1 · Punto de partida</span>
+      <h2>El editor lo marca en rojo y la terminal lo compila</h2>
+      <pre data-title="main.cpp"><code class="language-cpp" data-trim>
+#include &lt;iostream&gt;   // subrayado en rojo dentro del editor
+
+int main() {
+    std::cout &lt;&lt; "hola\n";
+}
+      </code></pre>
+      <pre><code class="language-plaintext" data-trim>
+VS Code:  cannot open source file "iostream"
+Terminal: $ g++ -std=c++17 main.cpp -o hola   # sin una sola queja
+      </code></pre>
+      <p class="fragment">Dos programas distintos están mirando el mismo archivo. Uno de ellos ni siquiera compila.</p>
+    </section>
+
+    <!-- 4 ============ LA EXTENSIÓN ============ -->
+    <section>
+      <span class="kicker">R1 · La extensión de C/C++</span>
+      <h2>Qué instala y qué no instala</h2>
+      <p>En el panel de extensiones busca <code>C/C++</code> de Microsoft (identificador <code>ms-vscode.cpptools</code>) e instálala.</p>
+      <table>
+        <tr><th>Sí hace</th><th>No hace</th></tr>
+        <tr><td>Autocompletado y <span class="term" data-term="intellisense">IntelliSense</span></td><td>No trae compilador</td></tr>
+        <tr><td>Ir a definición, renombrar</td><td>No compila tu código</td></tr>
+        <tr><td>Conectar VS Code con <code>gdb</code> o <code>lldb</code></td><td>No trae depurador</td></tr>
+      </table>
+      <p class="fragment">El subrayado rojo del arranque viene de IntelliSense, que analiza el texto por su cuenta y no encontró la ruta de las cabeceras del sistema. El compilador sí la encontró.</p>
+    </section>
+
+    <!-- 5 ============ CHECKPOINT 1 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="c">
+        <p class="quiz-question">Instalas la extensión de C/C++ en una máquina recién formateada y presionas el botón de compilar. VS Code responde que no encuentra <code>g++</code>. ¿Qué falta?</p>
+        <button class="quiz-option" data-opt="a">Reinstalar la extensión, porque quedó incompleta</button>
+        <button class="quiz-option" data-opt="b">Nada: hay que esperar a que IntelliSense termine de indexar</button>
+        <button class="quiz-option" data-opt="c">Instalar el compilador aparte, con las herramientas del sistema</button>
+        <div class="quiz-explain"><strong>C.</strong> La extensión es un cliente: habla con un compilador y con un depurador que ya deben existir en la máquina. Reinstalarla no agrega binarios (A) y el indexado de IntelliSense es independiente de la compilación (B). En Linux o WSL se resuelve con <code>sudo apt install build-essential gdb</code>, en macOS con <code>xcode-select --install</code>.</div>
+      </div>
+    </section>
+
+    <!-- 6 ============ ABRE LA CARPETA ============ -->
+    <section>
+      <span class="kicker">R1 · El espacio de trabajo</span>
+      <h2>Abre la carpeta, no el archivo</h2>
+      <ul>
+        <li class="fragment">Con <em>Archivo → Abrir carpeta</em> VS Code adopta ese directorio como raíz del proyecto.</li>
+        <li class="fragment">Toda la configuración vive en una subcarpeta <code>.vscode/</code> dentro de esa raíz.</li>
+        <li class="fragment">Si abres solo el <code>.cpp</code> con doble clic, no hay raíz y no hay dónde guardar <code>tasks.json</code>.</li>
+      </ul>
+      <pre><code class="language-plaintext" data-trim>
+proyecto/
+├── .vscode/
+│   └── tasks.json      &lt;- cómo compilar
+└── main.cpp
+      </code></pre>
+    </section>
+
+    <!-- 7 ============ TASKS.JSON ============ -->
+    <section>
+      <span class="kicker">R1 · tasks.json</span>
+      <h2>Un tasks.json completo</h2>
+      <pre data-title=".vscode/tasks.json"><code class="language-json" data-trim>
+{
+  "version": "2.0.0",
+  "tasks": [{
+    "label": "compilar archivo activo",
+    "type": "cppbuild",
+    "command": "/usr/bin/g++",
+    "args": ["-std=c++17", "-Wall", "-Wextra", "-g", "${file}",
+             "-o", "${fileDirname}/${fileBasenameNoExtension}"],
+    "options": { "cwd": "${fileDirname}" },
+    "problemMatcher": ["$gcc"],
+    "group": { "kind": "build", "isDefault": true }
+  }]
+}
+      </code></pre>
+      <p class="muted">En macOS, <code>"command": "/usr/bin/clang++"</code>. En Windows con MinGW, la ruta del <code>g++.exe</code> instalado.</p>
+    </section>
+
+    <!-- 8 ============ TASKS.JSON EXPLICADO ============ -->
+    <section>
+      <span class="kicker">R1 · tasks.json</span>
+      <h2>Qué dice cada campo</h2>
+      <table>
+        <tr><th>Campo</th><th>Qué significa</th></tr>
+        <tr><td><code>label</code></td><td>El nombre que verás en la lista de tareas</td></tr>
+        <tr><td><code>command</code> + <code>args</code></td><td>El comando exacto que se ejecuta, palabra por palabra</td></tr>
+        <tr><td><code>${file}</code></td><td>Ruta del archivo abierto en ese momento</td></tr>
+        <tr><td><code>${fileBasenameNoExtension}</code></td><td><code>main.cpp</code> produce el ejecutable <code>main</code></td></tr>
+        <tr><td><code>problemMatcher</code></td><td>Enseña a VS Code a leer los errores de gcc</td></tr>
+        <tr><td><code>group</code></td><td>La marca como tarea de compilación por omisión</td></tr>
+      </table>
+      <p class="fragment">Las <span class="term" data-term="tarea">tareas</span> son la forma de VS Code de guardar comandos de terminal. Ese archivo es el mismo <code>g++ -std=c++17 -Wall -Wextra -g …</code> de R0, escrito en JSON.</p>
+    </section>
+
+    <!-- 9 ============ EL ATAJO ============ -->
+    <section>
+      <span class="kicker">R1 · Compilar con un atajo</span>
+      <h2>Ctrl+Shift+B compila el archivo abierto</h2>
+      <ul>
+        <li class="fragment"><code>Ctrl+Shift+B</code> en Windows y Linux, <code>Cmd+Shift+B</code> en macOS.</li>
+        <li class="fragment">Ejecuta la tarea marcada con <code>"isDefault": true</code>, sin preguntar cuál.</li>
+        <li class="fragment">Sin esa marca, el atajo abre una lista y hay que elegir la tarea cada vez.</li>
+        <li class="fragment">La salida aparece en la pestaña <em>Terminal</em>, con el comando completo en la primera línea. Léelo: es exactamente lo que se ejecutó.</li>
+      </ul>
+      <div class="box-key">El atajo no es magia del editor. Escribe el comando de R0 en una terminal y presiona Enter por ti.</div>
+    </section>
+
+    <!-- 10 ============ CHECKPOINT 2 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="b">
+        <p class="quiz-question">Tienes <code>main.cpp</code> y <code>suma.cpp</code>. Con el <code>tasks.json</code> del slide 7 abres <code>main.cpp</code> y presionas <code>Ctrl+Shift+B</code>. ¿Qué pasa?</p>
+        <button class="quiz-option" data-opt="a">Compila los dos archivos, porque están en la misma carpeta</button>
+        <button class="quiz-option" data-opt="b">Falla al enlazar, porque <code>${file}</code> pasa solamente <code>main.cpp</code></button>
+        <button class="quiz-option" data-opt="c">Compila solo <code>main.cpp</code> y genera el ejecutable sin errores</button>
+        <div class="quiz-explain"><strong>B.</strong> <code>${file}</code> se sustituye por la ruta del archivo activo y nada más; el comando resultante ignora <code>suma.cpp</code>. Se obtiene el <code>undefined reference</code> de R0. Para proyectos de varios archivos se cambia <code>${file}</code> por <code>"${fileDirname}/*.cpp"</code> o se usa un Makefile (R11).</div>
+      </div>
+    </section>
+
+    <!-- 11 ============ PANEL DE PROBLEMAS ============ -->
+    <section>
+      <span class="kicker">R1 · Leer los errores</span>
+      <h2>Del mensaje a la línea con un clic</h2>
+      <pre><code class="language-plaintext" data-trim>
+main.cpp:5:22: error: expected ';' before '}' token
+    5 |     std::cout &lt;&lt; "hola\n"
+      |                          ^
+      </code></pre>
+      <ul>
+        <li class="fragment">Con <code>"problemMatcher": ["$gcc"]</code>, VS Code interpreta <code>archivo:línea:columna</code> y llena el panel <em>Problemas</em>.</li>
+        <li class="fragment">Un clic en la entrada abre el archivo en esa línea exacta.</li>
+        <li class="fragment"><code>F8</code> salta al siguiente problema sin usar el ratón.</li>
+      </ul>
+      <p class="fragment">Sin <code>problemMatcher</code> el error sigue apareciendo en la terminal, pero como texto suelto que hay que localizar a mano.</p>
+    </section>
+
+    <!-- 12 ============ ANZUELO: BREAKPOINT ============ -->
+    <section>
+      <span class="kicker">R1 · Tres minutos de depurador</span>
+      <h2>El programa se detiene donde tú decidas</h2>
+      <pre data-title="suma.cpp"><code class="language-cpp" data-trim data-line-numbers="|5">
+#include &lt;iostream&gt;
+
+int main() {
+    int total = 0;
+    for (int i = 1; i &lt;= 5; i++) total += i;   // punto rojo aquí
+    std::cout &lt;&lt; total &lt;&lt; '\n';
+}
+      </code></pre>
+      <ol>
+        <li class="fragment">Clic en el margen izquierdo de la línea 5: aparece un punto rojo.</li>
+        <li class="fragment"><code>F5</code> y elige <em>C++ (GDB/LLDB)</em>. VS Code genera un <code>launch.json</code>.</li>
+        <li class="fragment">El programa se detiene en la línea 5 y el panel de variables muestra <code>total</code> e <code>i</code>. <code>F5</code> otra vez avanza a la siguiente vuelta.</li>
+      </ol>
+      <p class="muted">Hasta aquí llega R1. Los cuatro movimientos, la pila de llamadas y los <span class="term" data-term="breakpoint">puntos de interrupción</span> condicionales son el contenido de R6.</p>
+    </section>
+
+    <!-- 13 ============ CHECKPOINT 3 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="a">
+        <p class="quiz-question">Colocas un punto de interrupción, presionas <code>F5</code> y el punto rojo se vuelve un círculo gris y hueco. El programa corre de principio a fin sin detenerse. ¿Cuál es la causa más probable?</p>
+        <button class="quiz-option" data-opt="a">El ejecutable se compiló sin <code>-g</code>, así que no tiene símbolos de depuración</button>
+        <button class="quiz-option" data-opt="b">El punto de interrupción está en una línea de código muerto</button>
+        <button class="quiz-option" data-opt="c">Falta reinstalar la extensión de C/C++</button>
+        <div class="quiz-explain"><strong>A.</strong> Sin <code>-g</code> el binario no guarda la correspondencia entre líneas del <code>.cpp</code> y direcciones de máquina, y el depurador no puede colocar la trampa. El círculo gris es el síntoma exacto. Una línea muerta (B) daría un punto rojo que nunca se alcanza, no uno gris, y la extensión (C) no interviene en eso.</div>
+      </div>
+    </section>
+
+    <!-- 14 ============ TRAMPAS COMUNES ============ -->
+    <section>
+      <span class="kicker">R1 · Trampas comunes</span>
+      <h2>Cuatro formas de que la tarea falle sin razón aparente</h2>
+      <ul>
+        <li class="fragment"><strong>Rutas con espacios o acentos.</strong> <code>C:\Users\José\Mi Programación\</code> rompe la tarea: el comando se parte donde hay un espacio y las letras acentuadas confunden a varias herramientas. Usa <code>C:\dev\eda\</code> o <code>~/eda/</code>.</li>
+        <li class="fragment"><strong>Carpetas sincronizadas.</strong> OneDrive, iCloud y Dropbox bloquean archivos mientras suben y el enlazador falla al escribir el ejecutable.</li>
+        <li class="fragment"><strong>Abrir el archivo en vez de la carpeta.</strong> Sin raíz de proyecto, VS Code no encuentra <code>.vscode/tasks.json</code>.</li>
+        <li class="fragment"><strong>Ejecutar sin recompilar.</strong> Editas, corres el binario anterior y concluyes que el cambio no sirvió.</li>
+      </ul>
+    </section>
+
+    <!-- 15 ============ EJERCICIO ============ -->
+    <section>
+      <span class="kicker">R1 · Ejercicio</span>
+      <h2>Provoca un error y salta a él con un clic</h2>
+      <ol>
+        <li>Crea <code>~/eda/v1/</code> y ábrela con <em>Abrir carpeta</em>. Copia el <code>tasks.json</code> del slide 7 en <code>.vscode/</code>.</li>
+        <li>Escribe un <code>main.cpp</code> que compile, borra un punto y coma y presiona <code>Ctrl+Shift+B</code>.</li>
+        <li>Desde el panel <em>Problemas</em>, salta a la línea, corrige y vuelve a compilar.</li>
+      </ol>
+      <div class="solucion">
+        <pre><code class="language-plaintext" data-trim>
+&gt; Ejecutando tarea: /usr/bin/g++ -std=c++17 -Wall -Wextra -g
+  /home/ana/eda/v1/main.cpp -o /home/ana/eda/v1/main
+
+main.cpp:4:26: error: expected ';' before '}' token
+La tarea terminó con el código de salida 1.
+        </code></pre>
+        <p class="muted">La primera línea de la terminal repite el comando completo. Si algo sale raro, cópiala y pégala en una terminal: verás el mismo error sin el editor de por medio.</p>
+      </div>
+    </section>
+
+    <!-- 16 ============ CHECKLIST ============ -->
+    <section>
+      <span class="kicker">R1 · Antes de pasar a R2</span>
+      <h2>Verifica que ya puedes</h2>
+      <ul class="checklist" data-deck="v01">
+        <li>Explicar qué instala la extensión de C/C++ y qué no <span class="cl-ref">slide 4</span></li>
+        <li>Escribir un <code>tasks.json</code> con las cuatro banderas del curso <span class="cl-ref">slide 7</span></li>
+        <li>Compilar con <code>Ctrl+Shift+B</code> y saltar al error desde el panel <span class="cl-ref">slide 11</span></li>
+        <li>Detener el programa en un punto de interrupción <span class="cl-ref">slide 12</span></li>
+        <li>Elegir una ruta de proyecto sin espacios ni acentos <span class="cl-ref">slide 14</span></li>
+      </ul>
+      <p class="muted">Si algo sigue sin marcarse, regresa a ese slide antes de continuar.</p>
+    </section>
+
+    <!-- ============ EL COMMIT DE ESTA SESIÓN ============ -->
+    <section>
+      <span class="kicker">R1 · Tu repositorio</span>
+      <h2>Guarda este ejercicio: lo vas a commitear</h2>
+      <ul>
+        <li class="fragment">Deja el ejercicio en una carpeta llamada <code>r01-vscode/</code>, dentro de una carpeta <code>repaso-cpp/</code>.</li>
+        <li class="fragment">Todavía no tienes repositorio. En <a href="../repaso-g01/">G1 · Tu código deja de perderse</a> lo creas, y este ejercicio será uno de tus primeros commits.</li>
+        <li class="fragment">A partir de R2, cada sesión termina con su propio commit.</li>
+      </ul>
+      <div class="box-key">Mensaje que le pondrás: <code>R1: breakpoint y tasks.json</code></div>
+    </section>
+
+
+    <!-- 17 ============ SIGUIENTE ============ -->
+    <section class="divider">
+      <h2>Siguiente:<br>G1 · Tu código deja de perderse</h2>
+      <p class="muted">Ya tienes el entorno. Antes de empezar a acumular ejercicios, el lugar donde van a vivir: un repositorio con git.</p>
+      <p><a href="../repaso/">← Volver al índice de la serie</a></p>
+    </section>
+
+    <!-- 18 ============ REFERENCIAS ============ -->
+    <section>
+      <span class="kicker">R1</span>
+      <h2>Referencias y material para profundizar</h2>
+      <div class="refs cols">
+        <div>
+          <h3>Referencias</h3>
+          <ul>
+            <li><span class="ref-type">Libro</span> Gregoire, M. <em>Professional C++</em>, 5.ª ed., Wiley, 2021. Cap. 1.</li>
+            <li><span class="ref-type">Libro</span> Stroustrup, B. <em>Programming: Principles and Practice Using C++</em>, 2.ª ed., Addison-Wesley, 2014. Cap. 0.</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Para profundizar</h3>
+          <ul>
+            <li><span class="ref-type">Web</span> <a href="https://code.visualstudio.com/docs/cpp/config-linux">VS Code — Configure C++ (Linux)</a> <span class="ref-nota">— la misma guía existe para macOS, MinGW y WSL.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://code.visualstudio.com/docs/editor/tasks">VS Code — Tasks</a> <span class="ref-nota">— la lista completa de variables como <code>${file}</code>.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://code.visualstudio.com/docs/cpp/cpp-debug">VS Code — Debug C++</a> <span class="ref-nota">— antesala de R6.</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script src="../js/curso-slides.js"></script>
+<script>
+  Reveal.initialize({
+    width: 1280,
+    height: 720,
+    margin: 0.06,
+    hash: true,
+    progress: true,
+    slideNumber: 'c/t',
+    controls: true,
+    transition: 'slide',
+    transitionSpeed: 'fast',
+    plugins: [ RevealHighlight ]
+  }).then(() => {
+    CursoSlides.init({
+      intellisense: {
+        titulo: "IntelliSense",
+        def: "Motor de análisis de código del editor. Ofrece autocompletado, navegación y subrayado de errores leyendo el texto por su cuenta, sin invocar al compilador. Sus avisos y los del compilador pueden no coincidir."
+      },
+      tarea: {
+        titulo: "Tarea (task)",
+        def: "Comando de terminal guardado en <code>.vscode/tasks.json</code> y ejecutable desde el editor. La marcada con <code>\"isDefault\": true</code> dentro del grupo <code>build</code> es la que dispara <code>Ctrl+Shift+B</code>."
+      },
+      breakpoint: {
+        titulo: "Punto de interrupción (breakpoint)",
+        def: "Marca en una línea del código fuente que pausa la ejecución justo antes de ejecutarla, para inspeccionar el estado del programa. Requiere compilar con <code>-g</code>. Se trata a fondo en R6."
+      }
+    });
+  });
+</script>
+</body>
+</html>

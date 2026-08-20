@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Repaso de C++ y POO — Serie de auto-estudio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap">
+  <style>
+    :root { --ink:#16181d; --ink-soft:#4b5260; --accent:#0b57d0; --line:#d7dbe2; --ok:#146c2e; --ok-bg:#e6f4ea; }
+    * { box-sizing:border-box; }
+    body { font-family:Inter,sans-serif; color:var(--ink); background:#fff; margin:0; padding:48px 24px; }
+    main { max-width:820px; margin:0 auto; }
+    h1 { font-size:1.9rem; margin:0 0 4px; }
+    .sub { color:var(--ink-soft); margin:0 0 28px; }
+    h2 { font-size:1.05rem; color:var(--accent); text-transform:uppercase; letter-spacing:.06em; margin:36px 0 8px; }
+    p { line-height:1.55; }
+    ol { list-style:none; margin:0; padding:0; }
+    li { border-bottom:1px solid var(--line); }
+    a.row { display:flex; gap:16px; align-items:baseline; padding:12px 8px; text-decoration:none; color:var(--ink); }
+    a.row:hover { background:#f2f6fd; }
+    .num { font-weight:700; color:var(--accent); min-width:3.2em; }
+    .lab { font-size:.85em; color:var(--ink-soft); margin-left:auto; white-space:nowrap; }
+    .done .num::after { content:" ✓"; color:var(--ok); }
+    .done { background:var(--ok-bg); }
+    .callout { border-left:8px solid var(--accent); background:#f2f6fd; padding:14px 18px; border-radius:0 10px 10px 0; margin:0 0 28px; }
+    .callout p { margin:0 0 8px; }
+    .callout p:last-child { margin:0; }
+    .start { display:inline-block; margin-top:6px; background:var(--accent); color:#fff; text-decoration:none;
+             font-weight:600; padding:10px 20px; border-radius:10px; }
+    .start:hover { background:#0842a0; }
+    .how { border:1px solid var(--line); border-radius:10px; padding:16px 20px; margin:28px 0 0; font-size:.92rem; }
+    .how h3 { margin:0 0 8px; font-size:1rem; }
+    .how ul { margin:0; padding-left:1.1em; color:var(--ink-soft); line-height:1.6; }
+    footer { margin-top:40px; padding-top:16px; border-top:1px solid var(--line); font-size:.85rem; color:var(--ink-soft); }
+    footer a { color:var(--accent); }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Repaso de C++ y POO</h1>
+  <p class="sub">Serie de auto-estudio · 22 sesiones · ~9.5 horas en total · Salvador Hinojosa</p>
+
+  <div class="callout">
+    <p><strong>Para qué es esta serie.</strong> Al llegar a la primera sesión de Estructuras de Datos necesitas poder compilar y depurar un proyecto de varios archivos, escribir una clase que administre memoria dinámica sin fugas, y leer código con herencia, polimorfismo y plantillas. Esta serie te lleva de cero a ese punto.</p>
+    <p><strong>Empieza por el diagnóstico.</strong> Quince preguntas te dicen qué sesiones puedes saltarte. El diagnóstico cubre C++ y POO; las dos sesiones de git (G1 y G2) conviene hacerlas en cualquier caso.</p>
+    <a class="start" href="../repaso-diagnostico/">Hacer el diagnóstico · 20 min</a>
+  </div>
+
+  <h2>Módulo 0 · Entorno y compilación</h2>
+  <ol>
+    <li data-deck="v00"><a class="row" href="../repaso-v00/"><span class="num">R0</span> ¿Qué pasa realmente cuando compilo? <span class="lab">25 min</span></a></li>
+    <li data-deck="v01"><a class="row" href="../repaso-v01/"><span class="num">R1</span> VS Code: compilar sin salir del editor <span class="lab">20 min</span></a></li>
+    <li data-deck="g01"><a class="row" href="../repaso-g01/"><span class="num">G1</span> Tu código deja de perderse: git y GitHub <span class="lab">28 min · repositorio</span></a></li>
+  </ol>
+
+  <h2>Módulo 1 · Recapitulación de C++</h2>
+  <ol>
+    <li data-deck="v02"><a class="row" href="../repaso-v02/"><span class="num">R2</span> Anatomía de un programa y tipos básicos <span class="lab">22 min</span></a></li>
+    <li data-deck="v03"><a class="row" href="../repaso-v03/"><span class="num">R3</span> Entrada y salida <span class="lab">26 min</span></a></li>
+    <li data-deck="v04"><a class="row" href="../repaso-v04/"><span class="num">R4</span> Control de flujo <span class="lab">22 min</span></a></li>
+    <li data-deck="v05"><a class="row" href="../repaso-v05/"><span class="num">R5</span> Funciones <span class="lab">24 min</span></a></li>
+    <li data-deck="v06"><a class="row" href="../repaso-v06/"><span class="num">R6</span> El depurador de VS Code en serio <span class="lab">32 min</span></a></li>
+    <li data-deck="v07"><a class="row" href="../repaso-v07/"><span class="num">R7</span> std::string y espacios de nombres <span class="lab">24 min</span></a></li>
+    <li data-deck="v08"><a class="row" href="../repaso-v08/"><span class="num">R8</span> Arreglos, punteros y referencias <span class="lab">28 min</span></a></li>
+  </ol>
+
+  <h2>Módulo 2 · Programación orientada a objetos</h2>
+  <ol>
+    <li data-deck="v09"><a class="row" href="../repaso-v09/"><span class="num">R9</span> De struct a class: abstracción y encapsulamiento <span class="lab">26 min</span></a></li>
+    <li data-deck="v10"><a class="row" href="../repaso-v10/"><span class="num">R10</span> Constructores, destructor y this <span class="lab">28 min</span></a></li>
+    <li data-deck="v11"><a class="row" href="../repaso-v11/"><span class="num">R11</span> Separación .h/.cpp y compilación multiarchivo <span class="lab">26 min</span></a></li>
+    <li data-deck="g02"><a class="row" href="../repaso-g02/"><span class="num">G2</span> Ramas, historia y volver atrás <span class="lab">26 min · repositorio</span></a></li>
+    <li data-deck="v12"><a class="row" href="../repaso-v12/"><span class="num">R12</span> Anatomía de un error de compilación <span class="lab">26 min</span></a></li>
+    <li data-deck="v13"><a class="row" href="../repaso-v13/"><span class="num">R13</span> Memoria dinámica y regla de tres <span class="lab">38 min · clave</span></a></li>
+    <li data-deck="v14"><a class="row" href="../repaso-v14/"><span class="num">R14</span> Sobrecarga de operadores <span class="lab">22 min</span></a></li>
+    <li data-deck="v15"><a class="row" href="../repaso-v15/"><span class="num">R15</span> Herencia <span class="lab">20 min</span></a></li>
+    <li data-deck="v16"><a class="row" href="../repaso-v16/"><span class="num">R16</span> Polimorfismo <span class="lab">26 min</span></a></li>
+  </ol>
+
+  <h2>Módulo 3 · Plantillas y STL</h2>
+  <ol>
+    <li data-deck="v17"><a class="row" href="../repaso-v17/"><span class="num">R17</span> Plantillas <span class="lab">22 min</span></a></li>
+    <li data-deck="v18"><a class="row" href="../repaso-v18/"><span class="num">R18</span> std::vector a fondo <span class="lab">25 min</span></a></li>
+    <li data-deck="v19"><a class="row" href="../repaso-v19/"><span class="num">R19</span> Panorama de la STL <span class="lab">25 min</span></a></li>
+  </ol>
+
+  <div class="how">
+    <h3>Cómo aprovechar la serie</h3>
+    <ul>
+      <li>Ten la terminal y VS Code abiertos mientras avanzas. El material está escrito para que teclees el código, no para que lo leas.</li>
+      <li>Cada sesión trae checkpoints con una sola oportunidad de respuesta por carga de página. Contesta antes de mirar la explicación.</li>
+      <li>Los ejercicios traen la solución oculta tras un botón. Intenta compilar el tuyo primero.</li>
+      <li>El ejercicio de cada sesión se guarda en tu propio repositorio de GitHub, con un commit por sesión. Lo creas en G1, y los archivos para arrancarlo están en <a href="plantilla/">la plantilla</a>. Al terminar la serie tendrás veinte ejercicios compilables y la historia de cómo llegaste a ellos.</li>
+      <li>Al final de cada sesión hay una lista de verificación. Los puntos que marcas se guardan en este navegador y aparecen como ✓ en esta página.</li>
+      <li>Si vas corto de tiempo, el orden de prioridad es R0, G1, R6, R8, R13, R16. Con esos seis llegas funcional al día 1.</li>
+    </ul>
+  </div>
+
+  <footer>
+    <p>Esta serie es previa al curso y no tiene calificación. Después de R19 continúa con <a href="../sesion-01/">Sesión 1 · Templates en C++</a>.</p>
+    <p><a href="../">← Slides del curso</a></p>
+  </footer>
+</main>
+
+<script>
+  // Marca como completadas las sesiones cuya lista de verificación está llena.
+  (function () {
+    let store;
+    try { store = localStorage; } catch (e) { return; }
+    document.querySelectorAll('li[data-deck]').forEach(li => {
+      let marcados = [];
+      try { marcados = JSON.parse(store.getItem('repaso:' + li.dataset.deck) || '[]'); } catch (e) { return; }
+      if (marcados.length >= 4) li.classList.add('done');
+    });
+  })();
+</script>
+</body>
+</html>

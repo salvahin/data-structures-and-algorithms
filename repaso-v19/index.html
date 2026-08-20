@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Repaso R19 — Panorama de la STL</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+  <link rel="stylesheet" href="../css/theme-curso.css">
+</head>
+<body>
+<div class="reveal">
+  <div class="slides">
+
+    <!-- ============ 1. PORTADA ============ -->
+    <section class="cover">
+      <span class="kicker">Repaso de C++ y POO · Módulo 3 · Plantillas y STL</span>
+      <h1>Panorama de la&nbsp;STL</h1>
+      <div class="cover-meta">
+        R19 · Auto-estudio · 25 minutos<br>
+        Estructuras de Datos y Algoritmos
+      </div>
+    </section>
+
+    <!-- ============ 2. OBJETIVO ============ -->
+    <section>
+      <span class="kicker">R19 · Objetivo</span>
+      <h2>Al terminar esta sesión podrás…</h2>
+      <ul>
+        <li class="fragment">Usar <code>pair</code>, <code>map</code>, <code>set</code> y <code>list</code> para lo que cada uno resuelve.</li>
+        <li class="fragment">Elegir contenedor a partir de la operación que más vas a repetir y su costo.</li>
+        <li class="fragment">Aplicar <code>sort</code>, <code>find</code> y <code>accumulate</code>, con una lambda cuando haga falta.</li>
+        <li class="fragment">Explicar por qué el curso va a construir desde cero lo que estos contenedores ya hacen.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 3. ARRANQUE ============ -->
+    <section>
+      <span class="kicker">R19 · Punto de partida</span>
+      <h2>Contar palabras usando solo <code>vector</code></h2>
+      <pre data-title="conteo.cpp"><code class="language-cpp" data-trim data-line-numbers="1-3|5-10">
+std::vector&lt;std::string&gt; palabras{"sol","mar","sol","luz","sol"};
+std::vector&lt;std::string&gt; claves;
+std::vector&lt;int&gt; veces;
+
+for (const std::string&amp; w : palabras) {
+    bool esta = false;
+    for (std::size_t i = 0; i &lt; claves.size(); ++i)
+        if (claves[i] == w) { veces[i]++; esta = true; break; }
+    if (!esta) { claves.push_back(w); veces.push_back(1); }
+}
+      </code></pre>
+      <p class="fragment">Funciona, pero por cada palabra recorre todas las claves ya vistas. Con cien mil palabras distintas el ciclo interno domina el tiempo de ejecución.</p>
+    </section>
+
+    <!-- ============ 4. PAIR ============ -->
+    <section>
+      <span class="kicker">R19 · pair</span>
+      <h2>Dos valores que viajan juntos</h2>
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-3|5-6">
+std::pair&lt;std::string, int&gt; p{"Ana", 20};
+std::cout &lt;&lt; p.first &lt;&lt; '\n';    // Ana
+std::cout &lt;&lt; p.second &lt;&lt; '\n';   // 20
+
+auto q = std::make_pair(3, 4.5);
+// q es std::pair&lt;int, double&gt;, deducido de los argumentos
+      </code></pre>
+      <ul>
+        <li class="fragment">Es una plantilla con dos parámetros de tipo y dos campos públicos, <code>first</code> y <code>second</code>. Nada más.</li>
+        <li class="fragment">Aparece cuando una función necesita devolver dos cosas y cuando un contenedor guarda parejas. Ese segundo caso es el que sigue.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 5. MAP ============ -->
+    <section>
+      <span class="kicker">R19 · map</span>
+      <h2>El mismo conteo, en dos líneas</h2>
+      <pre data-title="conteo.cpp"><code class="language-cpp" data-trim data-line-numbers="1-2|4-5|7-9">
+std::map&lt;std::string, int&gt; conteo;
+for (const std::string&amp; w : palabras) conteo[w]++;
+
+for (const auto&amp; par : conteo)               // luz=1 mar=1 sol=3
+    std::cout &lt;&lt; par.first &lt;&lt; "=" &lt;&lt; par.second &lt;&lt; ' ';
+
+auto it = conteo.find("mar");
+if (it != conteo.end())
+    std::cout &lt;&lt; "mar aparece " &lt;&lt; it-&gt;second &lt;&lt; " veces";
+      </code></pre>
+      <ul>
+        <li class="fragment"><code>conteo[w]</code> crea la entrada con valor 0 si la clave no existía, y devuelve una referencia al valor; por eso <code>++</code> funciona en ambos casos.</li>
+        <li class="fragment">Al recorrerlo salen ordenados por clave, no por orden de inserción. Cada elemento es un <code>pair&lt;const K, V&gt;</code>.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 6. CHECKPOINT 1 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="c">
+        <p class="quiz-question">Tienes <code>std::map&lt;std::string,int&gt; m;</code> vacío y escribes <code>if (m["ana"] == 0) …</code>. ¿Qué pasa con el mapa?</p>
+        <button class="quiz-option" data-opt="a">Nada: consultar con <code>[]</code> no modifica el contenedor</button>
+        <button class="quiz-option" data-opt="b">No compila: <code>[]</code> requiere que la clave exista</button>
+        <button class="quiz-option" data-opt="c">Queda con una entrada <code>{"ana", 0}</code> creada por la consulta</button>
+        <div class="quiz-explain"><strong>C.</strong> <code>operator[]</code> tiene que devolver una referencia a un valor, así que si la clave no está la inserta con el valor por omisión. Es cómodo para contar y sorprende al consultar: un ciclo que revisa mil claves inexistentes deja mil entradas. Para consultar sin insertar están <code>find</code> y <code>count</code>.</div>
+      </div>
+    </section>
+
+    <!-- ============ 7. SET ============ -->
+    <section>
+      <span class="kicker">R19 · set</span>
+      <h2>Un conjunto: sin repetidos y ordenado</h2>
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-4|6-7|9-10">
+std::set&lt;std::string&gt; vistas;
+vistas.insert("sol");
+vistas.insert("mar");
+vistas.insert("sol");   // ignorado: ya estaba
+
+std::cout &lt;&lt; vistas.size();              // 2
+std::cout &lt;&lt; vistas.count("sol");        // 1 si está, 0 si no
+
+// construir desde un vector, de golpe:
+std::set&lt;std::string&gt; d(palabras.begin(), palabras.end());
+      </code></pre>
+      <ul>
+        <li class="fragment">Guarda claves sin valor asociado. Responde a "¿ya vi esto?" y a "¿cuántos distintos hay?", no a "¿cuántas veces?".</li>
+        <li class="fragment"><code>map</code> y <code>set</code> son <span class="term" data-term="asociativo">contenedores asociativos</span> ordenados: mantienen sus elementos en un árbol de búsqueda balanceado, que es lo que hace la consulta rápida.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 8. LIST ============ -->
+    <section>
+      <span class="kicker">R19 · list</span>
+      <h2>Insertar en medio sin mover nada</h2>
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-3|5-8">
+std::list&lt;int&gt; l{10, 20, 30};
+l.push_front(5);    // 5 10 20 30
+l.push_back(40);    // el frente cuesta lo mismo que el final
+
+auto it = l.begin();
+++it; ++it;         // hay que avanzar paso a paso: no hay l[2]
+l.insert(it, 99);   // inserta antes de it, sin mover elementos
+l.erase(it);        // borra ese elemento, sin mover los demás
+      </code></pre>
+      <ul>
+        <li class="fragment">Es una lista doblemente ligada: cada elemento guarda su valor y las direcciones del anterior y el siguiente. No hay bloque contiguo ni acceso por índice.</li>
+        <li class="fragment">Insertar o borrar con un iterador en la mano cuesta lo mismo sin importar el tamaño. Llegar a ese iterador es lo caro.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 9. CHECKPOINT 2 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="a">
+        <p class="quiz-question">Necesitas guardar un millón de números y consultar muchas veces el que está en la posición 500 000. ¿Qué contenedor conviene?</p>
+        <button class="quiz-option" data-opt="a"><code>vector</code>: el acceso por índice es directo</button>
+        <button class="quiz-option" data-opt="b"><code>list</code>: no reasigna memoria al crecer</button>
+        <button class="quiz-option" data-opt="c"><code>set</code>: mantiene todo ordenado</button>
+        <div class="quiz-explain"><strong>A.</strong> El bloque contiguo del <code>vector</code> permite calcular la dirección del elemento 500 000 con una multiplicación. En <code>list</code> hay que seguir medio millón de enlaces cada vez (B), y <code>set</code> ni siquiera ofrece posiciones: sus elementos se buscan por valor, no por índice (C).</div>
+      </div>
+    </section>
+
+    <!-- ============ 10. TABLA DE COMPLEJIDAD ============ -->
+    <section>
+      <span class="kicker">R19 · Criterio de elección</span>
+      <h2>Qué cuesta cada operación</h2>
+      <table>
+        <thead><tr><th>Contenedor</th><th>Acceso por índice</th><th>Buscar un valor</th><th>Insertar</th><th>Orden</th></tr></thead>
+        <tbody>
+          <tr><td><code>vector</code></td><td>\(O(1)\)</td><td>\(O(n)\)</td><td>al final \(O(1)\)*, en medio \(O(n)\)</td><td>de inserción</td></tr>
+          <tr><td><code>list</code></td><td>no ofrece</td><td>\(O(n)\)</td><td>\(O(1)\) con el iterador</td><td>de inserción</td></tr>
+          <tr><td><code>map</code></td><td>por clave, \(O(\log n)\)</td><td>\(O(\log n)\)</td><td>\(O(\log n)\)</td><td>por clave</td></tr>
+          <tr><td><code>set</code></td><td>no ofrece</td><td>\(O(\log n)\)</td><td>\(O(\log n)\)</td><td>por valor</td></tr>
+        </tbody>
+      </table>
+      <p class="muted">* amortizado, por la duplicación de capacidad de R18.</p>
+      <p class="fragment">La <span class="term" data-term="complejidad">complejidad</span> se lee junto con la operación que más vas a repetir. Recorrer un millón de elementos es más rápido en <code>vector</code> que en <code>list</code> aunque las dos digan \(O(n)\), porque el bloque contiguo aprovecha la memoria caché.</p>
+    </section>
+
+    <!-- ============ 11. SORT + LAMBDA ============ -->
+    <section>
+      <span class="kicker">R19 · Algoritmos</span>
+      <h2><code>sort</code> y la comparación a la medida</h2>
+      <pre data-title="orden.cpp"><code class="language-cpp" data-trim data-line-numbers="1-2|4-8">
+std::vector&lt;int&gt; v{4, 15, 8, 23};
+std::sort(v.begin(), v.end());        // 4 8 15 23, usa operator&lt;
+
+std::vector&lt;Alumno&gt; alu = leerAlumnos();
+std::sort(alu.begin(), alu.end(),
+          [](const Alumno&amp; a, const Alumno&amp; b) {
+              return a.prom &gt; b.prom;   // de mayor a menor
+          });
+      </code></pre>
+      <ul>
+        <li class="fragment">Los algoritmos reciben un rango como par de iteradores, no el contenedor. Por eso <code>sort(v.begin()+2, v.end())</code> ordena solo la cola.</li>
+        <li class="fragment">Una <span class="term" data-term="lambda">lambda</span> es una función escrita en el lugar donde se usa: <code>[](parámetros) { cuerpo }</code>. El tercer argumento de <code>sort</code> responde "¿va <code>a</code> antes que <code>b</code>?".</li>
+      </ul>
+    </section>
+
+    <!-- ============ 12. CHECKPOINT 3 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="b">
+        <p class="quiz-question">¿Por qué <code>std::sort(l.begin(), l.end())</code> no compila cuando <code>l</code> es un <code>std::list&lt;int&gt;</code>?</p>
+        <button class="quiz-option" data-opt="a">Porque <code>list</code> ya está ordenada y el algoritmo lo detecta</button>
+        <button class="quiz-option" data-opt="b">Porque <code>sort</code> necesita saltar a posiciones arbitrarias y los iteradores de <code>list</code> solo avanzan de uno en uno</button>
+        <button class="quiz-option" data-opt="c">Porque <code>sort</code> solo acepta <code>vector</code> por estar declarado con ese tipo</button>
+        <div class="quiz-explain"><strong>B.</strong> El algoritmo de <code>sort</code> compara elementos lejanos entre sí, lo que exige iteradores de acceso aleatorio; los de <code>list</code> no lo son y el error aparece al instanciar la plantilla. C es falso: <code>sort</code> es genérico y funciona sobre cualquier rango que cumpla el requisito, incluso un arreglo de C. Para ordenar una lista está su propio método, <code>l.sort()</code>.</div>
+      </div>
+    </section>
+
+    <!-- ============ 13. FIND Y ACCUMULATE ============ -->
+    <section>
+      <span class="kicker">R19 · Algoritmos</span>
+      <h2>Buscar y acumular sobre un rango</h2>
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-3|5-7|9-12">
+auto f = std::find(v.begin(), v.end(), 15);
+if (f != v.end())
+    std::cout &lt;&lt; "posición " &lt;&lt; (f - v.begin());   // 2
+
+auto p = std::find_if(v.begin(), v.end(),
+                      [](int x) { return x &gt; 20; });
+std::cout &lt;&lt; *p;                                   // 23
+
+int suma = std::accumulate(v.begin(), v.end(), 0);
+double t = std::accumulate(alu.begin(), alu.end(), 0.0,
+    [](double acc, const Alumno&amp; a) { return acc + a.prom; });
+// el 0.0 fija el tipo del acumulador y el valor inicial
+      </code></pre>
+      <p class="fragment"><code>find</code> compara con <code>==</code>; <code>find_if</code> recibe una lambda que devuelve <code>bool</code>. Los dos devuelven <code>end()</code> cuando no hay coincidencia, así que hay que comparar contra <code>end()</code> antes de desreferenciar. <code>accumulate</code> vive en <code>&lt;numeric&gt;</code>; los demás, en <code>&lt;algorithm&gt;</code>.</p>
+    </section>
+
+    <!-- ============ 14. CHECKPOINT 4 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="a">
+        <p class="quiz-question">Con <code>std::vector&lt;double&gt; v{1.5, 2.5};</code>, ¿qué devuelve <code>std::accumulate(v.begin(), v.end(), 0)</code>?</p>
+        <button class="quiz-option" data-opt="a"><code>3</code>: el acumulador es <code>int</code> porque el valor inicial es <code>0</code></button>
+        <button class="quiz-option" data-opt="b"><code>4.0</code>: el acumulador toma el tipo de los elementos</button>
+        <button class="quiz-option" data-opt="c">No compila: el valor inicial debe ser del tipo de los elementos</button>
+        <div class="quiz-explain"><strong>A.</strong> El tipo del acumulador se deduce del tercer argumento, no de los elementos. Con <code>0</code> cada suma se trunca a entero y el resultado es 3; con <code>0.0</code> es 4.0. Compila sin advertencia con <code>-Wall -Wextra</code>, así que el error solo se nota en el resultado.</div>
+      </div>
+    </section>
+
+    <!-- ============ 15. TRAMPAS COMUNES ============ -->
+    <section>
+      <span class="kicker">R19 · Trampas comunes</span>
+      <h2>Cuatro formas de perder media hora</h2>
+      <ul>
+        <li class="fragment">Consultar un <code>map</code> con <code>[]</code> y llenarlo de entradas vacías sin darse cuenta. Para consultar, <code>find</code> o <code>count</code>.</li>
+        <li class="fragment">Usar el resultado de <code>find</code> sin compararlo antes contra <code>end()</code>. Ese iterador no apunta a ningún elemento.</li>
+        <li class="fragment">Pasar un valor inicial <code>int</code> a <code>accumulate</code> sobre un rango de <code>double</code> y truncar cada suma.</li>
+        <li class="fragment">Elegir <code>list</code> "porque insertar es rápido" en un programa que sobre todo recorre. Sin acceso por índice y sin memoria contigua, casi siempre resulta más lento que <code>vector</code>.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 16. EJERCICIO ============ -->
+    <section>
+      <span class="kicker">R19 · Ejercicio</span>
+      <h2>El mismo problema, tres contenedores</h2>
+      <ol>
+        <li>Dada una lista de palabras, cuenta cuántas veces aparece cada una. Resuélvelo con <code>vector</code>, con <code>map</code> y con <code>set</code>.</li>
+        <li>Mide o estima el costo de cada versión en función del número de palabras.</li>
+        <li>Argumenta cuál conviene y en qué caso cambiarías de opinión.</li>
+      </ol>
+      <div class="solucion">
+        <pre><code class="language-cpp" data-trim>
+// A) vector: por cada palabra recorre las claves ya vistas
+//    (el código del slide 3)
+
+// B) map: la clave hace la búsqueda
+std::map&lt;std::string, int&gt; conteo;
+for (const std::string&amp; w : palabras) conteo[w]++;
+
+// C) set: responde cuántas distintas, no cuántas veces
+std::set&lt;std::string&gt; d(palabras.begin(), palabras.end());
+std::cout &lt;&lt; d.size();
+        </code></pre>
+        <p class="muted">Con \(n\) palabras y \(k\) distintas, A cuesta \(O(nk)\) y B cuesta \(O(n \log k)\). C no resuelve el problema planteado: sirve si la pregunta es cuántas palabras distintas hay. Cambiarías de opinión con \(k\) muy pequeño y fijo (con cinco claves el <code>vector</code> gana por memoria contigua) o si necesitas el resultado en orden de aparición, que el <code>map</code> no conserva.</p>
+      </div>
+    </section>
+
+    <!-- ============ 17. PUENTE AL CURSO ============ -->
+    <section>
+      <span class="kicker">R19 · Cierre de la serie</span>
+      <h2>Lo que ya existe es lo que vas a construir</h2>
+      <table>
+        <thead><tr><th>Lo que acabas de usar</th><th>Lo que implementarás en el curso</th></tr></thead>
+        <tbody>
+          <tr><td><code>vector</code></td><td>Arreglo dinámico con crecimiento y regla de tres</td></tr>
+          <tr><td><code>list</code></td><td>Lista simple y doblemente ligada, con sus nodos</td></tr>
+          <tr><td><code>map</code>, <code>set</code></td><td>Árbol binario de búsqueda y su balanceo</td></tr>
+          <tr><td><code>sort</code></td><td>Los algoritmos de ordenamiento y su análisis</td></tr>
+        </tbody>
+      </table>
+      <p class="fragment">Elegir bien entre estos contenedores depende de saber qué hace cada uno por dentro: por qué <code>vector</code> reasigna, por qué <code>map</code> cuesta \(O(\log n)\) y qué pierde <code>list</code> al no ser contigua. Escribirlos desde cero es la forma de contestar esas preguntas.</p>
+    </section>
+
+    <!-- ============ 18. CHECKLIST ============ -->
+    <section>
+      <span class="kicker">R19 · Cierre de la serie</span>
+      <h2>Verifica que ya puedes</h2>
+      <ul class="checklist" data-deck="v19">
+        <li>Contar ocurrencias con <code>map</code> y consultar sin insertar <span class="cl-ref">slide 5</span></li>
+        <li>Decir qué responde un <code>set</code> y qué no <span class="cl-ref">slide 7</span></li>
+        <li>Elegir contenedor a partir del costo de la operación que más repites <span class="cl-ref">slide 10</span></li>
+        <li>Ordenar con <code>sort</code> y una lambda de comparación <span class="cl-ref">slide 11</span></li>
+        <li>Usar <code>find</code>, <code>find_if</code> y <code>accumulate</code> sobre un rango <span class="cl-ref">slide 13</span></li>
+      </ul>
+      <p class="muted">Si algo sigue sin marcarse, regresa a ese slide antes de continuar.</p>
+    </section>
+
+    <!-- ============ EL COMMIT DE ESTA SESIÓN ============ -->
+    <section>
+      <span class="kicker">R19 · Tu repositorio</span>
+      <h2>El commit de esta sesión</h2>
+      <pre><code class="language-bash" data-trim>
+cd repaso-cpp
+git add r19-stl/
+git commit -m "R19: mismo problema con tres contenedores"
+git push
+      </code></pre>
+      <p class="muted">Un commit por sesión. Así, cuando algo deje de compilar, <code>git diff</code> te dice exactamente qué cambiaste desde la última vez que funcionaba.</p>
+    </section>
+
+
+    <!-- ============ 19. SIGUIENTE ============ -->
+    <section class="divider">
+      <h2>Ya estás listo para la sesión 1</h2>
+      <p class="muted">Compilas por consola, lees errores, administras memoria con RAII, escribes plantillas y conoces la STL. La sesión 1 retoma las plantillas y arranca el curso desde ahí.</p>
+      <p><a href="../sesion-01/">Sesión 1 · Templates en C++</a></p>
+      <p><a href="../repaso/">← Volver al índice de la serie</a></p>
+    </section>
+
+    <!-- ============ 20. REFERENCIAS ============ -->
+    <section>
+      <span class="kicker">R19</span>
+      <h2>Referencias y material para profundizar</h2>
+      <div class="refs cols">
+        <div>
+          <h3>Referencias</h3>
+          <ul>
+            <li><span class="ref-type">Libro</span> Stroustrup, B. <em>A Tour of C++</em>, 3.ª ed., Addison-Wesley, 2022. Caps. 11 a 13.</li>
+            <li><span class="ref-type">Libro</span> Weiss, M. A. <em>Data Structures and Algorithm Analysis in C++</em>, 4.ª ed., Pearson, 2014. Caps. 3 y 4.</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Para profundizar</h3>
+          <ul>
+            <li><span class="ref-type">Web</span> <a href="https://en.cppreference.com/w/cpp/container">cppreference — Containers</a> <span class="ref-nota">— la tabla de complejidad de cada operación.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://en.cppreference.com/w/cpp/algorithm">cppreference — Algorithms library</a> <span class="ref-nota">— los otros noventa algoritmos que no vimos.</span></li>
+            <li><span class="ref-type">Video</span> CppCon, <a href="https://www.youtube.com/watch?v=2olsGf6JIkU">105 STL Algorithms in Less Than an Hour</a> <span class="ref-nota">— panorama completo, para volver cuando necesites uno.</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script src="../js/curso-slides.js"></script>
+<script>
+  Reveal.initialize({
+    width: 1280,
+    height: 720,
+    margin: 0.06,
+    hash: true,
+    progress: true,
+    slideNumber: 'c/t',
+    controls: true,
+    transition: 'slide',
+    transitionSpeed: 'fast',
+    plugins: [ RevealHighlight ]
+  }).then(() => {
+    CursoSlides.init({
+      asociativo: {
+        titulo: "Contenedor asociativo",
+        def: "Contenedor que guarda sus elementos por clave y no por posición: <code>map</code>, <code>set</code>, <code>multimap</code> y <code>multiset</code>. Los mantiene ordenados en un árbol de búsqueda balanceado, lo que da búsqueda, inserción y borrado en \\(O(\\log n)\\). Las variantes <code>unordered_</code> usan una tabla hash y no conservan el orden."
+      },
+      complejidad: {
+        titulo: "Complejidad",
+        def: "Forma en que crece el costo de una operación al crecer el número de elementos \\(n\\). \\(O(1)\\) es costo independiente del tamaño; \\(O(\\log n)\\) crece muy despacio; \\(O(n)\\) crece proporcionalmente. El curso la formaliza en la sesión de análisis asintótico."
+      },
+      lambda: {
+        titulo: "Lambda",
+        def: "Función anónima definida en el punto donde se usa: <code>[](int x) { return x &gt; 20; }</code>. Los corchetes indican qué variables del entorno captura (<code>[]</code> ninguna, <code>[&amp;]</code> por referencia, <code>[=]</code> por copia). Se pasa a los algoritmos de la STL como criterio de comparación o de filtrado."
+      }
+    });
+  });
+</script>
+</body>
+</html>

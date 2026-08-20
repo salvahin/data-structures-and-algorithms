@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Diagnóstico — Repaso de C++ y POO</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+  <link rel="stylesheet" href="../css/theme-curso.css">
+</head>
+<body>
+<div class="reveal">
+  <div class="slides">
+
+    <!-- ============ PORTADA ============ -->
+    <section class="cover">
+      <span class="kicker">Repaso de C++ y POO · Antes de empezar</span>
+      <h1>Diagnóstico:<br>¿qué necesitas repasar?</h1>
+      <div class="cover-meta">
+        15 reactivos · 20 minutos<br>
+        Estructuras de Datos y Algoritmos
+      </div>
+    </section>
+
+    <!-- ============ INSTRUCCIONES ============ -->
+    <section>
+      <span class="kicker">Cómo funciona</span>
+      <h2>Contesta primero, revisa después</h2>
+      <ul>
+        <li class="fragment">Quince preguntas: 3 de compilación, 4 de C++ básico, 5 de programación orientada a objetos, 3 de la STL.</li>
+        <li class="fragment">Un intento por pregunta. Al elegir aparece la respuesta correcta y la explicación.</li>
+        <li class="fragment">Contesta con lo que sabes hoy. Adivinar te ahorra 20 minutos y te cuesta 6 horas más adelante.</li>
+        <li class="fragment">Al final, el último slide calcula tu puntaje y te dice qué sesiones leer.</li>
+      </ul>
+      <div class="box-key">No se guarda ni se reporta nada. Este diagnóstico es para ti.</div>
+    </section>
+
+    <!-- ============ BLOQUE A ============ -->
+    <section class="divider">
+      <h2>Bloque A · Compilación<br><span class="muted">3 reactivos</span></h2>
+    </section>
+
+    <!-- 1 -->
+    <section>
+      <span class="kicker">1 de 15 · Compilación</span>
+      <div class="quiz" data-correct="b" data-tema="Etapas de compilación" data-sesion="v00">
+        <p class="quiz-question">Compilas y obtienes <code>undefined reference to `calcular(int)'</code>. ¿Qué ocurrió?</p>
+        <button class="quiz-option" data-opt="a">Escribiste mal el nombre de la función al llamarla</button>
+        <button class="quiz-option" data-opt="b">El enlazador no encontró el cuerpo de la función en ningún archivo objeto</button>
+        <button class="quiz-option" data-opt="c">Falta un <code>#include</code> del archivo de cabecera</button>
+        <div class="quiz-explain"><strong>B.</strong> El mensaje viene de <code>ld</code>, después de compilar. La declaración existía (por eso el compilador aceptó la llamada), pero la definición no llegó al enlazado. Si el nombre estuviera mal escrito o faltara el <code>#include</code>, el error sería del compilador y diría <code>was not declared in this scope</code>.</div>
+      </div>
+    </section>
+
+    <!-- 2 -->
+    <section>
+      <span class="kicker">2 de 15 · Compilación</span>
+      <div class="quiz" data-correct="a" data-tema="Banderas del compilador" data-sesion="v00">
+        <p class="quiz-question">¿Para qué sirve <code>-g</code> en <code>g++ -std=c++17 -Wall -g main.cpp</code>?</p>
+        <button class="quiz-option" data-opt="a">Incluye símbolos de depuración, necesarios para usar breakpoints</button>
+        <button class="quiz-option" data-opt="b">Activa advertencias adicionales</button>
+        <button class="quiz-option" data-opt="c">Genera un ejecutable más pequeño</button>
+        <div class="quiz-explain"><strong>A.</strong> Sin <code>-g</code> el ejecutable no conserva la relación entre el código máquina y tus líneas de código fuente, así que el depurador no puede detenerse en ellas. Las advertencias las activa <code>-Wall</code>; el tamaño lo controlan <code>-O</code> y <code>strip</code>.</div>
+      </div>
+    </section>
+
+    <!-- 3 -->
+    <section>
+      <span class="kicker">3 de 15 · Compilación</span>
+      <div class="quiz" data-correct="c" data-tema="Compilar desde el editor" data-sesion="v01">
+        <p class="quiz-question">En VS Code pones un breakpoint y el punto rojo se ve hueco y gris. ¿Qué significa?</p>
+        <button class="quiz-option" data-opt="a">Que el breakpoint está desactivado y hay que hacer clic otra vez</button>
+        <button class="quiz-option" data-opt="b">Que la línea nunca se ejecuta en este programa</button>
+        <button class="quiz-option" data-opt="c">El binario que se va a ejecutar no tiene información de depuración para esa línea</button>
+        <div class="quiz-explain"><strong>C.</strong> El punto hueco indica que el depurador no logró asociar esa línea con el binario. Las causas típicas son compilar sin <code>-g</code> o ejecutar un ejecutable viejo que no corresponde al código actual.</div>
+      </div>
+    </section>
+
+    <!-- ============ BLOQUE B ============ -->
+    <section class="divider">
+      <h2>Bloque B · C++ básico<br><span class="muted">4 reactivos</span></h2>
+    </section>
+
+    <!-- 4 -->
+    <section>
+      <span class="kicker">4 de 15 · C++ básico</span>
+      <div class="quiz" data-correct="b" data-tema="Tipos y conversiones" data-sesion="v02">
+        <p class="quiz-question">¿Qué imprime este programa?</p>
+        <pre><code class="language-cpp" data-trim>
+int a = -1;
+unsigned int b = 1;
+std::cout &lt;&lt; (a &lt; b) &lt;&lt; '\n';
+        </code></pre>
+        <button class="quiz-option" data-opt="a"><code>1</code>, porque −1 es menor que 1</button>
+        <button class="quiz-option" data-opt="b"><code>0</code>, porque <code>a</code> se convierte a <code>unsigned</code> y queda enorme</button>
+        <button class="quiz-option" data-opt="c">No compila: no se pueden comparar tipos con y sin signo</button>
+        <div class="quiz-explain"><strong>B.</strong> Al comparar <code>int</code> con <code>unsigned int</code>, el <code>int</code> se convierte a <code>unsigned</code>: −1 se vuelve 4294967295. Compila, y con <code>-Wall</code> el compilador advierte <code>comparison of integer expressions of different signedness</code>.</div>
+      </div>
+    </section>
+
+    <!-- 5 -->
+    <section>
+      <span class="kicker">5 de 15 · C++ básico</span>
+      <div class="quiz" data-correct="c" data-tema="Entrada y salida" data-sesion="v03">
+        <p class="quiz-question">El usuario teclea <code>25</code> y luego su nombre. ¿Por qué <code>nombre</code> queda vacío?</p>
+        <pre><code class="language-cpp" data-trim>
+int edad;
+std::string nombre;
+std::cin &gt;&gt; edad;
+std::getline(std::cin, nombre);
+        </code></pre>
+        <button class="quiz-option" data-opt="a">Porque <code>getline</code> no funciona con <code>std::string</code></button>
+        <button class="quiz-option" data-opt="b">Porque hay que llamar a <code>cin.clear()</code> antes de <code>getline</code></button>
+        <button class="quiz-option" data-opt="c">Porque <code>cin &gt;&gt; edad</code> deja el salto de línea en el búfer y <code>getline</code> lo lee como línea vacía</button>
+        <div class="quiz-explain"><strong>C.</strong> El operador <code>&gt;&gt;</code> se detiene ante el espacio en blanco sin consumirlo. <code>getline</code> encuentra ese <code>'\n'</code> de inmediato y devuelve una cadena vacía. Se corrige con <code>cin.ignore(numeric_limits&lt;streamsize&gt;::max(), '\n')</code>. <code>clear()</code> es para el estado de error, que aquí no se activó.</div>
+      </div>
+    </section>
+
+    <!-- 6 -->
+    <section>
+      <span class="kicker">6 de 15 · C++ básico</span>
+      <div class="quiz" data-correct="a" data-tema="Control de flujo" data-sesion="v04">
+        <p class="quiz-question">¿Cuántas veces se ejecuta el cuerpo del ciclo?</p>
+        <pre><code class="language-cpp" data-trim>
+int datos[5] = {1, 2, 3, 4, 5};
+for (int i = 0; i &lt;= 5; i++)
+    std::cout &lt;&lt; datos[i];
+        </code></pre>
+        <button class="quiz-option" data-opt="a">Seis veces, y la última lee fuera del arreglo</button>
+        <button class="quiz-option" data-opt="b">Cinco veces, correctamente</button>
+        <button class="quiz-option" data-opt="c">El programa aborta antes de la primera iteración</button>
+        <div class="quiz-explain"><strong>A.</strong> Con <code>i &lt;= 5</code> el ciclo llega hasta <code>i == 5</code>, que ya está fuera del arreglo de índices 0 a 4. El programa suele imprimir un valor basura y seguir corriendo, que es lo que hace difícil detectar este error.</div>
+      </div>
+    </section>
+
+    <!-- 7 -->
+    <section>
+      <span class="kicker">7 de 15 · C++ básico</span>
+      <div class="quiz" data-correct="c" data-tema="Arreglos, punteros y referencias" data-sesion="v08">
+        <p class="quiz-question">¿Qué imprime <code>tam</code> si <code>datos</code> es un arreglo de 100 <code>int</code>?</p>
+        <pre><code class="language-cpp" data-trim>
+void procesar(int datos[]) {
+    int tam = sizeof(datos) / sizeof(datos[0]);
+    std::cout &lt;&lt; tam &lt;&lt; '\n';
+}
+        </code></pre>
+        <button class="quiz-option" data-opt="a"><code>100</code>, el tamaño del arreglo</button>
+        <button class="quiz-option" data-opt="b"><code>1</code>, porque <code>sizeof</code> de un puntero es 1</button>
+        <button class="quiz-option" data-opt="c"><code>2</code>, porque el parámetro es un puntero de 8 bytes</button>
+        <div class="quiz-explain"><strong>C.</strong> Un arreglo pierde su tamaño al pasarse a una función: el parámetro es en realidad <code>int*</code>. En un sistema de 64 bits, <code>sizeof(int*)</code> es 8 y <code>sizeof(int)</code> es 4, así que el cálculo da 2. El tamaño tiene que pasarse como parámetro aparte.</div>
+      </div>
+    </section>
+
+    <!-- ============ BLOQUE C ============ -->
+    <section class="divider">
+      <h2>Bloque C · Orientación a objetos<br><span class="muted">5 reactivos</span></h2>
+    </section>
+
+    <!-- 8 -->
+    <section>
+      <span class="kicker">8 de 15 · POO</span>
+      <div class="quiz" data-correct="b" data-tema="Encapsulamiento" data-sesion="v09">
+        <p class="quiz-question">¿Cuál es la diferencia entre <code>struct</code> y <code>class</code> en C++?</p>
+        <button class="quiz-option" data-opt="a">El <code>struct</code> no puede tener métodos ni constructores</button>
+        <button class="quiz-option" data-opt="b">Solo el acceso por omisión: público en <code>struct</code>, privado en <code>class</code></button>
+        <button class="quiz-option" data-opt="c">El <code>struct</code> no admite herencia</button>
+        <div class="quiz-explain"><strong>B.</strong> En C++ un <code>struct</code> admite métodos, constructores, herencia y todo lo demás. La única diferencia con <code>class</code> es el acceso por omisión de sus miembros y de sus bases. La distinción entre ambos es una convención de estilo.</div>
+      </div>
+    </section>
+
+    <!-- 9 -->
+    <section>
+      <span class="kicker">9 de 15 · POO</span>
+      <div class="quiz" data-correct="a" data-tema="Constructores y destructor" data-sesion="v10">
+        <p class="quiz-question">¿Por qué este código no compila?</p>
+        <pre><code class="language-cpp" data-trim>
+class Sensor {
+    const int id;
+public:
+    Sensor(int i) { id = i; }
+};
+        </code></pre>
+        <button class="quiz-option" data-opt="a">Un miembro <code>const</code> debe inicializarse en la lista de inicialización, no asignarse en el cuerpo</button>
+        <button class="quiz-option" data-opt="b">Un miembro <code>const</code> tiene que ser <code>static</code></button>
+        <button class="quiz-option" data-opt="c">Falta declarar el constructor como <code>const</code></button>
+        <div class="quiz-explain"><strong>A.</strong> Al entrar al cuerpo del constructor los miembros ya están construidos; <code>id = i;</code> es una asignación sobre algo constante. La forma correcta es <code>Sensor(int i) : id(i) {}</code>. Lo mismo aplica a los miembros que son referencias.</div>
+      </div>
+    </section>
+
+    <!-- 10 -->
+    <section>
+      <span class="kicker">10 de 15 · POO</span>
+      <div class="quiz" data-correct="c" data-tema="Memoria dinámica y regla de tres" data-sesion="v13">
+        <p class="quiz-question">Una clase reserva memoria con <code>new[]</code> y la libera en su destructor. Copias un objeto con <code>Buffer b = a;</code> y el programa aborta al terminar. ¿Por qué?</p>
+        <button class="quiz-option" data-opt="a">Porque el destructor se ejecuta dos veces sobre el mismo objeto</button>
+        <button class="quiz-option" data-opt="b">Porque falta liberar con <code>delete</code> en lugar de <code>delete[]</code></button>
+        <button class="quiz-option" data-opt="c">Porque la copia por omisión duplica el puntero, y ambos destructores liberan el mismo bloque</button>
+        <div class="quiz-explain"><strong>C.</strong> El constructor de copia generado por el compilador copia el valor del puntero, no el bloque apuntado. Los dos objetos terminan apuntando a la misma memoria y cada destructor la libera: doble liberación. La solución es la regla de tres, con copia profunda.</div>
+      </div>
+    </section>
+
+    <!-- 11 -->
+    <section>
+      <span class="kicker">11 de 15 · POO</span>
+      <div class="quiz" data-correct="a" data-tema="Herencia" data-sesion="v15">
+        <p class="quiz-question">Con <code>Gerente</code> derivada de <code>Empleado</code>, derivada de <code>Persona</code>, ¿en qué orden se destruye un <code>Gerente</code>?</p>
+        <button class="quiz-option" data-opt="a"><code>~Gerente</code>, <code>~Empleado</code>, <code>~Persona</code></button>
+        <button class="quiz-option" data-opt="b">Solo <code>~Gerente</code>; las bases no tienen destructor propio</button>
+        <button class="quiz-option" data-opt="c"><code>~Persona</code>, <code>~Empleado</code>, <code>~Gerente</code></button>
+        <div class="quiz-explain"><strong>A.</strong> La construcción va de la base a la derivada y la destrucción recorre el camino inverso. Cada clase destruye lo suyo antes de que la base destruya lo que ella administra, que es el único orden seguro.</div>
+      </div>
+    </section>
+
+    <!-- 12 -->
+    <section>
+      <span class="kicker">12 de 15 · POO</span>
+      <div class="quiz" data-correct="b" data-tema="Polimorfismo" data-sesion="v16">
+        <p class="quiz-question">¿Qué imprime este código si <code>Circulo</code> deriva de <code>Figura</code> y <code>area()</code> es <code>virtual</code>?</p>
+        <pre><code class="language-cpp" data-trim>
+void mostrar(Figura f) {          // por valor
+    std::cout &lt;&lt; f.area() &lt;&lt; '\n';
+}
+Circulo c(2.0);
+mostrar(c);
+        </code></pre>
+        <button class="quiz-option" data-opt="a">El área del círculo, porque <code>area()</code> es virtual</button>
+        <button class="quiz-option" data-opt="b">El área de <code>Figura</code>: al copiar por valor se pierde la parte derivada</button>
+        <button class="quiz-option" data-opt="c">Un valor indeterminado, porque el objeto quedó a medio construir</button>
+        <div class="quiz-explain"><strong>B.</strong> Es <em>object slicing</em>: el parámetro por valor construye una <code>Figura</code> copiando solo la parte base, y con ella se pierde el enlace dinámico. El polimorfismo requiere puntero o referencia a la base: <code>void mostrar(const Figura&amp; f)</code>.</div>
+      </div>
+    </section>
+
+    <!-- ============ BLOQUE D ============ -->
+    <section class="divider">
+      <h2>Bloque D · Plantillas y STL<br><span class="muted">3 reactivos</span></h2>
+    </section>
+
+    <!-- 13 -->
+    <section>
+      <span class="kicker">13 de 15 · STL</span>
+      <div class="quiz" data-correct="b" data-tema="Plantillas" data-sesion="v17">
+        <p class="quiz-question">Defines <code>template &lt;typename T&gt; class Caja</code> en <code>caja.h</code> y sus métodos en <code>caja.cpp</code>. Al compilar aparece un error de enlazado. ¿Por qué?</p>
+        <button class="quiz-option" data-opt="a">Falta agregar <code>caja.cpp</code> al comando de compilación</button>
+        <button class="quiz-option" data-opt="b">El compilador necesita ver la definición completa para instanciar <code>Caja&lt;int&gt;</code>, y solo vio el header</button>
+        <button class="quiz-option" data-opt="c">Las plantillas requieren <code>extern template</code> en cada archivo que las use</button>
+        <div class="quiz-explain"><strong>B.</strong> Una plantilla genera código solo cuando se instancia con un tipo concreto. Si la definición vive en otra unidad de traducción, el compilador no puede generar <code>Caja&lt;int&gt;</code> y el enlazador no encuentra los símbolos. Por eso las plantillas van completas en el header.</div>
+      </div>
+    </section>
+
+    <!-- 14 -->
+    <section>
+      <span class="kicker">14 de 15 · STL</span>
+      <div class="quiz" data-correct="c" data-tema="std::vector" data-sesion="v18">
+        <p class="quiz-question">¿Qué diferencia hay entre <code>v[10]</code> y <code>v.at(10)</code> si el vector tiene 5 elementos?</p>
+        <button class="quiz-option" data-opt="a">Ninguna: ambos lanzan <code>std::out_of_range</code></button>
+        <button class="quiz-option" data-opt="b">Ninguna: ambos devuelven 0</button>
+        <button class="quiz-option" data-opt="c"><code>[]</code> no verifica el rango y produce comportamiento indefinido; <code>at()</code> lanza <code>std::out_of_range</code></button>
+        <div class="quiz-explain"><strong>C.</strong> <code>[]</code> está pensado para el caso en que el índice ya se validó, y por eso no cuesta nada. <code>at()</code> paga una comparación y avisa del error. Acceder fuera de rango con <code>[]</code> suele no producir ningún síntoma visible de inmediato.</div>
+      </div>
+    </section>
+
+    <!-- 15 -->
+    <section>
+      <span class="kicker">15 de 15 · STL</span>
+      <div class="quiz" data-correct="a" data-tema="Panorama de la STL" data-sesion="v19">
+        <p class="quiz-question">Necesitas guardar pares nombre → calificación y buscar por nombre con frecuencia. ¿Qué contenedor eliges?</p>
+        <button class="quiz-option" data-opt="a"><code>std::map&lt;std::string, double&gt;</code></button>
+        <button class="quiz-option" data-opt="b"><code>std::vector&lt;std::pair&lt;std::string, double&gt;&gt;</code> recorrido con un ciclo</button>
+        <button class="quiz-option" data-opt="c"><code>std::list&lt;std::string&gt;</code> con las calificaciones en otra lista paralela</button>
+        <div class="quiz-explain"><strong>A.</strong> <code>map</code> asocia clave y valor, y busca en tiempo logarítmico. El <code>vector</code> obliga a recorrer todos los elementos en cada búsqueda, y las listas paralelas exigen mantener a mano una correspondencia que la estructura ya podría garantizar.</div>
+      </div>
+    </section>
+
+    <!-- ============ RESULTADO ============ -->
+    <section>
+      <span class="kicker">Resultado</span>
+      <h2>Tu diagnóstico</h2>
+      <div class="score-panel" data-base="../repaso-"></div>
+    </section>
+
+    <!-- ============ QUÉ HACER ============ -->
+    <section>
+      <span class="kicker">Qué sigue</span>
+      <h2>Cómo leer tu resultado</h2>
+      <table>
+        <tr><th>Puntaje</th><th>Ruta sugerida</th></tr>
+        <tr><td>13 a 15</td><td>Lee solo las sesiones que fallaste y empieza el curso.</td></tr>
+        <tr><td>9 a 12</td><td>Lee completas las sesiones que fallaste; hojea el resto.</td></tr>
+        <tr><td>0 a 8</td><td>Ve la serie completa en orden. Entre 6 y 8 horas en dos semanas.</td></tr>
+      </table>
+      <p class="fragment">Dos sesiones no aparecen en el diagnóstico y conviene leerlas en cualquier caso: <a href="../repaso-v06/">R6 · El depurador en serio</a> y <a href="../repaso-v12/">R12 · Anatomía de un error de compilación</a>. Son los que más horas ahorran durante el semestre.</p>
+    </section>
+
+    <!-- ============ CIERRE ============ -->
+    <section class="divider">
+      <h2>Empieza por donde te toca</h2>
+      <p class="muted">El índice de la serie tiene las 20 sesiones con su duración estimada.</p>
+      <p><a href="../repaso/">Ir al índice de la serie →</a></p>
+    </section>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script src="../js/curso-slides.js"></script>
+<script>
+  Reveal.initialize({
+    width: 1280,
+    height: 720,
+    margin: 0.06,
+    hash: true,
+    progress: true,
+    slideNumber: 'c/t',
+    controls: true,
+    transition: 'slide',
+    transitionSpeed: 'fast',
+    plugins: [ RevealHighlight ]
+  }).then(() => {
+    CursoSlides.init({});
+  });
+</script>
+</body>
+</html>

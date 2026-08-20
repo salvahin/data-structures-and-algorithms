@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Repaso R17 — Plantillas</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+  <link rel="stylesheet" href="../css/theme-curso.css">
+</head>
+<body>
+<div class="reveal">
+  <div class="slides">
+
+    <!-- ============ 1. PORTADA ============ -->
+    <section class="cover">
+      <span class="kicker">Repaso de C++ y POO · Módulo 3 · Plantillas y STL</span>
+      <h1>Plantillas</h1>
+      <div class="cover-meta">
+        R17 · Auto-estudio · 22 minutos<br>
+        Estructuras de Datos y Algoritmos
+      </div>
+    </section>
+
+    <!-- ============ 2. OBJETIVO ============ -->
+    <section>
+      <span class="kicker">R17 · Objetivo</span>
+      <h2>Al terminar esta sesión podrás…</h2>
+      <ul>
+        <li class="fragment">Escribir una plantilla de función y explicar cómo el compilador deduce el tipo.</li>
+        <li class="fragment">Convertir una clase escrita para un tipo concreto en una clase con parámetro de tipo.</li>
+        <li class="fragment">Explicar por qué la definición completa de una plantilla vive en el archivo de cabecera.</li>
+        <li class="fragment">Encontrar la línea útil dentro de un error de plantilla de cien líneas.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 3. ARRANQUE ============ -->
+    <section>
+      <span class="kicker">R17 · Punto de partida</span>
+      <h2>Esta función compila y da un resultado equivocado</h2>
+      <pre data-title="maximo.cpp"><code class="language-cpp" data-trim>
+#include &lt;iostream&gt;
+
+int maximo(int a, int b) {
+    return (a &lt; b) ? b : a;
+}
+
+int main() {
+    std::cout &lt;&lt; maximo(3, 7)      &lt;&lt; '\n';   // 7
+    std::cout &lt;&lt; maximo(2.5, 1.75) &lt;&lt; '\n';   // 2
+}
+      </code></pre>
+      <p class="fragment">La segunda llamada convierte <code>2.5</code> y <code>1.75</code> a <code>int</code> antes de entrar. Adentro se comparan 2 y 1, y sale 2. Con <code>-Wall -Wextra</code> no aparece ninguna advertencia.</p>
+    </section>
+
+    <!-- ============ 4. PLANTILLA DE FUNCIÓN ============ -->
+    <section>
+      <span class="kicker">R17 · Plantillas de función</span>
+      <h2>El tipo como parámetro</h2>
+      <pre data-title="maximo.hpp"><code class="language-cpp" data-trim data-line-numbers="1-4|1|2|6-8">
+template &lt;typename T&gt;
+T maximo(const T&amp; a, const T&amp; b) {
+    return (a &lt; b) ? b : a;
+}
+
+maximo(3, 7);          // T = int      -&gt; 7
+maximo(2.5, 1.75);     // T = double   -&gt; 2.5
+maximo(std::string("pera"), std::string("uva"));  // "uva"
+      </code></pre>
+      <p class="fragment">La línea <code>template &lt;typename T&gt;</code> declara que <code>T</code> es un parámetro que se resuelve al compilar. El cuerpo es el mismo que ya tenías; solo se reemplazó <code>int</code> por <code>T</code>.</p>
+    </section>
+
+    <!-- ============ 5. DEDUCCIÓN ============ -->
+    <section>
+      <span class="kicker">R17 · Deducción de tipos</span>
+      <h2>Quién decide qué es <code>T</code></h2>
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-2|4-5|7-8">
+maximo(3, 7);              // el compilador mira los argumentos:
+                           // los dos son int, entonces T = int
+
+maximo(3, 2.5);            // error: uno deduce int, otro double
+                           // note: deduced conflicting types for 'T'
+
+maximo&lt;double&gt;(3, 2.5);    // T escrito a mano: 3 se convierte
+                           // a 3.0 y la llamada compila -&gt; 3
+      </code></pre>
+      <p class="fragment">La <span class="term" data-term="deduccion">deducción</span> no busca un tipo común ni promueve <code>int</code> a <code>double</code>. Compara los argumentos con los parámetros y exige que todos lleguen a la misma respuesta para <code>T</code>.</p>
+    </section>
+
+    <!-- ============ 6. CHECKPOINT 1 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="c">
+        <p class="quiz-question">Con <code>template &lt;typename T&gt; T maximo(const T&amp; a, const T&amp; b);</code>, ¿qué ocurre al escribir <code>maximo(1, 2.0)</code>?</p>
+        <button class="quiz-option" data-opt="a">Compila y devuelve <code>2.0</code>: el compilador convierte <code>1</code> a <code>double</code></button>
+        <button class="quiz-option" data-opt="b">Compila y devuelve <code>2</code>: el compilador convierte <code>2.0</code> a <code>int</code></button>
+        <button class="quiz-option" data-opt="c">No compila: el primer argumento deduce <code>int</code> y el segundo <code>double</code></button>
+        <div class="quiz-explain"><strong>C.</strong> Las conversiones implícitas de A y B ocurren cuando el tipo del parámetro ya está fijado, como en la función <code>int maximo(int, int)</code> del slide 3. En una plantilla el tipo todavía se está deduciendo, y dos deducciones contradictorias detienen la compilación. Se resuelve escribiendo el tipo: <code>maximo&lt;double&gt;(1, 2.0)</code>.</div>
+      </div>
+    </section>
+
+    <!-- ============ 7. REQUISITOS DEL TIPO ============ -->
+    <section>
+      <span class="kicker">R17 · Requisitos del tipo</span>
+      <h2>La plantilla le pide operaciones a <code>T</code></h2>
+      <pre><code class="language-cpp" data-trim>
+struct Persona { std::string nombre; int edad; };
+
+Persona p1{"Ana", 20}, p2{"Beto", 22};
+maximo(p1, p2);   // error: no match for 'operator&lt;'
+                  // (operand types are 'Persona' and 'Persona')
+      </code></pre>
+      <ul>
+        <li class="fragment">El cuerpo usa <code>&lt;</code>, así que todo tipo que se pase debe tener <code>operator&lt;</code>. Ese requisito no aparece escrito en la firma.</li>
+        <li class="fragment">Cada plantilla pide solo lo que usa. Una que únicamente copie valores le exigirá a <code>T</code> ser copiable y nada más.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 8. CLASE CONCRETA ============ -->
+    <section>
+      <span class="kicker">R17 · De clase concreta a plantilla</span>
+      <h2>El punto de partida: <code>CajaDeInt</code></h2>
+      <pre data-title="caja.hpp"><code class="language-cpp" data-trim data-line-numbers="1-8|4|5|6|8">
+class CajaDeInt {
+public:
+    explicit CajaDeInt(int v) : contenido_(v) {}
+    int  ver() const  { return contenido_; }
+    void poner(int v) { contenido_ = v; }
+private:
+    int contenido_;
+};
+      </code></pre>
+      <p class="fragment">Para guardar un <code>std::string</code> harías <code>CajaDeString</code>, con las mismas cuatro líneas y otro tipo. Ese es el trabajo que la plantilla elimina.</p>
+    </section>
+
+    <!-- ============ 9. CLASE PLANTILLA ============ -->
+    <section>
+      <span class="kicker">R17 · De clase concreta a plantilla</span>
+      <h2><code>Caja&lt;T&gt;</code>: la misma clase con un tipo abierto</h2>
+      <pre data-title="caja.hpp"><code class="language-cpp" data-trim data-line-numbers="1-9|1|3-5|7|11-12">
+template &lt;typename T&gt;
+class Caja {
+public:
+    explicit Caja(const T&amp; v) : contenido_(v) {}
+    const T&amp; ver() const   { return contenido_; }
+    void poner(const T&amp; v) { contenido_ = v; }
+private:
+    T contenido_;
+};
+
+Caja&lt;int&gt; c(7);
+Caja&lt;std::string&gt; s("hola");
+      </code></pre>
+      <p class="fragment">En una clase el tipo se escribe al usarla; no hay argumentos de los que deducirlo. Los parámetros pasan a <code>const T&amp;</code> para no copiar tipos grandes.</p>
+    </section>
+
+    <!-- ============ 10. INSTANCIACIÓN ============ -->
+    <section>
+      <span class="kicker">R17 · Instanciación</span>
+      <h2>Qué hace el compilador con la plantilla</h2>
+      <svg viewBox="0 0 1100 400">
+        <rect class="svg-node-hl" x="30" y="150" width="300" height="110" rx="12"/>
+        <text class="svg-label" x="180" y="195" text-anchor="middle">Caja&lt;T&gt;</text>
+        <text class="svg-label" x="180" y="230" text-anchor="middle" style="font-size:20px;fill:#4b5260">receta, no genera código</text>
+        <g class="anim-step" data-step="1">
+          <path class="svg-edge" d="M330 185 L 700 110"/>
+          <text class="svg-label" x="510" y="120" text-anchor="middle" style="font-size:20px;fill:#4b5260">Caja&lt;int&gt; c(7);</text>
+          <rect class="svg-node" x="700" y="60" width="360" height="100" rx="12"/>
+          <text class="svg-label" x="880" y="100" text-anchor="middle">Caja&lt;int&gt;</text>
+          <text class="svg-label" x="880" y="135" text-anchor="middle" style="font-size:20px;fill:#4b5260">clase completa en el objeto</text>
+        </g>
+        <g class="anim-step" data-step="2">
+          <path class="svg-edge" d="M330 225 L 700 300"/>
+          <text class="svg-label" x="510" y="305" text-anchor="middle" style="font-size:20px;fill:#4b5260">Caja&lt;std::string&gt; s("hola");</text>
+          <rect class="svg-node" x="700" y="250" width="360" height="100" rx="12"/>
+          <text class="svg-label" x="880" y="290" text-anchor="middle">Caja&lt;std::string&gt;</text>
+          <text class="svg-label" x="880" y="325" text-anchor="middle" style="font-size:20px;fill:#4b5260">otra clase, independiente</text>
+        </g>
+      </svg>
+      <span class="fragment" data-fragment-index="1"></span>
+      <span class="fragment" data-fragment-index="2"></span>
+      <p class="fragment">Todo ocurre en compilación. Si nadie escribe <code>Caja&lt;double&gt;</code>, esa versión nunca existe en el ejecutable.</p>
+    </section>
+
+    <!-- ============ 11. CHECKPOINT 2 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="a">
+        <p class="quiz-question">En un programa que usa <code>Caja&lt;int&gt;</code> y <code>Caja&lt;std::string&gt;</code>, ¿cuántas clases genera el compilador?</p>
+        <button class="quiz-option" data-opt="a">Dos clases distintas y completas, una por cada tipo usado</button>
+        <button class="quiz-option" data-opt="b">Una sola clase que guarda el tipo en un campo y decide en ejecución</button>
+        <button class="quiz-option" data-opt="c">Ninguna: <code>Caja&lt;T&gt;</code> ya es la clase y el tipo solo se verifica</button>
+        <div class="quiz-explain"><strong>A.</strong> Cada <span class="term" data-term="instanciacion">instanciación</span> produce código propio, como si hubieras escrito <code>CajaDeInt</code> y <code>CajaDeString</code> a mano. B describe un modelo de genéricos con una sola clase compartida, como el de Java, donde el parámetro de tipo se borra al compilar y el tipo se maneja con conversiones. C confunde la plantilla con una clase: <code>Caja&lt;T&gt;</code> por sí sola no genera nada hasta que alguien la usa con un tipo.</div>
+      </div>
+    </section>
+
+    <!-- ============ 12. HEADER COMPLETO ============ -->
+    <section>
+      <span class="kicker">R17 · Dónde vive la plantilla</span>
+      <h2>Por qué la definición completa va en el header</h2>
+      <ul>
+        <li class="fragment">Para generar <code>Caja&lt;int&gt;</code>, el compilador necesita el <em>cuerpo</em> de cada método, no solo su firma.</li>
+        <li class="fragment">El compilador procesa una <span class="term" data-term="traduccion">unidad de traducción</span> a la vez (R0). Si <code>main.cpp</code> incluye una cabecera con solo las firmas, no tiene con qué generar el código.</li>
+        <li class="fragment">Poner la definición en la cabecera hace que llegue a todo archivo que la incluya, justo donde se necesita.</li>
+      </ul>
+      <div class="box-key">Las plantillas se distribuyen como código fuente: cabecera con todo adentro, sin <code>.cpp</code> propio. Por eso los archivos de la STL son enormes.</div>
+    </section>
+
+    <!-- ============ 13. TRAMPA: .CPP SEPARADO ============ -->
+    <section>
+      <span class="kicker">R17 · Trampa común</span>
+      <h2>Separar la plantilla en un <code>.cpp</code></h2>
+      <div class="cols">
+        <div>
+          <pre data-title="caja.hpp"><code class="language-cpp" data-trim>
+template &lt;typename T&gt;
+class Caja {
+public:
+    void poner(const T&amp; v);
+private:
+    T contenido_;
+};
+          </code></pre>
+        </div>
+        <div>
+          <pre data-title="caja.cpp"><code class="language-cpp" data-trim>
+#include "caja.hpp"
+
+template &lt;typename T&gt;
+void Caja&lt;T&gt;::poner(const T&amp; v) {
+    contenido_ = v;
+}
+          </code></pre>
+        </div>
+      </div>
+      <pre><code class="language-plaintext" data-trim>
+$ g++ -std=c++17 -Wall -Wextra main.cpp caja.cpp -o app
+/usr/bin/ld: main.o: in function `main':
+main.cpp:(.text+0x30): undefined reference to
+                       `Caja&lt;int&gt;::poner(int const&amp;)'
+collect2: error: ld returned 1 exit status
+      </code></pre>
+    </section>
+
+    <!-- ============ 14. CHECKPOINT 3 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="b">
+        <p class="quiz-question">¿Por qué el enlazador no encuentra <code>Caja&lt;int&gt;::poner</code> si <code>caja.cpp</code> sí se compiló y sí se pasó al comando?</p>
+        <button class="quiz-option" data-opt="a">Porque falta declarar <code>caja.cpp</code> en el header con <code>extern</code></button>
+        <button class="quiz-option" data-opt="b">Porque al compilar <code>caja.cpp</code> nadie usó <code>Caja&lt;int&gt;</code>, así que ese código nunca se generó</button>
+        <button class="quiz-option" data-opt="c">Porque los métodos de plantilla necesitan la bandera <code>-ftemplate</code></button>
+        <div class="quiz-explain"><strong>B.</strong> <code>caja.o</code> se generó correctamente y está vacío de <code>poner</code>: la plantilla solo produce código cuando alguien la instancia, y en ese archivo nadie lo hizo. <code>main.o</code> sí pidió <code>Caja&lt;int&gt;::poner</code> pero tampoco pudo generarlo, porque el header que incluyó solo traía la firma. La bandera de C no existe, y <code>extern</code> no aporta cuerpos.</div>
+      </div>
+    </section>
+
+    <!-- ============ 15. LEER EL ERROR ============ -->
+    <section>
+      <span class="kicker">R17 · Leer los errores</span>
+      <h2>Cien líneas para un solo problema</h2>
+      <pre><code class="language-plaintext" data-trim>
+$ g++ -std=c++17 orden.cpp 2&gt;&amp;1 | wc -l
+114
+
+$ g++ -std=c++17 orden.cpp 2&gt;&amp;1 | grep "error:"
+predefined_ops.h:45:23: error: no match for 'operator&lt;'
+   (operand types are 'Persona' and 'Persona')
+      </code></pre>
+      <ul>
+        <li class="fragment">Las 110 líneas restantes son la cadena <code>required from</code>: por dónde llegó el compilador desde tu <code>std::sort</code> hasta el punto que falló.</li>
+        <li class="fragment">La línea con <code>required from here</code> es la única que apunta a tu archivo. Ahí está la llamada que provocó todo.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 16. TRAMPAS COMUNES ============ -->
+    <section>
+      <span class="kicker">R17 · Trampas comunes</span>
+      <h2>Cuatro formas de perder media hora</h2>
+      <ul>
+        <li class="fragment">Definir los métodos de la plantilla en un <code>.cpp</code> y leer <code>undefined reference</code> como si faltara un archivo en el comando.</li>
+        <li class="fragment">Leer un error de plantilla de arriba hacia abajo. Conviene buscar primero <code>error:</code> y después <code>required from here</code>.</li>
+        <li class="fragment">Olvidar <code>&lt;T&gt;</code> al definir un método fuera de la clase: <code>void Caja::poner(...)</code> no compila, va <code>void Caja&lt;T&gt;::poner(...)</code>.</li>
+        <li class="fragment">Suponer que <code>Caja&lt;int&gt;</code> y <code>Caja&lt;double&gt;</code> son tipos relacionados. Son dos clases sin parentesco: no se asignan entre sí.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 17. EJERCICIO ============ -->
+    <section>
+      <span class="kicker">R17 · Ejercicio</span>
+      <h2>Convierte en plantilla la clase <code>Arreglo</code> de R13</h2>
+      <ol>
+        <li>Toma la versión con regla de tres y cambia <code>int</code> por <code>T</code> en el campo, el <code>new[]</code>, el <code>operator[]</code> y el constructor de copia.</li>
+        <li>Deja todo dentro de <code>arreglo.hpp</code>, sin archivo de implementación.</li>
+        <li>Pruébala con <code>Arreglo&lt;double&gt;</code> y con <code>Arreglo&lt;std::string&gt;</code>, copiando un objeto para verificar la copia profunda.</li>
+      </ol>
+      <div class="solucion">
+        <pre><code class="language-cpp" data-trim>
+template &lt;typename T&gt;
+class Arreglo {
+public:
+    explicit Arreglo(std::size_t n) : n_(n), datos_(new T[n]()) {}
+    Arreglo(const Arreglo&amp; o) : n_(o.n_), datos_(new T[o.n_]) {
+        for (std::size_t i = 0; i &lt; n_; ++i) datos_[i] = o.datos_[i];
+    }
+    ~Arreglo() { delete[] datos_; }
+    T&amp; operator[](std::size_t i) { return datos_[i]; }
+    std::size_t tam() const { return n_; }
+private:
+    std::size_t n_;
+    T* datos_;                 // antes: int* datos_;
+};
+        </code></pre>
+        <p class="muted">El <code>operator=</code> de la regla de tres cambia igual: <code>new T[n_]</code> en vez de <code>new int[n_]</code>. Con <code>new T[n]()</code> los elementos quedan inicializados a cero para tipos numéricos y por su constructor por omisión para clases.</p>
+      </div>
+    </section>
+
+    <!-- ============ 18. CHECKLIST ============ -->
+    <section>
+      <span class="kicker">R17 · Antes de pasar a R18</span>
+      <h2>Verifica que ya puedes</h2>
+      <ul class="checklist" data-deck="v17">
+        <li>Escribir una plantilla de función y explicar la deducción de tipos <span class="cl-ref">slide 4</span></li>
+        <li>Convertir una clase concreta en una clase con parámetro de tipo <span class="cl-ref">slide 9</span></li>
+        <li>Explicar por qué la definición completa vive en el header <span class="cl-ref">slide 12</span></li>
+        <li>Reconocer el error de enlazado de una plantilla partida en <code>.cpp</code> <span class="cl-ref">slide 13</span></li>
+        <li>Encontrar la línea útil en un error de plantilla largo <span class="cl-ref">slide 15</span></li>
+      </ul>
+      <p class="muted">Si algo sigue sin marcarse, regresa a ese slide antes de continuar.</p>
+    </section>
+
+    <!-- ============ EL COMMIT DE ESTA SESIÓN ============ -->
+    <section>
+      <span class="kicker">R17 · Tu repositorio</span>
+      <h2>El commit de esta sesión</h2>
+      <pre><code class="language-bash" data-trim>
+cd repaso-cpp
+git add r17-plantillas/
+git commit -m "R17: Arreglo convertido en plantilla"
+git push
+      </code></pre>
+      <p class="muted">Un commit por sesión. Así, cuando algo deje de compilar, <code>git diff</code> te dice exactamente qué cambiaste desde la última vez que funcionaba.</p>
+    </section>
+
+
+    <!-- ============ 19. SIGUIENTE ============ -->
+    <section class="divider">
+      <h2>Siguiente:<br>R18 · <code>std::vector</code> a fondo</h2>
+      <p class="muted">Ya sabes escribir plantillas. Ahora, la plantilla que vas a usar todos los días.</p>
+      <p><a href="../repaso/">← Volver al índice de la serie</a></p>
+    </section>
+
+    <!-- ============ 20. REFERENCIAS ============ -->
+    <section>
+      <span class="kicker">R17</span>
+      <h2>Referencias y material para profundizar</h2>
+      <div class="refs cols">
+        <div>
+          <h3>Referencias</h3>
+          <ul>
+            <li><span class="ref-type">Libro</span> Stroustrup, B. <em>A Tour of C++</em>, 3.ª ed., Addison-Wesley, 2022. Cap. 7.</li>
+            <li><span class="ref-type">Libro</span> Gregoire, M. <em>Professional C++</em>, 5.ª ed., Wiley, 2021. Cap. 12.</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Para profundizar</h3>
+          <ul>
+            <li><span class="ref-type">Web</span> <a href="https://en.cppreference.com/w/cpp/language/templates">cppreference — Templates</a> <span class="ref-nota">— la referencia que usarás todo el semestre.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://isocpp.org/wiki/faq/templates">isocpp — Templates FAQ</a> <span class="ref-nota">— responde a fondo lo del header y el <code>.cpp</code>.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://godbolt.org/">Compiler Explorer</a> <span class="ref-nota">— muestra el código que genera cada instanciación.</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script src="../js/curso-slides.js"></script>
+<script>
+  Reveal.initialize({
+    width: 1280,
+    height: 720,
+    margin: 0.06,
+    hash: true,
+    progress: true,
+    slideNumber: 'c/t',
+    controls: true,
+    transition: 'slide',
+    transitionSpeed: 'fast',
+    plugins: [ RevealHighlight ]
+  }).then(() => {
+    CursoSlides.init({
+      instanciacion: {
+        titulo: "Instanciación",
+        def: "Momento en que el compilador toma la plantilla y genera una función o clase concreta para un tipo dado, por ejemplo <code>Caja&lt;int&gt;</code>. Ocurre en compilación, solo para los tipos que el programa usa, y es también el momento en que aparecen los errores de la plantilla."
+      },
+      deduccion: {
+        titulo: "Deducción de argumentos de plantilla",
+        def: "Proceso por el cual el compilador averigua el valor de <code>T</code> comparando los argumentos de la llamada con los parámetros declarados. No aplica conversiones para lograr coincidencias: si dos argumentos deducen tipos distintos, la llamada falla. Solo aplica a plantillas de función; en clases el tipo se escribe."
+      },
+      traduccion: {
+        titulo: "Unidad de traducción",
+        def: "Un <code>.cpp</code> con todos sus <code>#include</code> ya pegados por el preprocesador. Es lo que el compilador procesa de una vez y todo lo que puede ver: nada de otro <code>.cpp</code> le llega. De ahí que una plantilla deba estar completa en la cabecera."
+      }
+    });
+  });
+</script>
+</body>
+</html>
