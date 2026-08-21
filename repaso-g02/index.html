@@ -61,24 +61,16 @@ cp -r r13-memoria arreglo_backup
 $ git log --oneline
 650683f R11: ejercicio de la sesion
 ed4156c R10: ejercicio de la sesion
-cf91ed7 R9: ejercicio de la sesion
-203e666 R8: ejercicio de la sesion
-b5cee31 R7: ejercicio de la sesion
-6f3feea R6: ejercicio de la sesion
+[...]
       </code></pre>
       <pre><code class="language-plaintext" data-trim>
 $ git show --stat 4cea4b4
-commit 4cea4b404588b2ce95bd4fecbfdba3d15e9eaa68
-Author: Estudiante &lt;e@tec.mx&gt;
-Date:   Thu Aug 20 16:28:38 2026 -0600
-
+[...]
     R0: compilacion desde la terminal
-
  .gitignore               | 10 ++++++++++
  r00-compilacion/main.cpp |  2 ++
- 2 files changed, 12 insertions(+)
       </code></pre>
-      <p class="fragment">Los siete caracteres de la izquierda son el hash abreviado del commit y sirven como su nombre en cualquier comando. <code>git show --stat</code> abre uno solo y lista qué archivos tocó.</p>
+      <p class="fragment">El hash abreviado de la izquierda nombra al commit en cualquier comando, y <code>git show --stat</code> lista qué archivos tocó ese commit.</p>
     </section>
 
     <!-- ============ 5 · GIT DIFF ============ -->
@@ -92,19 +84,13 @@ $ git diff --stat HEAD~3 HEAD
  r11-tema/main.cpp | 1 +
  3 files changed, 3 insertions(+)
       </code></pre>
-      <p><code>HEAD~3</code> significa tres commits antes del actual. Sin <code>--stat</code>, el mismo comando imprime las líneas exactas que entraron y salieron.</p>
+      <p><code>HEAD~3</code> son tres commits antes del actual. Sin <code>--stat</code>, git imprime las líneas exactas que entraron y salieron.</p>
       <pre><code class="language-plaintext" data-trim>
 $ git diff
-diff --git a/r00-compilacion/main.cpp b/r00-compilacion/main.cpp
-index 2481a48..0e9df85 100644
---- a/r00-compilacion/main.cpp
-+++ b/r00-compilacion/main.cpp
-@@ -1,2 +1,2 @@
- #include &lt;iostream&gt;
+[...]
 -int main(){ std::cout &lt;&lt; "hola\n"; }
 +int main(){ std::cot &lt;&lt; "hola\n"; }
       </code></pre>
-      <p class="fragment">Cuando algo deja de compilar, la pregunta útil no se contesta releyendo el archivo entero: se contesta comparando con el último commit que sí compilaba. Es el punto de partida de R12.</p>
     </section>
 
     <!-- ============ 6 · CHECKPOINT 1 ============ -->
@@ -123,7 +109,7 @@ index 2481a48..0e9df85 100644
     <section>
       <span class="kicker">G2 · Ramas</span>
       <h2>Una rama es un nombre que apunta a un commit</h2>
-      <svg viewBox="0 0 1120 320">
+      <svg viewBox="0 4 1120 292">
         <g class="anim-step" data-step="1">
           <rect class="svg-node" x="60" y="130" width="180" height="70" rx="10"/>
           <text class="svg-label" x="150" y="160" text-anchor="middle">cf91ed7</text>
@@ -161,7 +147,7 @@ index 2481a48..0e9df85 100644
       <span class="fragment"></span>
       <span class="fragment"></span>
       <span class="fragment"></span>
-      <p class="fragment"><span class="term" data-term="rama">Una rama</span> guarda un hash de 40 caracteres, no archivos. <span class="term" data-term="head">HEAD</span> indica en cuál de esos nombres estás parado: al hacer un commit, git escribe el commit nuevo y mueve ese nombre hacia adelante, mientras los demás se quedan donde estaban. Crear la rama <code>prueba</code> escribió un archivo de 41 bytes y no copió una sola línea del proyecto.</p>
+      <p class="fragment"><span class="term" data-term="rama">Una rama</span> guarda un hash de 40 caracteres, no archivos. <span class="term" data-term="head">HEAD</span> indica en cuál de esos nombres estás parado: al comitear, git mueve ese nombre hacia adelante y los demás se quedan donde estaban.</p>
     </section>
 
     <!-- ============ 8 · CAMBIAR DE RAMA ============ -->
@@ -169,22 +155,18 @@ index 2481a48..0e9df85 100644
       <span class="kicker">G2 · Ramas</span>
       <h2>Cambiar de rama cambia los archivos del disco</h2>
       <pre><code class="language-plaintext" data-trim>
-$ git switch -c sin-regla-de-tres
+$ git switch -c sin-regla-de-tres    # creas r13-memoria/ y la comiteas
 Switched to a new branch 'sin-regla-de-tres'
-
-# creas r13-memoria/, la compilas y haces commit
-
 $ git switch main
 Switched to branch 'main'
-
 $ git branch
 * main
   sin-regla-de-tres
       </code></pre>
       <ul>
-        <li class="fragment">Al volver a <code>main</code>, la carpeta <code>r13-memoria</code> ya no está en el disco. Con <code>git switch sin-regla-de-tres</code> reaparece completa. Los archivos viven dentro del repositorio y git reescribe tu carpeta de trabajo en cada cambio de rama.</li>
+        <li class="fragment">Al volver a <code>main</code>, <code>r13-memoria</code> ya no está en el disco; con <code>git switch sin-regla-de-tres</code> reaparece completa.</li>
         <li class="fragment"><code>git branch</code> lista los nombres y marca con <code>*</code> aquel al que apunta HEAD.</li>
-        <li class="fragment">Lo que no está comiteado no está guardado: git intenta arrastrarlo a la otra rama y, si estorba, se niega a cambiar. Comitea antes de moverte.</li>
+        <li class="fragment">Comitea antes de moverte: git se niega si el cambio suelto estorba.</li>
       </ul>
     </section>
 
@@ -215,7 +197,7 @@ $ git log --oneline --graph --all
       <ul>
         <li class="fragment">Cada <code>*</code> es un commit. La columna en la que aparece indica a qué línea de trabajo pertenece.</li>
         <li class="fragment">La barra <code>|/</code> marca el punto donde las dos ramas se separaron: <code>650683f</code>, el commit de R11, es el ancestro común.</li>
-        <li class="fragment">Sin <code>--all</code>, git solo dibuja la historia alcanzable desde la rama actual y la otra rama no aparece.</li>
+        <li class="fragment">Sin <code>--all</code>, git solo dibuja la historia de la rama actual.</li>
       </ul>
     </section>
 
@@ -226,9 +208,7 @@ $ git log --oneline --graph --all
       <pre><code class="language-plaintext" data-trim>
 $ git diff sin-regla-de-tres con-regla-de-tres
 diff --git a/r13-memoria/arreglo.h b/r13-memoria/arreglo.h
-index ad22530..5e91cce 100644
---- a/r13-memoria/arreglo.h
-+++ b/r13-memoria/arreglo.h
+[...]
 @@ -1,6 +1,8 @@
  class Arreglo {
  public:
@@ -236,10 +216,8 @@ index ad22530..5e91cce 100644
 +    Arreglo(const Arreglo&amp; o);
 +    Arreglo&amp; operator=(const Arreglo&amp; o);
      ~Arreglo() { delete[] datos_; }
- private:
-     int  n_;
       </code></pre>
-      <p class="fragment">El orden de los argumentos importa: <code>git diff A B</code> describe cómo pasar de A a B, así que las líneas con <code>+</code> están en B y faltan en A. Aquí la diferencia entre las dos ramas son las dos declaraciones que R13 llama regla de tres.</p>
+      <p class="fragment">El orden importa: <code>git diff A B</code> describe cómo pasar de A a B; aquí, las dos declaraciones de la regla de tres están en B.</p>
     </section>
 
     <!-- ============ 12 · MERGE SIN CONFLICTO ============ -->
@@ -247,9 +225,6 @@ index ad22530..5e91cce 100644
       <span class="kicker">G2 · Fusionar</span>
       <h2>Fusionar cuando main no avanzó</h2>
       <pre><code class="language-plaintext" data-trim>
-$ git switch main
-Switched to branch 'main'
-
 $ git merge con-regla-de-tres
 Updating 650683f..9c559d7
 Fast-forward
@@ -258,7 +233,7 @@ Fast-forward
  create mode 100644 r13-memoria/arreglo.h
       </code></pre>
       <ul>
-        <li class="fragment">Desde que nació la rama, <code>main</code> no recibió commits propios, así que su historia está contenida en la de la otra rama.</li>
+        <li class="fragment">Estás en <code>main</code>, que no recibió commits propios desde que nació la rama: su historia está contenida en la de la otra.</li>
         <li class="fragment">Git no combina nada: mueve el nombre <code>main</code> hasta <code>9c559d7</code>. Eso es un <span class="term" data-term="ff">fast-forward</span>, y por eso no aparece ningún commit de fusión en el <code>git log</code>.</li>
       </ul>
     </section>
@@ -284,21 +259,17 @@ $ git merge prueba-a
 Auto-merging r13-memoria/demo.cpp
 CONFLICT (content): Merge conflict in r13-memoria/demo.cpp
 Automatic merge failed; fix conflicts and then commit the result.
-
 $ git status --short
 UU r13-memoria/demo.cpp
       </code></pre>
-      <pre data-title="r13-memoria/demo.cpp"><code class="language-cpp" data-trim>
-#include &lt;iostream&gt;
-int main() {
+      <pre><code class="language-cpp" data-trim>
 &lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
     std::cout &lt;&lt; "version con delete\n";
 =======
     std::cout &lt;&lt; "version con delete[]\n";
 &gt;&gt;&gt;&gt;&gt;&gt;&gt; prueba-a
-}
       </code></pre>
-      <p class="fragment"><code>UU</code> marca el archivo como no fusionado. Git combinó todo lo que pudo y se detuvo en las líneas que no supo decidir.</p>
+      <p class="fragment"><code>UU</code> marca el archivo como no fusionado.</p>
     </section>
 
     <!-- ============ 15 · RESOLVER EL CONFLICTO ============ -->
@@ -306,9 +277,8 @@ int main() {
       <span class="kicker">G2 · Conflictos</span>
       <h2>Resolver es editar el archivo y cerrar el merge</h2>
       <ul>
-        <li class="fragment"><code>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</code> abre el bloque. Lo que sigue es la versión de la rama donde estabas parado.</li>
-        <li class="fragment"><code>=======</code> separa las dos versiones; debajo va la de la rama que estás fusionando, y <code>&gt;&gt;&gt;&gt;&gt;&gt;&gt; prueba-a</code> cierra el bloque con su nombre.</li>
-        <li class="fragment">Abre el archivo, deja el código que quieres —una versión, la otra o una mezcla— y borra las tres marcas. Después, <span class="term" data-term="conflicto">el conflicto</span> se cierra igual que cualquier cambio.</li>
+        <li class="fragment"><code>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</code> abre el bloque con tu versión; bajo <code>=======</code> va la de la otra rama, y <code>&gt;&gt;&gt;&gt;&gt;&gt;&gt; prueba-a</code> lo cierra.</li>
+        <li class="fragment">Deja el código que quieres —una versión, la otra o una mezcla—, borra las tres marcas y cierra <span class="term" data-term="conflicto">el conflicto</span> como cualquier cambio.</li>
       </ul>
       <pre><code class="language-plaintext" data-trim>
 $ git add r13-memoria/demo.cpp
@@ -319,9 +289,7 @@ $ git log --oneline --graph
 | * 5fc24b8 R13: prueba con delete[]
 * | 28a9d25 R13: prueba con delete
 |/
-* edcf2df R13: demo base
       </code></pre>
-      <p class="muted">Si el conflicto se complica, <code>git merge --abort</code> cancela la fusión y deja el proyecto como estaba antes de empezarla.</p>
     </section>
 
     <!-- ============ 16 · REVERT ============ -->
@@ -336,9 +304,9 @@ $ git revert --no-edit 650683f
  delete mode 100644 r11-tema/main.cpp
       </code></pre>
       <ul>
-        <li class="fragment">Git calcula el cambio inverso del commit señalado y lo graba como un commit nuevo, <code>4f155c6</code>. El original sigue en <code>git log</code>, con su fecha y su mensaje.</li>
-        <li class="fragment"><code>git reset --hard</code> hace algo distinto: mueve el nombre de la rama hacia atrás y descarta los commits posteriores en tu copia.</li>
-        <li class="fragment">Sobre historia ya publicada eso obliga a <code>git push --force</code>, que reemplaza en el servidor commits que otros ya descargaron. Quien tenga esa rama se queda con una historia que ya no existe.</li>
+        <li class="fragment">Git calcula el cambio inverso y lo graba como un commit nuevo, <code>4f155c6</code>; el original sigue en <code>git log</code>.</li>
+        <li class="fragment"><code>git reset --hard</code> mueve el nombre de la rama hacia atrás y descarta los commits posteriores en tu copia.</li>
+        <li class="fragment">Sobre historia publicada eso obliga a <code>git push --force</code>, que reemplaza commits que otros ya descargaron.</li>
       </ul>
     </section>
 
@@ -361,20 +329,15 @@ $ git revert --no-edit 650683f
       <pre><code class="language-plaintext" data-trim>
 $ git checkout 6827b8f
 Note: switching to '6827b8f'.
-
-You are in 'detached HEAD' state. You can look around, make experimental
-changes and commit them, and you can discard any commits you make in this
-state without impacting any branches by switching back to a branch.
-
+You are in 'detached HEAD' state. You can look around, make [...]
 $ git switch -
-Previous HEAD position was 6827b8f R13: demo base
 Switched to branch 'main'
       </code></pre>
       <ul>
-        <li class="fragment">Visitar un commit por su hash deja HEAD sin rama. Los commits que hagas ahí no tienen nombre que los alcance. <code>git switch -</code> regresa a donde estabas.</li>
-        <li class="fragment">Borrar una rama sin fusionar: <code>error: The branch 'sin-regla-de-tres' is not fully merged.</code> La <code>-d</code> minúscula es la protección; <code>-D</code> la ignora.</li>
-        <li class="fragment">Comitear el archivo con las marcas adentro. El compilador falla en la línea de <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</code>, que no es C++, y el mensaje no menciona git por ningún lado.</li>
-        <li class="fragment">Creer que borrar una rama borra sus commits. Si ya la fusionaste, sus commits viven en la historia de <code>main</code>; se va el nombre, no el trabajo.</li>
+        <li class="fragment">Visitar un commit por su hash deja <span class="term" data-term="head">HEAD</span> sin rama.</li>
+        <li class="fragment">Borrar una rama sin fusionar: <code>error: The branch [...] is not fully merged.</code> La <code>-d</code> protege.</li>
+        <li class="fragment">Comitear el archivo con las marcas de conflicto adentro.</li>
+        <li class="fragment">Creer que borrar una rama fusionada borra sus commits.</li>
       </ul>
     </section>
 

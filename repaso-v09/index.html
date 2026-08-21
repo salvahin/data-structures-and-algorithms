@@ -91,7 +91,7 @@ Ana: -5 anios, promedio 140
     <section>
       <span class="kicker">R9 · Cerrar el acceso</span>
       <h2>Reducir los sospechosos a uno</h2>
-      <pre data-title="estudiante.hpp"><code class="language-cpp" data-trim data-line-numbers="1-3|4-8|11-12">
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-3|4-8|10-11">
 class Estudiante {
 public:
     // aqui iran los metodos
@@ -100,7 +100,6 @@ private:
     int edad = 18;
     double promedio = 0.0;
 };
-
 int main() {
     Estudiante a;
     a.edad = -5;   // error: 'int Estudiante::edad' is private
@@ -108,7 +107,7 @@ int main() {
       </code></pre>
       <ul>
         <li class="fragment">Con <code>private</code>, el único código que puede escribir en <code>edad</code> son los métodos de la propia clase. El compilador rechaza lo demás.</li>
-        <li class="fragment">La búsqueda del promedio de 140 pasa de 2000 líneas a las pocas que forman la clase.</li>
+        <li class="fragment">La búsqueda pasa de 2000 líneas a las pocas de la clase.</li>
       </ul>
     </section>
 
@@ -116,13 +115,12 @@ int main() {
     <section>
       <span class="kicker">R9 · Cerrar el acceso</span>
       <h2>La puerta con un guardia</h2>
-      <pre data-title="estudiante.hpp"><code class="language-cpp" data-trim data-line-numbers="3-7|8|9-13">
+      <pre><code class="language-cpp" data-trim data-line-numbers="3-6|7|8-12">
 class Estudiante {
 public:
     bool asignarEdad(int e) {
         if (e &lt; 15 || e &gt; 99) return false;
-        edad = e;
-        return true;
+        edad = e; return true;
     }
     int obtenerEdad() const { return edad; }
 private:
@@ -132,8 +130,8 @@ private:
 };
       </code></pre>
       <ul>
-        <li class="fragment">El método revisa el rango antes de tocar el campo y devuelve <code>false</code> cuando el valor no sirve. El objeto nunca queda en un estado imposible.</li>
-        <li class="fragment"><code>const</code> al final de <code>obtenerEdad</code> promete que el método no modifica el objeto. El compilador lo verifica.</li>
+        <li class="fragment">El método revisa el rango antes de tocar el campo y devuelve <code>false</code> si el valor no sirve.</li>
+        <li class="fragment"><code>const</code> promete que el método no modifica el objeto.</li>
       </ul>
     </section>
 
@@ -141,7 +139,7 @@ private:
     <section>
       <span class="kicker">R9 · Cerrar el acceso</span>
       <h2>El estado inválido deja de ser alcanzable</h2>
-      <pre data-title="main.cpp"><code class="language-cpp" data-trim>
+      <pre><code class="language-cpp" data-trim>
 Estudiante a;
 std::cout &lt;&lt; a.asignarEdad(-5) &lt;&lt; ' '
           &lt;&lt; a.obtenerEdad() &lt;&lt; '\n';    // 0 18
@@ -151,7 +149,7 @@ std::cout &lt;&lt; a.asignarEdad(20) &lt;&lt; ' '
       <ul>
         <li class="fragment">La asignación inválida se rechaza y el objeto conserva el valor que tenía. Quien llama recibe un <code>false</code> y decide qué hacer.</li>
         <li class="fragment">Los valores escritos junto a cada campo privado son inicializadores por omisión: el objeto nace válido, antes de que nadie lo toque.</li>
-        <li class="fragment">En R10 esa inicialización pasa al constructor, que además permite exigir los datos al crear el objeto.</li>
+        <li class="fragment">En R10 esa inicialización pasa al constructor.</li>
       </ul>
     </section>
 
@@ -190,20 +188,19 @@ int main() {
     <section>
       <span class="kicker">R9 · Abstracción</span>
       <h2>Decidir qué se expone</h2>
-      <pre data-title="termostato.hpp"><code class="language-cpp" data-trim data-line-numbers="2-5|6-7">
+      <pre><code class="language-cpp" data-trim data-line-numbers="2-5|6">
 class Termostato {
 public:
     void subir()      { if (grados &lt; 30) grados++; }
     void bajar()      { if (grados &gt; 15) grados--; }
     int  leer() const { return grados; }
-private:
-    int grados = 21;
+private:  int grados = 21;
 };
       </code></pre>
       <ul>
         <li class="fragment"><span class="term" data-term="abstraccion">La abstracción</span> es la decisión de qué operaciones ofrece el tipo. Aquí son tres verbos del problema: subir, bajar, leer.</li>
-        <li class="fragment">Quien usa <code>Termostato</code> no necesita saber que la temperatura se guarda en un <code>int</code> en grados enteros. Ese detalle puede cambiar a <code>double</code> sin tocar el código que lo usa.</li>
-        <li class="fragment">La parte pública es el vocabulario con el que se habla del objeto. Lo que quede fuera de ella no existe para el resto del programa.</li>
+        <li class="fragment">Quien usa <code>Termostato</code> no necesita saber que la temperatura es un <code>int</code>, y ese detalle puede cambiar.</li>
+        <li class="fragment">La parte pública es el vocabulario para hablar del objeto.</li>
       </ul>
     </section>
 
@@ -235,22 +232,20 @@ private:
     <section>
       <span class="kicker">R9 · Encapsulamiento</span>
       <h2>Getters y setters para todo</h2>
-      <pre data-title="lo que no encapsula"><code class="language-cpp" data-trim>
+      <pre><code class="language-cpp" data-trim>
 class Estudiante {
+    int edad; double promedio;
 public:
     void setEdad(int e)        { edad = e; }
     int  getEdad() const       { return edad; }
     void setPromedio(double p) { promedio = p; }
     double getPromedio() const { return promedio; }
-private:
-    int edad;
-    double promedio;
 };
       </code></pre>
       <ul>
-        <li class="fragment">Un setter sin validación deja pasar exactamente los mismos valores que el campo público. <code>e.setEdad(-5)</code> funciona igual que <code>e.edad = -5</code>.</li>
-        <li class="fragment">Cada par de métodos que no filtra nada agrega líneas y no agrega garantías.</li>
-        <li class="fragment">El criterio es al revés: primero se escriben los invariantes, y solo entonces se decide qué operaciones se ofrecen para modificar el objeto sin romperlos.</li>
+        <li class="fragment"><code>e.setEdad(-5)</code> hace lo mismo que <code>e.edad = -5</code>.</li>
+        <li class="fragment">Cada par que no filtra nada agrega líneas y ninguna garantía.</li>
+        <li class="fragment">Primero se escriben los invariantes, luego las operaciones.</li>
       </ul>
     </section>
 
@@ -282,12 +277,11 @@ private:
     <section>
       <span class="kicker">R9 · Ejercicio</span>
       <h2>Tres invariantes que hay que sostener</h2>
-      <pre data-title="reserva.cpp"><code class="language-cpp" data-trim>
+      <pre><code class="language-cpp" data-trim>
 struct Reserva {
     std::string sala;   // invariante 1: no vacia
     int personas;       // invariante 2: entre 1 y 20
-    int horaInicio;     // invariante 3: 0 &lt;= inicio &lt; fin &lt;= 23
-    int horaFin;
+    int horaInicio, horaFin;   // inv. 3: 0 &lt;= inicio &lt; fin &lt;= 23
 };
       </code></pre>
       <p class="muted">Conviértelo en clase e impide cada violación. El tercer invariante relaciona dos campos, así que no puede sostenerse con un setter por campo.</p>

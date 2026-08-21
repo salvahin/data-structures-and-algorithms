@@ -42,13 +42,11 @@
     <section>
       <span class="kicker">R13 · Punto de partida</span>
       <h2>Este programa imprime bien y luego aborta</h2>
-      <pre data-title="arreglo.cpp"><code class="language-cpp" data-trim data-line-numbers="4|6-9">
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-5|3">
 int main() {
-    Arreglo a(3);
-    a.set(0, 10);
+    Arreglo a(3);   a.set(0, 10);
     Arreglo b = a;
-    std::cout &lt;&lt; "b[0] = " &lt;&lt; b.get(0) &lt;&lt; std::endl;
-    std::cout &lt;&lt; "fin de main" &lt;&lt; std::endl;
+    std::cout &lt;&lt; "b[0] = " &lt;&lt; b.get(0) &lt;&lt; "\n" &lt;&lt; "fin de main\n";
 }
       </code></pre>
       <pre><code class="language-plaintext" data-trim>
@@ -60,7 +58,7 @@ libero 0xb5f848ab0eb0
 free(): double free detected in tcache 2
 Aborted (core dumped)
       </code></pre>
-      <p class="fragment">Se reservó una vez y se liberó dos, con la misma dirección. La línea culpable es <code>Arreglo b = a;</code>, que no hace nada visiblemente peligroso.</p>
+      <p class="fragment">Una reserva, dos liberaciones. La culpable es <code>Arreglo b = a;</code>.</p>
     </section>
 
     <!-- ============ 4 · EL MONTÍCULO ============ -->
@@ -116,35 +114,32 @@ delete p;                  delete[] v;
     <section>
       <span class="kicker">R13 · Fugas</span>
       <h2>Una fuga no se nota, se mide</h2>
-      <pre data-title="fuga.cpp"><code class="language-cpp" data-trim>
+      <pre><code class="language-cpp" data-trim>
 int main() {
-    int* v = new int[100];
-    v[0] = 7;
+    int* v = new int[100];   v[0] = 7;
     std::cout &lt;&lt; v[0] &lt;&lt; "\n";
     return 0;               // falta delete[] v;
 }
       </code></pre>
       <pre><code class="language-plaintext" data-trim>
-$ g++ -std=c++17 -g -fsanitize=address fuga.cpp -o fuga
 $ ./fuga
 7
 ==9==ERROR: LeakSanitizer: detected memory leaks
 Direct leak of 400 byte(s) in 1 object(s) allocated from:
     #1 0xb3c7217a0d60 in main /tmp/fuga.cpp:3
-SUMMARY: AddressSanitizer: 400 byte(s) leaked in 1 allocation(s)
+[...]
       </code></pre>
-      <p class="fragment">El programa imprime <code>7</code> y termina con éxito. Sin instrumentación no hay síntoma alguno; en un ciclo de un millón de iteraciones, el síntoma es que la computadora se queda sin memoria.</p>
+      <p class="fragment">Sin instrumentación no hay síntoma hasta quedarse sin memoria.</p>
     </section>
 
     <!-- ============ 7 · RAII ============ -->
     <section>
       <span class="kicker">R13 · RAII</span>
       <h2>El constructor adquiere, el destructor libera</h2>
-      <p>La técnica se llama <span class="term" data-term="raii">RAII</span>. Consiste en amarrar la vida de un recurso a la vida de un objeto: si el objeto existe, el recurso está reservado; cuando el objeto muere, el destructor lo suelta. Como C++ garantiza que el destructor corre al salir del ámbito, la liberación deja de depender de que alguien se acuerde.</p>
-      <pre data-title="arreglo.h"><code class="language-cpp" data-trim data-line-numbers="5|6">
+      <p><span class="term" data-term="raii">RAII</span> amarra la vida del recurso a la de un objeto. C++ garantiza que el destructor corre al salir del ámbito, así que liberar deja de depender de que alguien se acuerde.</p>
+      <pre><code class="language-cpp" data-trim data-line-numbers="4|5">
 class Arreglo {
-    int* datos;
-    int n;
+    int* datos;   int n;
 public:
     Arreglo(int tam) : datos(new int[tam]), n(tam) {}
     ~Arreglo() { delete[] datos; }
@@ -153,7 +148,7 @@ public:
     int tam() const { return n; }
 };
       </code></pre>
-      <p class="fragment">Con estas dos líneas, la fuga del slide anterior es imposible: no hay camino de salida de la función que no pase por el destructor.</p>
+      <p class="fragment">Con estas dos líneas la fuga del slide anterior es imposible.</p>
     </section>
 
     <!-- ============ 8 · CHECKPOINT 2 ============ -->
@@ -172,7 +167,7 @@ public:
     <section>
       <span class="kicker">R13 · Copia superficial</span>
       <h2><code>Arreglo b = a;</code> copia la dirección, no el bloque</h2>
-      <svg viewBox="0 0 1120 330">
+      <svg viewBox="0 0 1120 316">
         <g class="anim-step" data-step="1">
           <rect class="svg-node-hl" x="40" y="40" width="260" height="80" rx="8"/>
           <text class="svg-label" x="170" y="88" text-anchor="middle">a.datos</text>
@@ -191,21 +186,21 @@ public:
           <text class="svg-label" x="850" y="170" text-anchor="middle" style="fill:#b3261e">~b libera el bloque</text>
         </g>
         <g class="anim-step" data-step="4">
-          <text class="svg-label" x="850" y="310" text-anchor="middle" style="fill:#b3261e">~a lo libera otra vez: doble delete</text>
+          <text class="svg-label" x="850" y="305" text-anchor="middle" style="fill:#b3261e">~a lo libera otra vez: doble delete</text>
         </g>
       </svg>
       <span class="fragment"></span>
       <span class="fragment"></span>
       <span class="fragment"></span>
       <span class="fragment"></span>
-      <p class="fragment">Como <code>Arreglo</code> no define constructor de copia, el compilador genera uno que copia miembro por miembro. Copiar un <code>int*</code> miembro a miembro es copiar la dirección: los dos objetos quedan apuntando al mismo bloque, y los dos destructores lo liberan.</p>
+      <p class="fragment">Sin constructor de copia, el compilador genera uno que copia miembro a miembro. Copiar un <code>int*</code> es copiar la dirección: los dos destructores liberan el mismo bloque.</p>
     </section>
 
     <!-- ============ 10 · COPIA PROFUNDA ============ -->
     <section>
       <span class="kicker">R13 · Copia profunda</span>
       <h2>Cada objeto con su propio bloque</h2>
-      <svg viewBox="0 0 1120 330">
+      <svg viewBox="0 0 1120 316">
         <g class="anim-step" data-step="1">
           <rect class="svg-node-hl" x="40" y="40" width="260" height="80" rx="8"/>
           <text class="svg-label" x="170" y="88" text-anchor="middle">a.datos</text>
@@ -223,13 +218,13 @@ public:
           <text class="svg-label" x="850" y="248" text-anchor="middle">[ 10 | ? | ? ]  otra dirección</text>
         </g>
         <g class="anim-step" data-step="3">
-          <text class="svg-label" x="560" y="318" text-anchor="middle">cada destructor libera el suyo</text>
+          <text class="svg-label" x="560" y="305" text-anchor="middle">cada destructor libera el suyo</text>
         </g>
       </svg>
       <span class="fragment"></span>
       <span class="fragment"></span>
       <span class="fragment"></span>
-      <p class="fragment">La <span class="term" data-term="superficial">copia profunda</span> reserva un bloque nuevo del mismo tamaño y transfiere los valores uno por uno. Cuesta más, y es la única forma de que <code>a</code> y <code>b</code> sean independientes: modificar uno deja de afectar al otro.</p>
+      <p class="fragment">La <span class="term" data-term="superficial">copia profunda</span> reserva un bloque nuevo del mismo tamaño y transfiere los valores uno por uno. Cuesta más, y es la única forma de que <code>a</code> y <code>b</code> sean independientes.</p>
     </section>
 
     <!-- ============ 11 · CHECKPOINT 3 ============ -->
@@ -264,7 +259,7 @@ Arreglo(const Arreglo&amp; otro) : datos(new int[otro.n]), n(otro.n) {
     <section>
       <span class="kicker">R13 · Asignación</span>
       <h2><code>a = b</code> es un caso distinto: <code>a</code> ya tiene un bloque</h2>
-      <pre data-title="arreglo.h"><code class="language-cpp" data-trim data-line-numbers="2|3|4-6|7">
+      <pre><code class="language-cpp" data-trim data-line-numbers="2|3|4-6|7">
 Arreglo&amp; operator=(const Arreglo&amp; otro) {
     if (this == &amp;otro) return *this;
     delete[] datos;
@@ -275,9 +270,9 @@ Arreglo&amp; operator=(const Arreglo&amp; otro) {
 }
       </code></pre>
       <ul>
-        <li class="fragment">La primera línea protege contra <code>a = a</code>. Sin ella, el <code>delete[]</code> destruiría el bloque del que se va a copiar.</li>
+        <li class="fragment">La primera línea protege contra <code>a = a</code>: sin ella el <code>delete[]</code> destruye el bloque del que se va a copiar.</li>
         <li class="fragment">Hay que liberar lo viejo antes de reservar lo nuevo; omitirlo deja una fuga en cada asignación.</li>
-        <li class="fragment">Devolver <code>Arreglo&amp;</code> permite encadenar <code>a = b = c</code>, que es como se comportan los tipos básicos.</li>
+        <li class="fragment">Devolver <code>Arreglo&amp;</code> permite encadenar <code>a = b = c</code>.</li>
       </ul>
     </section>
 
@@ -297,7 +292,7 @@ Arreglo&amp; operator=(const Arreglo&amp; otro) {
     <section>
       <span class="kicker">R13 · Regla de tres</span>
       <h2>Si escribes una, escribe las tres</h2>
-      <p>La <span class="term" data-term="regla3">regla de tres</span> dice que una clase que necesita cualquiera de estas tres funciones casi siempre necesita las otras dos, porque las tres responden a la misma causa: la clase administra un recurso que el compilador no sabe copiar ni liberar.</p>
+      <p>La <span class="term" data-term="regla3">regla de tres</span>: quien necesita una de las tres necesita las otras dos, porque la clase administra un recurso que el compilador no sabe copiar ni liberar.</p>
       <table>
         <tr><th>Función</th><th>Cuándo corre</th><th>Qué hace con el bloque</th></tr>
         <tr><td><code>~Arreglo()</code></td><td>Al morir el objeto</td><td>Lo libera</td></tr>
@@ -309,8 +304,6 @@ $ ./arreglo_completo
 a[0] = 10
 b[0] = 99      &lt;- modificar b ya no toca a a
 c[0] = 10 tam 3
-$ echo $?
-0
       </code></pre>
     </section>
 
@@ -318,16 +311,15 @@ $ echo $?
     <section>
       <span class="kicker">R13 · Depuración</span>
       <h2>Mirar el puntero en el panel de variables</h2>
-      <p>Pon un punto de interrupción antes y después del <code>delete</code>, y observa las dos columnas del panel: la del puntero y la del valor apuntado. En VS Code, expandir un <code>int*</code> muestra la dirección; escribir <code>*p</code> en la sección de expresiones vigiladas muestra el contenido.</p>
-      <pre><code class="language-plaintext" data-trim data-line-numbers="1-2|3|4">
+      <p>Pon un punto de interrupción antes y después del <code>delete</code>.</p>
+      <pre><code class="language-plaintext" data-trim data-line-numbers="1-2|3">
 p    = 0xc64132b61eb0
 *p   = 42
 p    = 0xc64132b61eb0   despues de delete p;  (sin cambio)
-p    = 0                despues de p = nullptr;
       </code></pre>
       <ul>
-        <li class="fragment"><code>delete</code> no modifica el puntero. La variable sigue guardando la misma dirección, ahora de un bloque que ya no te pertenece: un <span class="term" data-term="colgante">puntero colgante</span>.</li>
-        <li class="fragment">Leer <code>*p</code> después del <code>delete</code> suele devolver el valor anterior durante un rato, hasta que otra reserva ocupa ese espacio. Por eso el error parece intermitente.</li>
+        <li class="fragment"><code>delete</code> no modifica el puntero: sigue apuntando a un bloque ajeno, un <span class="term" data-term="colgante">puntero colgante</span>.</li>
+        <li class="fragment">Leer <code>*p</code> tras el <code>delete</code> devuelve el valor viejo un rato, y el error parece intermitente.</li>
         <li class="fragment">Asignar <code>p = nullptr;</code> convierte un error silencioso en una falla inmediata y reproducible.</li>
       </ul>
     </section>
@@ -350,7 +342,7 @@ freed by thread T0 here:
     #1 0xc3f3f5e61974 in Arreglo::~Arreglo() arreglo.cpp:11
     #2 0xc3f3f5e6161c in main arreglo.cpp:22
       </code></pre>
-      <p class="fragment">La salida trae las dos liberaciones: la que falla y la que ocurrió primero, cada una con archivo y línea. Compárala con <code>free(): double free detected in tcache 2</code>, que es todo lo que da el programa sin instrumentar. El costo es un binario dos o tres veces más lento, aceptable para desarrollo.</p>
+      <p class="fragment">La salida trae las dos liberaciones: la que falla y la que ocurrió primero, cada una con archivo y línea. Compárala con <code>free(): double free detected in tcache 2</code>, que es todo lo que da el programa sin instrumentar.</p>
     </section>
 
     <!-- ============ 18 · CHECKPOINT 5 ============ -->
@@ -373,7 +365,7 @@ freed by thread T0 here:
         <li class="fragment">Liberar con <code>delete</code> lo reservado con <code>new[]</code>. Compila sin una advertencia y produce <code>alloc-dealloc-mismatch (operator new [] vs operator delete)</code> bajo el sanitizer.</li>
         <li class="fragment">No poner el puntero en <code>nullptr</code> después de liberarlo, y llamar <code>delete</code> una segunda vez. Sobre <code>nullptr</code>, <code>delete</code> es una operación válida que no hace nada.</li>
         <li class="fragment">Devolver un objeto con memoria propia por valor sin haber escrito el constructor de copia.</li>
-        <li class="fragment">Escribir el destructor y dar por terminado el trabajo. Sin las otras dos funciones, el destructor correcto es justamente lo que provoca el doble <code>delete</code>.</li>
+        <li class="fragment">Escribir el destructor y parar ahí. Sin las otras dos, el destructor correcto es lo que provoca el doble <code>delete</code>.</li>
       </ul>
     </section>
 
@@ -382,9 +374,9 @@ freed by thread T0 here:
       <span class="kicker">R13 · Ejercicio</span>
       <h2>La clase <code>Arreglo</code>, en dos versiones</h2>
       <ol>
-        <li>Escribe <code>Arreglo</code> con constructor, destructor, <code>set</code>, <code>get</code> y <code>tam</code>, imprimiendo la dirección en el constructor y en el destructor. Prueba con <code>Arreglo b = a;</code> hasta que aborte.</li>
-        <li>Recompila con <code>-fsanitize=address</code> y localiza las dos liberaciones en la salida.</li>
-        <li>Agrega constructor de copia y <code>operator=</code>, y comprueba que <code>b.set(0, 99)</code> ya no altera <code>a</code>.</li>
+        <li>Escribe <code>Arreglo</code> con constructor, destructor, <code>set</code>, <code>get</code> y <code>tam</code>, imprimiendo la dirección en ambos.</li>
+        <li>Prueba <code>Arreglo b = a;</code> hasta que aborte y localiza las dos liberaciones con <code>-fsanitize=address</code>.</li>
+        <li>Agrega constructor de copia y <code>operator=</code>: <code>b.set(0, 99)</code> ya no debe alterar <code>a</code>.</li>
       </ol>
       <div class="solucion">
         <pre><code class="language-cpp" data-trim>
@@ -393,15 +385,12 @@ Arreglo(const Arreglo&amp; otro) : datos(new int[otro.n]), n(otro.n) {
 }
 Arreglo&amp; operator=(const Arreglo&amp; otro) {
     if (this == &amp;otro) return *this;
-    delete[] datos;
-    n = otro.n;
-    datos = new int[n];
+    delete[] datos;   n = otro.n;   datos = new int[n];
     for (int i = 0; i &lt; n; ++i) datos[i] = otro.datos[i];
     return *this;
 }
-~Arreglo() { delete[] datos; }
         </code></pre>
-        <p class="muted">Compilado con <code>g++ -std=c++17 -Wall -Wextra -fsanitize=address</code>, el programa termina con código de salida 0 y sin reportes del sanitizer. Ese es el criterio de correcto en este ejercicio.</p>
+        <p class="muted">Con <code>-Wall -Wextra -fsanitize=address</code>, el programa debe salir con código 0 y sin reportes del sanitizer.</p>
       </div>
     </section>
 
@@ -409,22 +398,19 @@ Arreglo&amp; operator=(const Arreglo&amp; otro) {
     <section>
       <span class="kicker">R13 · Hacia Estructuras de Datos</span>
       <h2>Una lista encadenada es esta misma clase</h2>
-      <pre data-title="lista.h"><code class="language-cpp" data-trim>
+      <pre><code class="language-cpp" data-trim>
 struct Nodo {
     int dato;
     Nodo* siguiente;
 };
-
 class Lista {
     Nodo* cabeza;
-    // reserva cada nodo con new, los enlaza,
-    // y el destructor los recorre liberandolos con delete
+    // cada nodo con new; el destructor los recorre y hace delete
 };
       </code></pre>
       <ul>
-        <li class="fragment">Copiar una <code>Lista</code> sin constructor de copia deja dos listas compartiendo los mismos nodos, y el segundo destructor los libera por segunda vez.</li>
+        <li class="fragment">Copiar una <code>Lista</code> sin constructor de copia deja dos listas con los mismos nodos, y el segundo destructor los libera otra vez.</li>
         <li class="fragment">Lo mismo aplica a los árboles y a los grafos del curso: cambia el número de punteros por nodo, no el problema.</li>
-        <li class="fragment">Cada estructura que implementes en el semestre lleva su regla de tres. Los errores de esas prácticas serán los de esta sesión.</li>
       </ul>
     </section>
 

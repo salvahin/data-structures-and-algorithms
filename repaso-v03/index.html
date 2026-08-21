@@ -41,9 +41,7 @@
     <section>
       <span class="kicker">R3 · Punto de partida</span>
       <h2>Teclea una letra y el programa se vuelve loco</h2>
-      <pre data-title="edad.cpp"><code class="language-cpp" data-trim>
-#include &lt;iostream&gt;
-
+      <pre><code class="language-cpp" data-trim>
 int main() {
     int edad = 0;
     while (edad &lt;= 0) {
@@ -57,17 +55,14 @@ int main() {
 Edad: veinte
 Edad: Edad: Edad: Edad: Edad: Edad: Edad: Edad: Edad: …
       </code></pre>
-      <p class="fragment">El programa dejó de pedir datos y ya no se detiene. No hay error de compilación, no hay excepción, no hay mensaje. Solo un ciclo que gira para siempre.</p>
+      <p class="fragment">El programa dejó de pedir datos y ya no se detiene. No hay error de compilación, ni excepción, ni mensaje.</p>
     </section>
 
     <!-- 4 ============ COUT Y CIN ============ -->
     <section>
       <span class="kicker">R3 · Los dos operadores</span>
       <h2><code>&lt;&lt;</code> saca datos, <code>&gt;&gt;</code> mete datos</h2>
-      <pre data-title="basico.cpp"><code class="language-cpp" data-trim>
-#include &lt;iostream&gt;
-#include &lt;string&gt;
-
+      <pre><code class="language-cpp" data-trim>
 int main() {
     std::string nombre;
     int edad = 0;
@@ -77,8 +72,8 @@ int main() {
 }
       </code></pre>
       <ul>
-        <li class="fragment">Las flechas apuntan hacia dónde van los datos. <code>cout &lt;&lt; x</code> saca <code>x</code> hacia la pantalla; <code>cin &gt;&gt; x</code> mete lo tecleado en <code>x</code>.</li>
-        <li class="fragment">Ambos se encadenan porque cada operación devuelve el flujo, listo para la siguiente.</li>
+        <li class="fragment">Las flechas apuntan hacia dónde van los datos: <code>cout</code> saca, <code>cin</code> mete.</li>
+        <li class="fragment">Se encadenan porque cada operación devuelve el flujo.</li>
         <li class="fragment"><code>'\n'</code> salta de línea. <code>std::endl</code> además vacía el búfer de salida, lo que es más lento; úsalo solo cuando necesites ver la salida de inmediato.</li>
       </ul>
     </section>
@@ -87,7 +82,7 @@ int main() {
     <section>
       <span class="kicker">R3 · El búfer de entrada</span>
       <h2><code>&gt;&gt;</code> se detiene en el primer espacio</h2>
-      <p>Lo que tecleas no llega variable por variable. Llega a un <span class="term" data-term="buffer">búfer</span> y ahí se queda hasta que alguien lo consume.</p>
+      <p>Lo que tecleas llega a un <span class="term" data-term="buffer">búfer</span> y se queda ahí hasta que alguien lo consume.</p>
       <pre><code class="language-plaintext" data-trim>
 Tecleas:   Ana 20⏎
 Búfer:     A n a ␣ 2 0 ⏎
@@ -117,10 +112,7 @@ cin &gt;&gt; edad;     salta el espacio, toma 20,  deja  ⏎
     <section>
       <span class="kicker">R3 · getline</span>
       <h2>Leer una línea completa, espacios incluidos</h2>
-      <pre data-title="linea.cpp"><code class="language-cpp" data-trim>
-#include &lt;iostream&gt;
-#include &lt;string&gt;
-
+      <pre><code class="language-cpp" data-trim>
 int main() {
     std::string linea;
     std::cout &lt;&lt; "Frase: ";
@@ -130,9 +122,9 @@ int main() {
 }
       </code></pre>
       <ul>
-        <li class="fragment">Lee desde la posición actual hasta el siguiente <code>'\n'</code>, sin saltar espacios iniciales.</li>
-        <li class="fragment">Consume ese <code>'\n'</code> y no lo guarda en la cadena. Después de <code>getline</code> el búfer queda limpio hasta el siguiente Enter.</li>
-        <li class="fragment">Es función libre, no método: se escribe <code>std::getline(std::cin, s)</code>, no <code>std::cin.getline(s)</code>.</li>
+        <li class="fragment">Lee hasta el siguiente <code>'\n'</code>, sin saltar espacios iniciales.</li>
+        <li class="fragment">Consume ese <code>'\n'</code> y no lo guarda: el búfer queda limpio hasta el siguiente Enter.</li>
+        <li class="fragment">Es función libre: <code>std::getline(std::cin, s)</code>, no <code>cin.getline(s)</code>.</li>
       </ul>
     </section>
 
@@ -160,9 +152,8 @@ Nombre completo: []          &lt;- ni siquiera esperó a que tecleara
     <section>
       <span class="kicker">R3 · El choque clásico</span>
       <h2>Descartar lo que quedó con <code>ignore</code></h2>
-      <pre data-title="choque_resuelto.cpp"><code class="language-cpp" data-trim data-line-numbers="1|8">
+      <pre><code class="language-cpp" data-trim data-line-numbers="1|7">
 #include &lt;limits&gt;
-
 int edad = 0;
 std::string nombre;
 std::cout &lt;&lt; "Edad: ";
@@ -172,8 +163,8 @@ std::cin.ignore(
 std::getline(std::cin, nombre);      // ahora sí espera
       </code></pre>
       <ul>
-        <li class="fragment"><code>ignore(n, c)</code> descarta caracteres hasta consumir <code>n</code> o hasta encontrar <code>c</code>, lo que ocurra primero. El delimitador también se descarta.</li>
-        <li class="fragment"><code>std::numeric_limits&lt;std::streamsize&gt;::max()</code> es el mayor valor posible del <span class="term" data-term="streamsize">tipo que cuenta caracteres</span>: significa "sin límite práctico". Vive en <code>&lt;limits&gt;</code>.</li>
+        <li class="fragment"><code>ignore(n, c)</code> descarta hasta consumir <code>n</code> o hallar <code>c</code>, incluido el propio <code>c</code>.</li>
+        <li class="fragment"><code>std::numeric_limits&lt;std::streamsize&gt;::max()</code> es el mayor valor del <span class="term" data-term="streamsize">tipo que cuenta caracteres</span>: "sin límite práctico". Vive en <code>&lt;limits&gt;</code>.</li>
         <li class="fragment"><code>cin.ignore()</code> sin argumentos descarta un solo carácter. Alcanza para este caso y falla si el usuario tecleó <code>20 basura⏎</code>.</li>
       </ul>
     </section>
@@ -194,21 +185,21 @@ std::getline(std::cin, nombre);      // ahora sí espera
     <section>
       <span class="kicker">R3 · Estados del flujo</span>
       <h2>Por qué el ciclo del arranque no termina</h2>
-      <p>Cuando <code>cin &gt;&gt; edad</code> encuentra <code>veinte</code> donde esperaba dígitos, ocurren tres cosas a la vez:</p>
+      <p>Con <code>veinte</code> donde <code>cin &gt;&gt; edad</code> esperaba dígitos pasan tres cosas:</p>
       <ol>
         <li class="fragment"><code>edad</code> se queda como estaba. Desde C++11 se le asigna <code>0</code>; en ningún caso recibe el texto.</li>
         <li class="fragment">El flujo enciende su <span class="term" data-term="failbit">bandera de fallo</span> y <code>cin.fail()</code> pasa a valer <code>true</code>.</li>
         <li class="fragment">Los caracteres <code>veinte⏎</code> <strong>siguen en el búfer</strong>, sin consumir.</li>
       </ol>
-      <p class="fragment">La siguiente vuelta del ciclo vuelve a leer, encuentra las mismas letras, vuelve a fallar y deja el búfer igual. Mientras el flujo esté en fallo, toda lectura posterior no hace nada. De ahí el ciclo infinito.</p>
-      <p class="fragment muted">Los estados son cuatro: <code>good</code> (todo bien), <code>fail</code> (formato equivocado), <code>eof</code> (se acabó la entrada) y <code>bad</code> (error irrecuperable).</p>
+      <p class="fragment">La siguiente vuelta vuelve a leer, falla igual y deja el búfer intacto. Mientras el flujo esté en fallo, toda lectura posterior no hace nada.</p>
+      <p class="fragment muted">Cuatro estados: <code>good</code>, <code>fail</code> (formato equivocado), <code>eof</code> (entrada agotada) y <code>bad</code> (irrecuperable).</p>
     </section>
 
     <!-- 12 ============ LA RECETA ============ -->
     <section>
       <span class="kicker">R3 · Recuperación</span>
       <h2><code>clear()</code> primero, <code>ignore()</code> después</h2>
-      <pre data-title="recupera.cpp"><code class="language-cpp" data-trim data-line-numbers="2|4|5-6">
+      <pre><code class="language-cpp" data-trim data-line-numbers="2|4|5-6">
 std::cout &lt;&lt; "Numero: ";
 if (!(std::cin &gt;&gt; n)) {                  // la lectura falló
     std::cout &lt;&lt; "Eso no es un numero\n";
@@ -218,8 +209,8 @@ if (!(std::cin &gt;&gt; n)) {                  // la lectura falló
 }
       </code></pre>
       <ul>
-        <li class="fragment"><code>clear()</code> devuelve el flujo al estado <code>good</code>. Por sí solo no arregla nada: el texto sigue en el búfer y la siguiente lectura fallará igual.</li>
-        <li class="fragment"><code>ignore()</code> descarta la línea entera. Por sí solo tampoco basta: con la bandera encendida, <code>ignore</code> no consume nada.</li>
+        <li class="fragment"><code>clear()</code> vuelve a <code>good</code>, pero no toca el búfer.</li>
+        <li class="fragment"><code>ignore()</code> descarta la línea, pero con la bandera encendida no consume nada.</li>
       </ul>
       <div class="box-key">El orden importa. Primero <code>clear()</code>, después <code>ignore()</code>. Al revés no limpia nada.</div>
     </section>
@@ -240,7 +231,7 @@ if (!(std::cin &gt;&gt; n)) {                  // la lectura falló
     <section>
       <span class="kicker">R3 · Lectura validada</span>
       <h2>El patrón completo, en una función</h2>
-      <pre data-title="leer.cpp"><code class="language-cpp" data-trim data-line-numbers="1-4|8|9|10">
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-4|8|9|10">
 void limpiarLinea() {
     std::cin.clear();
     std::cin.ignore(std::numeric_limits&lt;std::streamsize&gt;::max(), '\n');
@@ -256,8 +247,8 @@ int leerEntero(const std::string&amp; msg) {
     }
 }
       </code></pre>
-      <p class="fragment"><code>std::cin &gt;&gt; n</code> devuelve el flujo, y el flujo se convierte a <code>bool</code> según su estado. Por eso la lectura puede usarse directamente como condición, y el mismo mecanismo hace funcionar a <code>while (std::cin &gt;&gt; x)</code>, que recorre la entrada hasta agotarla.</p>
-      <p class="fragment muted">Limpiar en los dos caminos, con éxito y con fallo, descarta el resto de la línea y evita que <code>20 basura</code> contamine la siguiente lectura. <code>clear()</code> sobre un flujo que ya está en <code>good</code> no hace daño.</p>
+      <p class="fragment">El flujo se convierte a <code>bool</code>, y por eso la lectura sirve como condición.</p>
+      <p class="fragment muted">Limpiar en los dos caminos evita que <code>20 basura</code> contamine la siguiente lectura.</p>
     </section>
 
     <!-- 15 ============ CHECKPOINT 4 ============ -->

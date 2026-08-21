@@ -111,7 +111,7 @@ if (it != conteo.end())
     <section>
       <span class="kicker">R19 · set</span>
       <h2>Un conjunto: sin repetidos y ordenado</h2>
-      <pre><code class="language-cpp" data-trim data-line-numbers="1-4|6-7|9-10">
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-4|6-7|8-9">
 std::set&lt;std::string&gt; vistas;
 vistas.insert("sol");
 vistas.insert("mar");
@@ -119,7 +119,6 @@ vistas.insert("sol");   // ignorado: ya estaba
 
 std::cout &lt;&lt; vistas.size();              // 2
 std::cout &lt;&lt; vistas.count("sol");        // 1 si está, 0 si no
-
 // construir desde un vector, de golpe:
 std::set&lt;std::string&gt; d(palabras.begin(), palabras.end());
       </code></pre>
@@ -182,7 +181,7 @@ l.erase(it);        // borra ese elemento, sin mover los demás
     <section>
       <span class="kicker">R19 · Algoritmos</span>
       <h2><code>sort</code> y la comparación a la medida</h2>
-      <pre data-title="orden.cpp"><code class="language-cpp" data-trim data-line-numbers="1-2|4-8">
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-2|4-8">
 std::vector&lt;int&gt; v{4, 15, 8, 23};
 std::sort(v.begin(), v.end());        // 4 8 15 23, usa operator&lt;
 
@@ -214,7 +213,7 @@ std::sort(alu.begin(), alu.end(),
     <section>
       <span class="kicker">R19 · Algoritmos</span>
       <h2>Buscar y acumular sobre un rango</h2>
-      <pre><code class="language-cpp" data-trim data-line-numbers="1-3|5-7|9-12">
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-3|5-7|8-11">
 auto f = std::find(v.begin(), v.end(), 15);
 if (f != v.end())
     std::cout &lt;&lt; "posición " &lt;&lt; (f - v.begin());   // 2
@@ -222,13 +221,12 @@ if (f != v.end())
 auto p = std::find_if(v.begin(), v.end(),
                       [](int x) { return x &gt; 20; });
 std::cout &lt;&lt; *p;                                   // 23
-
 int suma = std::accumulate(v.begin(), v.end(), 0);
 double t = std::accumulate(alu.begin(), alu.end(), 0.0,
     [](double acc, const Alumno&amp; a) { return acc + a.prom; });
 // el 0.0 fija el tipo del acumulador y el valor inicial
       </code></pre>
-      <p class="fragment"><code>find</code> compara con <code>==</code>; <code>find_if</code> recibe una lambda que devuelve <code>bool</code>. Los dos devuelven <code>end()</code> cuando no hay coincidencia, así que hay que comparar contra <code>end()</code> antes de desreferenciar. <code>accumulate</code> vive en <code>&lt;numeric&gt;</code>; los demás, en <code>&lt;algorithm&gt;</code>.</p>
+      <p class="fragment"><code>find</code> compara con <code>==</code>; <code>find_if</code> recibe una lambda que devuelve <code>bool</code>. Los dos devuelven <code>end()</code> cuando no hay coincidencia, así que hay que comparar antes de desreferenciar. <code>accumulate</code> vive en <code>&lt;numeric&gt;</code>; los demás, en <code>&lt;algorithm&gt;</code>.</p>
     </section>
 
     <!-- ============ 14. CHECKPOINT 4 ============ -->

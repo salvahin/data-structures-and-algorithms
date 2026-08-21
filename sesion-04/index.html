@@ -86,8 +86,8 @@ int buscar(const vector&lt;int&gt;&amp; v, int lo, int hi, int x) {
         <li class="fragment">\(a\) — cuántos subproblemas genera cada llamada.</li>
         <li class="fragment">\(b\) — entre cuánto se divide el tamaño en cada subproblema.</li>
         <li class="fragment">\(f(n)\) — el trabajo propio de la llamada: dividir, combinar, comparar.</li>
-        <li class="fragment">Búsqueda binaria: \(a = 1,\; b = 2,\; f(n) = c\). Merge sort: \(a = 2,\; b = 2,\; f(n) = \Theta(n)\) — dos mitades y una fusión lineal.</li>
-        <li class="fragment">Si \(n\) no se divide exacto, los tamaños reales son \(\lfloor n/b \rfloor\) y \(\lceil n/b \rceil\). Escribimos \(n/b\) porque ese redondeo no cambia la cota.</li>
+        <li class="fragment">Búsqueda binaria: \(a = 1,\; b = 2,\; f(n) = c\). Merge sort: \(a = 2,\; b = 2,\; f(n) = \Theta(n)\).</li>
+        <li class="fragment">El redondeo a \(\lfloor n/b \rfloor\) o \(\lceil n/b \rceil\) no cambia la cota.</li>
       </ul>
     </section>
 
@@ -138,9 +138,9 @@ int buscar(const vector&lt;int&gt;&amp; v, int lo, int hi, int x) {
         \end{aligned} \]
       </div>
       <ul>
-        <li class="fragment">Se sustituye la recurrencia dentro de sí misma, lo cual es legal porque la ecuación vale para cualquier tamaño, no solo para \(n\).</li>
-        <li class="fragment">¿De dónde sale \(k = \log_2 n\)? El caso base se alcanza cuando \(n/2^{k} = 1\); al despejar \(k\) queda el logaritmo.</li>
-        <li class="fragment">Resultado: \(T(n) = \Theta(\log n)\). El término \(T(1)\) es una constante y la notación lo absorbe, igual que a \(c\).</li>
+        <li class="fragment">La recurrencia se sustituye dentro de sí misma: vale para cualquier tamaño, no solo para \(n\).</li>
+        <li class="fragment">\(k = \log_2 n\) sale de despejar \(k\) en \(n/2^{k} = 1\), donde se alcanza el caso base.</li>
+        <li class="fragment">Resultado: \(T(n) = \Theta(\log n)\); la notación absorbe \(T(1)\) y \(c\).</li>
       </ul>
     </section>
 
@@ -542,8 +542,8 @@ void hanoi(int n, char origen, char aux, char destino) {
       </div>
       <ul>
         <li class="fragment">El caso base llega con \(k = n\), donde \(T(0) = 0\): queda \(2^{n} \cdot 0 + 2^{n} - 1\).</li>
-        <li class="fragment">La suma \(1 + 2 + 4 + \cdots + 2^{\,n-1}\) es la geométrica de la sesión 3. Son \(2^{n} - 1\) movimientos exactos, y además es el mínimo posible: ninguna estrategia lo hace con menos.</li>
-        <li class="fragment">Con 64 discos y un movimiento por segundo: unos 585 mil millones de años. La cota exponencial no es pesimismo teórico; es el conteo exacto.</li>
+        <li class="fragment">La suma \(1 + 2 + 4 + \cdots + 2^{\,n-1}\) es la geométrica de la sesión 3. Son \(2^{n} - 1\) movimientos, y es el mínimo posible.</li>
+        <li class="fragment">Con 64 discos y un movimiento por segundo: unos 585 mil millones de años.</li>
       </ul>
     </section>
 
@@ -774,8 +774,7 @@ long long fib(int n) {
         <div>
           <h3>LC 241 · Different Ways to Add Parentheses — Media</h3>
           <ul>
-            <li>Todos los resultados posibles de parentetizar una expresión: parte en cada operador y combina resultados de izquierda y derecha.</li>
-            <li>Divide y vencerás puro sobre la expresión.</li>
+            <li>Todos los resultados de parentetizar una expresión: parte en cada operador y combina izquierda y derecha.</li>
             <li class="muted">Casos: "2-1-1" → [0, 2] · "2*3-4*5" → [−34, −14, −10, −10, 10]</li>
           </ul>
         </div>
@@ -783,12 +782,10 @@ long long fib(int n) {
           <h3>LC 329 · Longest Increasing Path in a Matrix — Alta</h3>
           <ul>
             <li>DFS desde cada celda; sin memoizar es exponencial, con memoización por celda es O(m·n).</li>
-            <li>La técnica de hoy aplicada donde la diferencia se nota; puede terminarse fuera de clase.</li>
             <li class="muted">Casos: [[9,9,4],[6,6,8],[2,1,1]] → 4 · [[3,4,5],[3,2,6],[2,2,1]] → 4 · [[1]] → 1</li>
           </ul>
         </div>
       </div>
-      <p class="fragment">Los casos de prueba (normales y límite) vienen en el enunciado y se corren localmente. Entrega al LMS antes de la próxima sesión: se registra completado / no completado.</p>
     </section>
 
     <!-- ============ PRÓXIMA SESIÓN ============ -->

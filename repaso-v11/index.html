@@ -43,18 +43,17 @@
       <h2>Dos archivos, una función, un error de enlazado</h2>
       <div class="cols">
         <div>
-          <pre data-title="util.h"><code class="language-cpp" data-trim>
+          <pre><code class="language-cpp" data-trim>
+// util.h
 #pragma once
 int doble(int n) { return 2 * n; }
-          </code></pre>
-          <pre data-title="a.cpp"><code class="language-cpp" data-trim>
+// a.cpp
 #include "util.h"
 int usarA() { return doble(2); }
           </code></pre>
         </div>
         <div>
           <pre data-title="main.cpp"><code class="language-cpp" data-trim>
-#include &lt;iostream&gt;
 #include "util.h"
 int usarA();
 int main() {
@@ -69,7 +68,7 @@ $ g++ -std=c++17 -Wall -Wextra main.cpp a.cpp -o app
 a.cpp:(.text+0x0): multiple definition of `doble(int)';
 main.o:main.cpp:(.text+0x0): first defined here
       </code></pre>
-      <p class="fragment">El <code>#pragma once</code> está puesto y aun así hay dos definiciones. Antes de terminar esta sesión vas a saber por qué.</p>
+      <p class="fragment">Con <code>#pragma once</code> puesto, hay dos definiciones.</p>
     </section>
 
     <!-- ============ 4 · QUÉ VA EN CADA ARCHIVO ============ -->
@@ -95,16 +94,13 @@ main.o:main.cpp:(.text+0x0): first defined here
           <pre data-title="punto.h"><code class="language-cpp" data-trim>
 #ifndef PUNTO_H
 #define PUNTO_H
-
 class Punto {
     double x, y;
 public:
-    Punto();
-    Punto(double a, double b);
+    Punto();  Punto(double a, double b);
     double distanciaAlOrigen() const;
     void imprimir() const;
 };
-
 #endif
           </code></pre>
         </div>
@@ -113,25 +109,23 @@ public:
 #include "punto.h"
 #include &lt;iostream&gt;
 #include &lt;cmath&gt;
-
 Punto::Punto() : x(0), y(0) {}
 Punto::Punto(double a, double b)
     : x(a), y(b) {}
-
 double Punto::distanciaAlOrigen() const {
     return std::sqrt(x * x + y * y);
 }
           </code></pre>
         </div>
       </div>
-      <p class="fragment"><code>&lt;iostream&gt;</code> y <code>&lt;cmath&gt;</code> se quedan en el <code>.cpp</code> porque el header no los necesita para describir la clase.</p>
+      <p class="fragment"><code>&lt;iostream&gt;</code> y <code>&lt;cmath&gt;</code> los usa solo el <code>.cpp</code>.</p>
     </section>
 
     <!-- ============ 6 · LA SINTAXIS Punto:: ============ -->
     <section>
       <span class="kicker">R11 · El reparto</span>
       <h2>Qué se repite y qué no en la implementación</h2>
-      <pre data-title="punto.cpp"><code class="language-cpp" data-trim data-line-numbers="1|2-4">
+      <pre><code class="language-cpp" data-trim data-line-numbers="1|2-4">
 double Punto::distanciaAlOrigen() const {
     return std::sqrt(x * x + y * y);
 }
@@ -140,7 +134,7 @@ double Punto::distanciaAlOrigen() const {
         <li class="fragment"><code>Punto::</code> indica a qué clase pertenece el método; sin ese prefijo sería una función libre y el enlazador no la relacionaría con la declaración del header.</li>
         <li class="fragment">El <code>const</code> del final es parte de la firma y debe aparecer en los dos archivos. Si lo escribes solo en uno, el compilador ve dos métodos distintos.</li>
         <li class="fragment">Los valores por omisión de los parámetros se escriben únicamente en el header. Repetirlos en el <code>.cpp</code> es un error.</li>
-        <li class="fragment">La lista de inicialización va en el <code>.cpp</code>, junto al cuerpo, no en la declaración.</li>
+        <li class="fragment">La lista de inicialización va en el <code>.cpp</code>, junto al cuerpo.</li>
       </ul>
     </section>
 
@@ -172,27 +166,24 @@ g++ -E main.cpp | grep "class Punto"
     <section>
       <span class="kicker">R11 · Guardas de inclusión</span>
       <h2>Sin guarda, el texto se pega dos veces</h2>
-      <pre data-title="main.cpp"><code class="language-cpp" data-trim>
+      <pre><code class="language-cpp" data-trim>
 #include "punto.h"     // pega la clase Punto
 #include "figura.h"    // figura.h tambien incluye punto.h
       </code></pre>
       <pre><code class="language-plaintext" data-trim>
-In file included from figura.h:1, from main.cpp:2:
+[...]
 punto.h:1:7: error: redefinition of 'class Punto'
-In file included from main.cpp:1:
 punto.h:1:7: note: previous definition of 'class Punto'
       </code></pre>
-      <p class="fragment">La <span class="term" data-term="guarda">guarda de inclusión</span> define un símbolo la primera vez y salta el contenido las siguientes. <code>#pragma once</code> hace lo mismo con una línea; no es estándar, pero g++, clang y MSVC lo aceptan.</p>
+      <p class="fragment">La <span class="term" data-term="guarda">guarda de inclusión</span> salta el contenido a partir de la segunda vez. <code>#pragma once</code> hace lo mismo.</p>
       <div class="cols">
-        <div><pre data-title="punto.h"><code class="language-cpp" data-trim>
+        <div><pre><code class="language-cpp" data-trim>
 #ifndef PUNTO_H
 #define PUNTO_H
-// contenido
 #endif
         </code></pre></div>
-        <div><pre data-title="punto.h"><code class="language-cpp" data-trim>
+        <div><pre><code class="language-cpp" data-trim>
 #pragma once
-// contenido
         </code></pre></div>
       </div>
     </section>
@@ -232,7 +223,7 @@ g++ main.o punto.o -o programa
     <section>
       <span class="kicker">R11 · Makefile</span>
       <h2>Las mismas órdenes, escritas una vez</h2>
-<pre data-title="Makefile"><code class="language-makefile" data-trim data-line-numbers="1-3|5-6|8-12|14-15">
+<pre><code class="language-makefile" data-trim data-line-numbers="1-3|5-6|8-12|14-15">
 CXX      = g++
 CXXFLAGS = -std=c++17 -Wall -Wextra -g
 OBJ      = main.o punto.o
@@ -249,31 +240,27 @@ punto.o: punto.cpp punto.h
 clean:
 	rm -f $(OBJ) programa
 </code></pre>
-      <p class="muted">Cada regla tiene la forma <code>objetivo: dependencias</code> y debajo, indentada con un carácter de tabulación real, la orden que produce el objetivo. Un espacio en lugar del tabulador da el error <code>missing separator</code>.</p>
-      <p class="muted">El <code>Makefile</code> se versiona: es código fuente. Los <code>.o</code> y el ejecutable que produce, no, y por eso están en el <code>.gitignore</code> que pusiste en G1. La regla <code>clean</code> borra exactamente lo mismo que git ignora.</p>
+      <p class="muted">Cada regla es <code>objetivo: dependencias</code> y debajo, con un carácter de tabulación real, la orden que lo produce. Un espacio da <code>missing separator</code>.</p>
     </section>
 
     <!-- ============ 13 · MAKE INCREMENTAL ============ -->
     <section>
       <span class="kicker">R11 · Makefile</span>
       <h2>Cómo decide <code>make</code> qué recompilar</h2>
-      <p><code>make</code> compara la fecha de modificación del objetivo con la de sus dependencias. Si el objetivo es más nuevo que todas ellas, no hace nada.</p>
-      <pre><code class="language-plaintext" data-trim data-line-numbers="1-5|7-10|12-16">
+      <p><code>make</code> compara la fecha del objetivo con la de sus dependencias; si es más nuevo que todas, no hace nada.</p>
+      <pre><code class="language-plaintext" data-trim data-line-numbers="1-3|4-6|7-10">
 $ make
-g++ -std=c++17 -Wall -Wextra -g -c main.cpp
-g++ -std=c++17 -Wall -Wextra -g -c punto.cpp
+[...]
 g++ main.o punto.o -o programa
-
 $ touch punto.cpp   &amp;&amp;  make
 g++ -std=c++17 -Wall -Wextra -g -c punto.cpp
 g++ main.o punto.o -o programa
-
 $ touch punto.h     &amp;&amp;  make
 g++ -std=c++17 -Wall -Wextra -g -c main.cpp
 g++ -std=c++17 -Wall -Wextra -g -c punto.cpp
 g++ main.o punto.o -o programa
       </code></pre>
-      <p class="fragment">Tocar el header rehace los dos objetos porque los dos lo declaran como dependencia. Omitir <code>punto.h</code> de esas reglas es la causa habitual de ejecutar un binario que no refleja los cambios.</p>
+      <p class="fragment">Tocar el header rehace los dos objetos.</p>
     </section>
 
     <!-- ============ 14 · CHECKPOINT 3 ============ -->
@@ -293,16 +280,16 @@ g++ main.o punto.o -o programa
       <span class="kicker">R11 · La trampa del arranque</span>
       <h2>Definir una función en el header la duplica</h2>
       <ul>
-        <li class="fragment"><code>#pragma once</code> evita que <code>util.h</code> se pegue dos veces en <em>la misma</em> unidad de traducción. No puede hacer nada entre unidades distintas.</li>
-        <li class="fragment"><code>main.cpp</code> y <code>a.cpp</code> se compilan por separado, y cada uno recibe su copia del cuerpo de <code>doble</code>. Al enlazar hay dos símbolos con el mismo nombre.</li>
-        <li class="fragment">La regla que el enlazador aplica es que cada función debe tener exactamente una definición en todo el programa.</li>
+        <li class="fragment"><code>#pragma once</code> evita que <code>util.h</code> se pegue dos veces en la misma unidad, no entre unidades.</li>
+        <li class="fragment">Cada <code>.cpp</code> recibe su copia del cuerpo de <code>doble</code>.</li>
+        <li class="fragment">Cada función debe tener una sola definición en el programa.</li>
       </ul>
-      <pre data-title="util.h"><code class="language-cpp" data-trim>
+      <pre><code class="language-cpp" data-trim>
 #pragma once
 int doble(int n);                       // declaracion: correcto
 inline int triple(int n) { return 3 * n; }  // inline: tambien
       </code></pre>
-      <p class="fragment">La palabra <span class="term" data-term="inline">inline</span> autoriza copias idénticas en varias unidades y le pide al enlazador que se quede con una. Los métodos escritos dentro del cuerpo de la clase ya son <code>inline</code> de forma implícita, y por eso <code>punto.h</code> no da problemas.</p>
+      <p class="fragment"><span class="term" data-term="inline">inline</span> autoriza copias idénticas en varias unidades y el enlazador se queda con una. Los métodos escritos dentro de la clase ya lo son.</p>
     </section>
 
     <!-- ============ 16 · TRAMPAS COMUNES ============ -->

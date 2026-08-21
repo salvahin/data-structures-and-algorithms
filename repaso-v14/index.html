@@ -41,13 +41,12 @@
     <section>
       <span class="kicker">R14 · Punto de partida</span>
       <h2>Dos líneas que el compilador rechaza</h2>
-      <pre data-title="fraccion.cpp"><code class="language-cpp" data-trim>
+      <pre><code class="language-cpp" data-trim>
 class Fraccion {
     int num_, den_;
 public:
     Fraccion(int n, int d) : num_(n), den_(d) {}
 };
-
 int main() {
     Fraccion a(1, 2), b(1, 3);
     Fraccion c = a + b;
@@ -66,7 +65,7 @@ error: no match for 'operator&lt;&lt;' (operand types are
     <section>
       <span class="kicker">R14 · De dónde viene</span>
       <h2>En R13 ya sobrecargaste un operador</h2>
-      <pre data-title="arreglo.h (R13)"><code class="language-cpp" data-trim>
+      <pre><code class="language-cpp" data-trim>
 class Arreglo {
     int* datos_;
     int n_;
@@ -86,12 +85,11 @@ public:
     <section>
       <span class="kicker">R14 · Operadores aritméticos</span>
       <h2><code>a + b</code> es una llamada a un método</h2>
-      <pre data-title="fraccion.h"><code class="language-cpp" data-trim data-line-numbers="1-10|6-9|11">
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-9|5-8|10">
 class Fraccion {
     int num_, den_;
 public:
     Fraccion(int n = 0, int d = 1) : num_(n), den_(d) {}
-
     Fraccion operator+(const Fraccion&amp; o) const {
         return Fraccion(num_ * o.den_ + o.num_ * den_,
                         den_ * o.den_);
@@ -100,8 +98,8 @@ public:
 // el compilador traduce  a + b  a  a.operator+(b)
       </code></pre>
       <ul>
-        <li class="fragment">El operando izquierdo es el objeto sobre el que se llama el método, así que dentro accedes a sus campos sin calificarlos. El derecho llega como parámetro.</li>
-        <li class="fragment">Devuelve <code>Fraccion</code> por valor: la suma es un objeto nuevo que se construye dentro de la función. Devolver <code>Fraccion&amp;</code> apuntaría a algo que deja de existir al retornar.</li>
+        <li class="fragment">El operando izquierdo es el objeto sobre el que se llama el método; el derecho llega como parámetro.</li>
+        <li class="fragment">Devuelve por valor: la suma se construye dentro de la función, y <code>Fraccion&amp;</code> apuntaría a algo que deja de existir al retornar.</li>
       </ul>
     </section>
 
@@ -121,17 +119,16 @@ public:
     <section>
       <span class="kicker">R14 · Operadores de comparación</span>
       <h2>Comparar con <code>==</code> y definir el resto encima</h2>
-      <pre data-title="fraccion.h"><code class="language-cpp" data-trim data-line-numbers="1-3|5-7">
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-3|4-6">
 bool operator==(const Fraccion&amp; o) const {
     return num_ * o.den_ == o.num_ * den_;   // producto cruzado
 }
-
 bool operator!=(const Fraccion&amp; o) const {
     return !(*this == o);                    // reusa el anterior
 }
       </code></pre>
       <ul>
-        <li class="fragment">El parámetro es <code>const Fraccion&amp;</code> para no copiar y el método es <code>const</code> porque comparar no modifica nada. Sin ese <code>const</code> no puedes comparar objetos constantes.</li>
+        <li class="fragment">El parámetro es <code>const Fraccion&amp;</code> para no copiar, y el método es <code>const</code> porque comparar no modifica nada.</li>
         <li class="fragment">El producto cruzado hace que <code>1/2 == 2/4</code> sea cierto aunque los campos difieran. Comparar campo por campo daría falso.</li>
         <li class="fragment"><code>!=</code>, <code>&gt;</code>, <code>&lt;=</code> y <code>&gt;=</code> se escriben en términos de <code>==</code> y <code>&lt;</code>. Definir solo esos dos y derivar los demás evita que un día dejen de ser coherentes entre sí.</li>
       </ul>
@@ -141,23 +138,20 @@ bool operator!=(const Fraccion&amp; o) const {
     <section>
       <span class="kicker">R14 · Acceso indexado</span>
       <h2><code>operator[]</code> se escribe dos veces</h2>
-      <pre data-title="arreglo.h"><code class="language-cpp" data-trim data-line-numbers="1-6|8-11">
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-6|7-8">
 class Arreglo {
     int* datos_;
 public:
     int&amp; operator[](int i) { return datos_[i]; }
     const int&amp; operator[](int i) const { return datos_[i]; }
 };
-
-Arreglo a(3);
-a[0] = 7;                    // usa la primera: int&amp; es asignable
-const Arreglo b = a;
-std::cout &lt;&lt; b[0];           // usa la segunda: b es const
+Arreglo a(3);   a[0] = 7;    // usa la primera: int&amp; es asignable
+const Arreglo b = a;   std::cout &lt;&lt; b[0];   // la segunda: b es const
       </code></pre>
       <ul>
-        <li class="fragment">Devolver <code>int&amp;</code> es lo que permite que <code>a[0]</code> aparezca a la izquierda de un igual. Con <code>int</code> a secas devolverías una copia y la asignación no llegaría al arreglo.</li>
-        <li class="fragment">La segunda versión existe para los objetos <code>const</code>, que solo pueden llamar métodos <code>const</code>. El compilador elige una u otra según el objeto.</li>
-        <li class="fragment"><code>[]</code> no verifica el índice, igual que en <code>std::vector</code>. La versión que sí lanza excepción se llama <code>at()</code> y aparece en R18.</li>
+        <li class="fragment">Devolver <code>int&amp;</code> permite que <code>a[0]</code> aparezca a la izquierda de un igual; con <code>int</code> a secas la asignación no llegaría al arreglo.</li>
+        <li class="fragment">La segunda versión existe para los objetos <code>const</code>, que solo pueden llamar métodos <code>const</code>.</li>
+        <li class="fragment"><code>[]</code> no verifica el índice; la versión que sí lanza excepción es <code>at()</code>, en R18.</li>
       </ul>
     </section>
 
@@ -177,7 +171,7 @@ std::cout &lt;&lt; b[0];           // usa la segunda: b es const
     <section>
       <span class="kicker">R14 · Operador de salida</span>
       <h2>Como miembro, <code>&lt;&lt;</code> queda al revés</h2>
-      <pre data-title="intento.cpp"><code class="language-cpp" data-trim data-line-numbers="1-7|9-11">
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-7|8-10">
 class Fraccion {
     int num_ = 1, den_ = 2;
 public:
@@ -185,13 +179,12 @@ public:
         return os &lt;&lt; num_ &lt;&lt; '/' &lt;&lt; den_;
     }
 };
-
 Fraccion f;
 f &lt;&lt; std::cout;      // compila e imprime 1/2
 std::cout &lt;&lt; f;      // error: ostream no tiene ese operator&lt;&lt;
       </code></pre>
       <ul>
-        <li class="fragment">En un operador binario escrito como miembro, el operando izquierdo es siempre el objeto de la clase. Eso fija el orden en <code>f &lt;&lt; std::cout</code>, que nadie escribe.</li>
+        <li class="fragment">En un operador binario miembro el operando izquierdo es siempre el objeto de la clase, y eso fija el orden <code>f &lt;&lt; std::cout</code>.</li>
         <li class="fragment">Para <code>std::cout &lt;&lt; f</code> el método tendría que vivir dentro de <code>std::ostream</code>, y esa clase es de la biblioteca estándar.</li>
       </ul>
     </section>
@@ -200,22 +193,20 @@ std::cout &lt;&lt; f;      // error: ostream no tiene ese operator&lt;&lt;
     <section>
       <span class="kicker">R14 · Operador de salida</span>
       <h2><code>&lt;&lt;</code> como función libre y amiga</h2>
-      <pre data-title="fraccion.h"><code class="language-cpp" data-trim data-line-numbers="1-6|8-10">
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-5|6-8">
 class Fraccion {
     int num_, den_;
 public:
-    friend std::ostream&amp; operator&lt;&lt;(std::ostream&amp; os,
-                                    const Fraccion&amp; f);
+    friend std::ostream&amp; operator&lt;&lt;(std::ostream&amp;, const Fraccion&amp;);
 };
-
 std::ostream&amp; operator&lt;&lt;(std::ostream&amp; os, const Fraccion&amp; f) {
     return os &lt;&lt; f.num_ &lt;&lt; '/' &lt;&lt; f.den_;
 }
       </code></pre>
       <ul>
-        <li class="fragment">Fuera de la clase el operador recibe dos parámetros y el flujo va primero, así que <code>std::cout &lt;&lt; f</code> encaja.</li>
-        <li class="fragment">Devuelve el mismo flujo por referencia: eso permite encadenar <code>std::cout &lt;&lt; f &lt;&lt; '\n'</code>, donde el resultado de la primera llamada es el operando izquierdo de la segunda.</li>
-        <li class="fragment">La declaración <span class="term" data-term="friend">amiga</span> le da acceso a <code>num_</code> y <code>den_</code>. Si la clase ya expone <code>num()</code> y <code>den()</code> públicos, <code>friend</code> sobra.</li>
+        <li class="fragment">Fuera de la clase el flujo va primero, así que <code>std::cout &lt;&lt; f</code> encaja.</li>
+        <li class="fragment">Devuelve el mismo flujo por referencia, y eso permite encadenar <code>std::cout &lt;&lt; f &lt;&lt; '\n'</code>.</li>
+        <li class="fragment">La declaración <span class="term" data-term="friend">amiga</span> le da acceso a <code>num_</code> y <code>den_</code>; con métodos públicos de lectura, <code>friend</code> sobra.</li>
       </ul>
     </section>
 
@@ -262,20 +253,19 @@ std::ostream&amp; operator&lt;&lt;(std::ostream&amp; os, const Fraccion&amp; f) 
     <section>
       <span class="kicker">R14 · Trampas comunes</span>
       <h2>El <code>operator=</code> incompleto</h2>
-      <pre data-title="arreglo.cpp"><code class="language-cpp" data-trim data-line-numbers="1|2|3-6|7">
+      <pre><code class="language-cpp" data-trim data-line-numbers="1|2|3-5|6">
 Arreglo&amp; Arreglo::operator=(const Arreglo&amp; o) {
     if (this == &amp;o) return *this;     // 1. autoasignación
     delete[] datos_;
-    datos_ = new int[o.n_];
-    n_ = o.n_;
+    datos_ = new int[o.n_];   n_ = o.n_;
     for (int i = 0; i &lt; n_; ++i) datos_[i] = o.datos_[i];
     return *this;                     // 2. referencia al objeto
 }
       </code></pre>
       <ul>
-        <li class="fragment">Sin la línea 2, <code>a = a;</code> libera el arreglo y después copia desde memoria recién pedida. Los valores quedan basura y no hay ningún aviso.</li>
-        <li class="fragment">Sin <code>return *this;</code> y con retorno <code>void</code>, la cadena <code>c = b = a;</code> deja de compilar.</li>
-        <li class="fragment">El caso realista de <span class="term" data-term="autoasignacion">autoasignación</span> no es <code>a = a</code> escrito a mano, sino <code>v[i] = v[j]</code> dentro de un ciclo cuando <code>i</code> y <code>j</code> coinciden.</li>
+        <li class="fragment">Sin la línea 2, <code>a = a;</code> libera el arreglo y copia desde memoria recién pedida, sin ningún aviso.</li>
+        <li class="fragment">Con retorno <code>void</code>, la cadena <code>c = b = a;</code> deja de compilar.</li>
+        <li class="fragment">El caso realista de <span class="term" data-term="autoasignacion">autoasignación</span> no es <code>a = a</code>, sino <code>v[i] = v[j]</code> con <code>i == j</code>.</li>
       </ul>
     </section>
 

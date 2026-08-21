@@ -116,7 +116,7 @@ d.empty();        // ¿ninguno?
     <section>
       <span class="kicker">R18 · Size y capacity</span>
       <h2>Qué ocurre cuando ya no cabe</h2>
-      <svg viewBox="0 0 1100 400">
+      <svg viewBox="0 25 1100 305">
         <g class="anim-step" data-step="0" data-step-off="4">
           <text class="svg-label" x="60" y="45" style="font-size:22px;fill:#4b5260">bloque actual · capacity 4 · size 4</text>
           <rect class="svg-node" x="60"  y="60" width="80" height="70" rx="8"/>
@@ -180,7 +180,7 @@ capacity observada al agregar 1000 enteros (g++ 11, libstdc++):
       <ul>
         <li class="fragment">Once reasignaciones para mil elementos. Si el bloque creciera de uno en uno serían 999, cada una copiando todo lo anterior.</li>
         <li class="fragment">Duplicar reparte el costo: mil <code>push_back</code> provocaron 1023 copias de elementos en total, menos de 1.1 copias por elemento. Por eso se dice que <code>push_back</code> cuesta \(O(1)\) amortizado.</li>
-        <li class="fragment">El factor de crecimiento no lo fija el estándar. libstdc++ duplica; la biblioteca de MSVC multiplica por 1.5. Los números de arriba son los de una implementación concreta.</li>
+        <li class="fragment">El factor de crecimiento no lo fija el estándar: libstdc++ duplica, la biblioteca de MSVC multiplica por 1.5.</li>
       </ul>
     </section>
 
@@ -200,7 +200,7 @@ capacity observada al agregar 1000 enteros (g++ 11, libstdc++):
     <section>
       <span class="kicker">R18 · Acceso seguro</span>
       <h2><code>at()</code> revisa el índice; <code>[]</code> no</h2>
-      <pre data-title="acceso.cpp"><code class="language-cpp" data-trim data-line-numbers="1-3|5-9">
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-3|5-9">
 std::vector&lt;int&gt; v{10, 20, 30};
 
 v[7];        // sin revisión: lee lo que haya en esa dirección
@@ -215,7 +215,7 @@ try {
 out_of_range: vector::_M_range_check: __n (which is 7)
               &gt;= this-&gt;size() (which is 3)
       </code></pre>
-      <p class="fragment"><code>at()</code> lanza una <span class="term" data-term="excepcion">excepción</span> que puedes capturar. Sin <code>try</code>/<code>catch</code>, la excepción termina el programa con un mensaje, que sigue siendo mejor que un número inventado.</p>
+      <p class="fragment"><code>at()</code> lanza una <span class="term" data-term="excepcion">excepción</span> que puedes capturar. Sin <code>try</code>/<code>catch</code> termina el programa con un mensaje, mejor que un número inventado.</p>
     </section>
 
     <!-- ============ 11. ITERADORES ============ -->

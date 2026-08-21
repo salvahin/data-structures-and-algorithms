@@ -49,16 +49,16 @@
   font-weight: 700;
   letter-spacing: -0.02em;
   text-transform: none;
-  margin-bottom: 0.6em;
+  margin-bottom: 0.42em;
   line-height: 1.15;
 }
 .reveal h1 { font-size: 1.9em; }
 .reveal h2 { font-size: 1.35em; }
 .reveal h3 { font-size: 1.05em; color: var(--c-ink-soft); }
 
-.reveal p, .reveal li { line-height: 1.5; }
+.reveal p, .reveal li { line-height: 1.42; }
 .reveal ul, .reveal ol { margin-left: 1em; }
-.reveal li { margin-bottom: 0.4em; }
+.reveal li { margin-bottom: 0.28em; }
 .reveal li::marker { color: var(--c-accent); }
 
 .reveal strong { font-weight: 700; }
@@ -76,7 +76,7 @@
   text-transform: uppercase;
   letter-spacing: 0.12em;
   color: var(--c-accent);
-  margin-bottom: 1em;
+  margin-bottom: 0.7em;
 }
 
 /* Portada */
@@ -118,7 +118,7 @@
 .reveal pre {
   position: relative;   /* ancla los clones absolutos de data-line-numbers */
   width: 100%;
-  margin: 0.5em 0;
+  margin: 0.34em 0;
   background: var(--c-code-panel);
   border: none;
   border-radius: 14px;
@@ -143,7 +143,7 @@
 .reveal pre code {
   background: transparent;
   color: #e8eaf0;
-  padding: 1em 1.3em;
+  padding: 0.75em 1.15em;
   max-height: 560px;
 }
 
@@ -202,9 +202,9 @@
 .reveal .box-key {
   border-left: 8px solid var(--c-accent);
   background: var(--c-accent-bg);
-  padding: 0.6em 0.9em;
+  padding: 0.5em 0.9em;
   border-radius: 0 var(--radius) var(--radius) 0;
-  margin: 0.8em 0;
+  margin: 0.55em 0;
   font-weight: 600;
 }
 
@@ -297,8 +297,8 @@
   background: var(--c-bg);
   border: 3px solid var(--c-line);
   border-radius: var(--radius);
-  padding: 0.45em 0.8em;
-  margin-bottom: 0.4em;
+  padding: 0.38em 0.8em;
+  margin-bottom: 0.3em;
   cursor: pointer;
   min-height: 52px;              /* touch target cómodo en móvil */
   transition: border-color 0.15s, background 0.15s;
@@ -351,8 +351,42 @@
 }
 .reveal .solucion-toggle:hover { background: var(--c-accent-bg); }
 .reveal .solucion-body { display: none; }
-.reveal .solucion.open .solucion-body { display: block; animation: rise 0.35s ease; }
+.reveal .solucion.open .solucion-body {
+  display: block;
+  animation: rise 0.35s ease;
+  /* La solución se abre dentro del slide: si no cabe, se desplaza aquí
+     en lugar de empujar el contenido fuera del lienzo. */
+  max-height: var(--solucion-max, 330px);
+  overflow-y: auto;
+  overscroll-behavior: contain;      /* el scroll no se propaga al deck */
+  padding-right: 6px;
+}
 .reveal .solucion.open .solucion-toggle { color: var(--c-ink-soft); border-color: var(--c-line); }
+/* Los <pre> de dentro no imponen su propio límite: manda el de la caja. */
+.reveal .solucion-body > pre { margin-top: 0; }
+.reveal .solucion-body > pre code { max-height: none; }
+.reveal .solucion-body > :last-child { margin-bottom: 0; }
+
+/* Barra de desplazamiento discreta, visible al proyectar */
+.reveal .solucion-body::-webkit-scrollbar { width: 10px; }
+.reveal .solucion-body::-webkit-scrollbar-track { background: transparent; }
+.reveal .solucion-body::-webkit-scrollbar-thumb {
+  background: var(--c-line); border-radius: 999px;
+  border: 2px solid var(--c-bg);
+}
+.reveal .solucion-body:hover::-webkit-scrollbar-thumb { background: var(--c-ink-soft); }
+.reveal .solucion-body { scrollbar-width: thin; scrollbar-color: var(--c-line) transparent; }
+
+/* Aviso de que queda contenido abajo; el JS lo quita al llegar al final. */
+.reveal .solucion.open.hay-mas { position: relative; }
+.reveal .solucion.open.hay-mas::after {
+  content: "▾ sigue";
+  position: absolute; left: 14px; bottom: 6px;   /* a la izquierda: la derecha la ocupan los controles de Reveal */
+  font-size: 0.55em; font-weight: 600; color: var(--c-ink-soft);
+  background: var(--c-bg); border: 2px solid var(--c-line);
+  border-radius: 999px; padding: 0.1em 0.7em;
+  pointer-events: none;
+}
 
 /* ---------- Checklist de salida ----------
    <ul class="checklist" data-deck="v00"><li>…</li></ul>

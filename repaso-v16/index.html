@@ -41,12 +41,11 @@
     <section>
       <span class="kicker">R16 · Punto de partida</span>
       <h2>El mismo objeto, dos áreas distintas</h2>
-      <pre data-title="figuras.cpp"><code class="language-cpp" data-trim>
+      <pre><code class="language-cpp" data-trim>
 class Figura {
 public:
     double area() const { return 0.0; }
 };
-
 class Circulo : public Figura {
     double r_;
 public:
@@ -57,7 +56,6 @@ public:
       <pre><code class="language-cpp" data-trim>
 Circulo c(2.0);
 Figura* f = &amp;c;             // f apunta al mismo objeto
-
 std::cout &lt;&lt; c.area();      // 12.5664
 std::cout &lt;&lt; f-&gt;area();     // 0
       </code></pre>
@@ -67,22 +65,20 @@ std::cout &lt;&lt; f-&gt;area();     // 0
     <section>
       <span class="kicker">R16 · Enlace dinámico</span>
       <h2><code>virtual</code> aplaza la decisión hasta la ejecución</h2>
-      <pre data-title="figuras.h"><code class="language-cpp" data-trim data-line-numbers="1-5|3|10">
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-5|3|9">
 class Figura {
 public:
     virtual double area() const { return 0.0; }
     virtual ~Figura() = default;
 };
-
 class Circulo : public Figura {
     double r_;
 public:
     double area() const override { return 3.14159 * r_ * r_; }
-};
-// ahora f-&gt;area() devuelve 12.5664
+};                             // ahora f-&gt;area() devuelve 12.5664
       </code></pre>
       <ul>
-        <li class="fragment">Sin <code>virtual</code>, el compilador elige el método al leer la línea, usando el tipo de la expresión: <code>f</code> es <code>Figura*</code>, así que llama a <code>Figura::area</code>.</li>
+        <li class="fragment">Sin <code>virtual</code>, el compilador elige el método con el tipo de la expresión: <code>f</code> es <code>Figura*</code>, así que llama a <code>Figura::area</code>.</li>
         <li class="fragment">Con <code>virtual</code>, la elección la hace el programa en ejecución consultando el objeto al que se llegó. Eso es el <span class="term" data-term="enlace-dinamico">enlace dinámico</span>.</li>
       </ul>
     </section>
@@ -140,7 +136,7 @@ public:
     <section>
       <span class="kicker">R16 · Punteros y referencias</span>
       <h2>El enlace dinámico viaja por puntero o referencia</h2>
-      <pre data-title="dibujo.cpp"><code class="language-cpp" data-trim data-line-numbers="1|2|3|5-7">
+      <pre><code class="language-cpp" data-trim data-line-numbers="1|2|3|5-7">
 void porValor(Figura f)        { std::cout &lt;&lt; f.area(); }
 void porRef(const Figura&amp; f)   { std::cout &lt;&lt; f.area(); }
 void porPtr(const Figura* f)   { std::cout &lt;&lt; f-&gt;area(); }
@@ -208,37 +204,34 @@ error: 'double D::area()' marked 'override',
     <section>
       <span class="kicker">R16 · Sobrecarga y sobreescritura</span>
       <h2>El caso que confunde, ejecutado</h2>
-      <pre data-title="oculta.cpp"><code class="language-cpp" data-trim data-line-numbers="1-4|6-9|11-14">
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-4|5-8|9-12">
 class Base {
 public:
     virtual void f(int x) { std::cout &lt;&lt; "Base::f(int)\n"; }
 };
-
 class Derivada : public Base {
 public:
     void f(double x) { std::cout &lt;&lt; "Derivada::f(double)\n"; }
 };
-
 Derivada d;
 d.f(3);            // Derivada::f(double)
 Base* p = &amp;d;
 p-&gt;f(3);           // Base::f(int)
       </code></pre>
-      <p class="fragment">El mismo objeto y el mismo argumento entero producen dos resultados. <code>d.f(3)</code> busca el nombre <code>f</code> en <code>Derivada</code>, lo encuentra y deja de mirar la base, así que convierte el <code>3</code> a <code>double</code>. <code>p-&gt;f(3)</code> parte de <code>Base</code>, donde <code>f(int)</code> es virtual, y no hay ninguna versión que la sobreescriba.</p>
+      <p class="fragment"><code>d.f(3)</code> busca el nombre <code>f</code> en <code>Derivada</code>, lo encuentra y deja de mirar la base, así que convierte el <code>3</code> a <code>double</code>. <code>p-&gt;f(3)</code> parte de <code>Base</code>, donde <code>f(int)</code> es virtual, y no hay ninguna versión que la sobreescriba.</p>
     </section>
 
     <!-- ============ 12 · VIRTUAL PURO ============ -->
     <section>
       <span class="kicker">R16 · Clases abstractas</span>
       <h2><code>= 0</code> obliga a la derivada a responder</h2>
-      <pre data-title="figuras.h"><code class="language-cpp" data-trim data-line-numbers="1-6|8-14">
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-6|7-13">
 class Figura {                                  // clase abstracta
 public:
     virtual double area() const = 0;            // virtual pura
     virtual std::string nombre() const = 0;
     virtual ~Figura() = default;
 };
-
 class Rectangulo : public Figura {
     double a_, b_;
 public:
@@ -254,18 +247,17 @@ public:
     <section>
       <span class="kicker">R16 · Clases abstractas</span>
       <h2>La base declara el contrato y nadie más lo repite</h2>
-      <pre data-title="reporte.cpp"><code class="language-cpp" data-trim>
+      <pre><code class="language-cpp" data-trim>
 double areaTotal(const std::vector&lt;Figura*&gt;&amp; figs) {
     double total = 0.0;
-    for (const Figura* f : figs)
-        total += f-&gt;area();      // no sabe qué figura es
+    for (const Figura* f : figs) total += f-&gt;area();   // no sabe cuál es
     return total;
 }
       </code></pre>
       <ul>
-        <li class="fragment"><code>areaTotal</code> se escribió una vez y sirve para todas las figuras que existan hoy y para las que se agreguen después, sin recompilarla ni tocarla.</li>
-        <li class="fragment">Agregar un <code>Triangulo</code> requiere una clase nueva que derive de <code>Figura</code> y defina las dos funciones puras. Ningún archivo existente cambia.</li>
-        <li class="fragment">El contenedor guarda <code>Figura*</code> y no <code>Figura</code>, porque un vector de objetos por valor rebanaría cada figura al insertarla.</li>
+        <li class="fragment"><code>areaTotal</code> se escribió una vez y sirve para cualquier figura, presente o futura.</li>
+        <li class="fragment">Agregar un <code>Triangulo</code> solo pide una clase que derive de <code>Figura</code> y defina las dos funciones puras.</li>
+        <li class="fragment">El contenedor guarda <code>Figura*</code>: un vector por valor rebanaría cada figura al insertarla.</li>
       </ul>
     </section>
 
@@ -285,7 +277,7 @@ double areaTotal(const std::vector&lt;Figura*&gt;&amp; figs) {
     <section>
       <span class="kicker">R16 · Destructor virtual</span>
       <h2>Qué destructor no se ejecuta</h2>
-      <pre data-title="fuga.cpp"><code class="language-cpp" data-trim data-line-numbers="1-4|5-11|13-14">
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-4|5-10|11">
 class Base {
 public:
     ~Base() { std::cout &lt;&lt; "~Base()\n"; }      // sin virtual
@@ -294,32 +286,23 @@ class Derivada : public Base {
     int* buffer_;
 public:
     Derivada() : buffer_(new int[1000]) { }
-    ~Derivada() { delete[] buffer_;
-                  std::cout &lt;&lt; "~Derivada()\n"; }
+    ~Derivada() { delete[] buffer_; std::cout &lt;&lt; "~Derivada()\n"; }
 };
-
-Base* p = new Derivada();
-delete p;
+Base* p = new Derivada();   delete p;
       </code></pre>
       <pre><code class="language-plaintext" data-trim>
 sin virtual:   ~Base()
 con virtual:   ~Derivada()   ~Base()
       </code></pre>
-      <p class="fragment">Sin <code>virtual</code>, <code>delete p</code> mira el tipo del puntero y llama solo a <code>~Base</code>: los 4000 bytes de <code>buffer_</code> se fugan. <code>g++ -Wall -Wextra</code> no dice nada porque <code>Base</code> no tiene ninguna función virtual; <code>-fsanitize=address</code> lo reporta como <em>new-delete-type-mismatch</em>. Toda clase que se use por puntero a la base lleva <code>virtual ~Base();</code>.</p>
+      <p class="fragment">Sin <code>virtual</code>, <code>delete p</code> llama solo a <code>~Base</code> y <code>buffer_</code> se fuga.</p>
     </section>
 
     <!-- ============ 16 · TRAMPAS ============ -->
     <section>
       <span class="kicker">R16 · Trampas comunes</span>
       <h2>Tres formas de perder el polimorfismo</h2>
-      <pre><code class="language-cpp" data-trim data-line-numbers="1-5|7-9|11-12">
-class Figura {                    // base concreta, sin = 0
-public:
-    virtual double area() const { return 0.0; }
-    virtual ~Figura() = default;
-};
-
-Circulo c(2.0);
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-3|5-6">
+Circulo c(2.0);            // Figura: base concreta, area() virtual
 Figura  g = c;             // slicing: g.area() da 0
 Figura&amp; r = c;             // r.area() da 12.5664
 
@@ -327,9 +310,9 @@ std::vector&lt;Figura&gt;  v1;   // rebana cada figura al insertarla
 std::vector&lt;Figura*&gt; v2;   // conserva el objeto completo
       </code></pre>
       <ul>
-        <li class="fragment">Asignar un derivado a una variable de tipo base por valor copia solo el subobjeto base. El compilador lo acepta en silencio y el objeto pierde su comportamiento.</li>
-        <li class="fragment">Con la <code>Figura</code> abstracta del slide 12, la línea 8 no compila y <code>v1.push_back(c)</code> tampoco. Declarar la base con funciones virtuales puras cierra esta puerta desde el principio.</li>
-        <li class="fragment">Las otras dos: destructor de la base sin <code>virtual</code>, y redefinir con una firma distinta creyendo que hubo sobreescritura. Si ves un tipo base por valor en una firma o una redefinición sin <code>override</code>, sospecha.</li>
+        <li class="fragment">Asignar un derivado a una variable del tipo base copia solo el subobjeto base, y el compilador lo acepta en silencio.</li>
+        <li class="fragment">Con la <code>Figura</code> abstracta del slide 12, la línea 2 no compila y <code>v1.push_back(c)</code> tampoco.</li>
+        <li class="fragment">Las otras dos: destructor de la base sin <code>virtual</code>, y redefinir con una firma distinta creyendo que hubo sobreescritura.</li>
       </ul>
     </section>
 
@@ -382,7 +365,6 @@ for (Figura* f : figs) delete f;   // usa ~Circulo y ~Rectangulo
         <li class="fragment">Los recorridos de árboles aplican una operación por nodo. Con un método virtual, el mismo recorrido sirve para imprimir, sumar o copiar, cambiando solo el objeto que se le pasa.</li>
         <li class="fragment">Los comparadores que ordenan tus estructuras se pasan como objetos con <code>operator()</code> de R14 o como una jerarquía con un método virtual de comparación.</li>
       </ul>
-      <p class="fragment muted">Los contenedores de objetos polimórficos guardan punteros, y por eso las entregas del curso se auditan con AddressSanitizer.</p>
     </section>
 
     <!-- ============ 20 · CHECKLIST ============ -->

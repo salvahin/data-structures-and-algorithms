@@ -65,18 +65,17 @@ int main() {
     <section>
       <span class="kicker">R8 · Arreglos estáticos</span>
       <h2>Declarar y recorrer</h2>
-      <pre data-title="arreglos.cpp"><code class="language-cpp" data-trim data-line-numbers="1|2|3-4|6-7">
+      <pre><code class="language-cpp" data-trim data-line-numbers="1|2|3-4|5-6">
 int v[5] = {10, 20, 30, 40, 50};
 int n = sizeof(v) / sizeof(v[0]);    // 5
 for (int i = 0; i &lt; n; i++)
     std::cout &lt;&lt; v[i] &lt;&lt; ' ';
-
 int ceros[4] = {};                    // 0 0 0 0
 int parcial[5] = {1, 2};              // 1 2 0 0 0
       </code></pre>
       <ul>
-        <li class="fragment">El tamaño entre corchetes es una constante fijada al compilar. El arreglo vive en la pila y no puede crecer.</li>
-        <li class="fragment"><code>sizeof(v)</code> son los bytes que ocupa el arreglo completo, 20 en este caso, y <code>sizeof(v[0])</code> son los de un elemento. La división da la cantidad de elementos.</li>
+        <li class="fragment">El tamaño se fija al compilar; el arreglo vive en la pila.</li>
+        <li class="fragment"><code>sizeof(v)</code> son los bytes del arreglo completo, 20 aquí, y <code>sizeof(v[0])</code> los de un elemento.</li>
         <li class="fragment">Los índices válidos van de <code>0</code> a <code>n - 1</code>. Salirse no produce error: lee o escribe la memoria que esté ahí.</li>
       </ul>
     </section>
@@ -115,13 +114,12 @@ std::cout &lt;&lt; sizeof(x) &lt;&lt; ' ' &lt;&lt; sizeof(d); // 4 8
     <section>
       <span class="kicker">R8 · Punteros</span>
       <h2>Una variable que guarda una dirección</h2>
-      <pre data-title="punteros.cpp"><code class="language-cpp" data-trim data-line-numbers="2|3|4-5|7-8">
+      <pre><code class="language-cpp" data-trim data-line-numbers="2|3|4-5|6-7">
 int x = 42;
 int* p = &amp;x;                 // p guarda la direccion de x
 std::cout &lt;&lt; *p &lt;&lt; '\n';     // 42, desreferencia
 *p = 7;
 std::cout &lt;&lt; x &lt;&lt; '\n';      // 7, se modifico x
-
 int* q = nullptr;            // no apunta a nada
 if (q != nullptr) std::cout &lt;&lt; *q &lt;&lt; '\n';
       </code></pre>
@@ -177,7 +175,7 @@ if (q != nullptr) std::cout &lt;&lt; *q &lt;&lt; '\n';
     <section>
       <span class="kicker">R8 · Arreglo y puntero</span>
       <h2>El arreglo se convierte en puntero</h2>
-      <pre data-title="imprimir.cpp"><code class="language-cpp" data-trim data-line-numbers="1|2">
+      <pre><code class="language-cpp" data-trim data-line-numbers="1|2">
 void imprimir(int datos[]) {     // el compilador lee: int* datos
     int n = sizeof(datos) / sizeof(datos[0]);   // 8 / 4 = 2
       </code></pre>
@@ -186,9 +184,9 @@ imprimir.cpp:4:20: warning: 'sizeof' on array function parameter
 'datos' will return size of 'int*' [-Wsizeof-array-argument]
       </code></pre>
       <ul>
-        <li class="fragment">Al pasar un arreglo a una función, lo que viaja es la dirección de su primer elemento. La conversión se llama <span class="term" data-term="decay">decaimiento</span> y ocurre siempre.</li>
-        <li class="fragment">Dentro de la función <code>datos</code> es un puntero, así que <code>sizeof(datos)</code> son los 8 bytes de un puntero y la división da 2. El resultado no depende del arreglo original.</li>
-        <li class="fragment">Escribir <code>int datos[]</code>, <code>int datos[6]</code> o <code>int* datos</code> como parámetro produce exactamente el mismo código. El número entre corchetes se ignora.</li>
+        <li class="fragment">Al pasar un arreglo a una función viaja la dirección de su primer elemento (<span class="term" data-term="decay">decaimiento</span>).</li>
+        <li class="fragment">Dentro de la función <code>datos</code> es un puntero, así que <code>sizeof(datos)</code> son 8 bytes y la división da 2.</li>
+        <li class="fragment"><code>int datos[]</code>, <code>int datos[6]</code> e <code>int* datos</code> producen el mismo código.</li>
       </ul>
     </section>
 
@@ -196,13 +194,12 @@ imprimir.cpp:4:20: warning: 'sizeof' on array function parameter
     <section>
       <span class="kicker">R8 · Arreglo y puntero</span>
       <h2>El tamaño viaja aparte</h2>
-      <pre data-title="suma.cpp"><code class="language-cpp" data-trim data-line-numbers="1|8|9">
+      <pre><code class="language-cpp" data-trim data-line-numbers="1|7|8">
 int suma(const int datos[], int n) {
     int total = 0;
     for (int i = 0; i &lt; n; i++) total += datos[i];
     return total;
 }
-
 int main() {
     int v[6] = {1, 2, 3, 4, 5, 6};
     int n = sizeof(v) / sizeof(v[0]);   // aqui v aun es arreglo
@@ -210,9 +207,9 @@ int main() {
 }
       </code></pre>
       <ul>
-        <li class="fragment">El tamaño se calcula en el ámbito donde el arreglo fue declarado y se pasa como parámetro. Toda función de biblioteca que recibe arreglos crudos hace lo mismo.</li>
-        <li class="fragment"><code>const int datos[]</code> anuncia que la función solo lee. Si intenta escribir, el compilador la detiene.</li>
-        <li class="fragment"><code>v[i]</code> y <code>*(v + i)</code> son la misma expresión escrita de dos formas.</li>
+        <li class="fragment">El tamaño se calcula donde el arreglo fue declarado y se pasa como parámetro.</li>
+        <li class="fragment"><code>const int datos[]</code> anuncia que la función solo lee.</li>
+        <li class="fragment"><code>v[i]</code> y <code>*(v + i)</code> son la misma expresión.</li>
       </ul>
     </section>
 
@@ -232,10 +229,9 @@ int main() {
     <section>
       <span class="kicker">R8 · Paso de parámetros</span>
       <h2>Por valor y por referencia</h2>
-      <pre data-title="parametros.cpp"><code class="language-cpp" data-trim data-line-numbers="1|2|6-7">
+      <pre><code class="language-cpp" data-trim data-line-numbers="1|2|5-6">
 void porValor(int a) { a = 99; }
 void porRef(int&amp; a)  { a = 99; }
-
 int main() {
     int x = 1, y = 1;
     porValor(x);      // x sigue valiendo 1
@@ -244,9 +240,9 @@ int main() {
 }
       </code></pre>
       <ul>
-        <li class="fragment">El paso por valor copia el argumento. La función trabaja sobre su copia y el original queda intacto.</li>
+        <li class="fragment">El paso por valor copia el argumento.</li>
         <li class="fragment"><span class="term" data-term="referencia">Una referencia</span> <code>int&amp;</code> es otro nombre para la misma variable. No se copia nada y toda escritura afecta al original.</li>
-        <li class="fragment">Una referencia se enlaza al declararse y no puede reasignarse a otra variable. Tampoco puede quedar nula.</li>
+        <li class="fragment">Una referencia se enlaza al declararse y no se reasigna.</li>
       </ul>
     </section>
 
@@ -254,7 +250,7 @@ int main() {
     <section>
       <span class="kicker">R8 · Paso de parámetros</span>
       <h2>Referencia constante y criterio para elegir</h2>
-      <pre data-title="criterio.cpp"><code class="language-cpp" data-trim>
+      <pre><code class="language-cpp" data-trim>
 void mostrar(const std::string&amp; s) { std::cout &lt;&lt; s; }
 void agregar(std::string&amp; s)       { s += " y Algoritmos"; }
 int  doble(int n)                  { return 2 * n; }

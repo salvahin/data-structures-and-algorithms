@@ -41,7 +41,7 @@
     <section>
       <span class="kicker">R10 · Punto de partida</span>
       <h2>Este constructor no compila</h2>
-      <pre data-title="sensor.cpp"><code class="language-cpp" data-trim>
+      <pre><code class="language-cpp" data-trim>
 class Sensor {
     const int id;
 public:
@@ -61,8 +61,8 @@ sensor.cpp:4:24: error: assignment of read-only member 'Sensor::id'
     <section>
       <span class="kicker">R10 · Constructores</span>
       <h2>El método que corre al nacer el objeto</h2>
-      <p>Un constructor tiene el mismo nombre que la clase y no declara tipo de retorno. Se ejecuta una sola vez, cuando el objeto entra en existencia, y su trabajo es dejar los campos en un estado válido.</p>
-      <pre data-title="punto.cpp"><code class="language-cpp" data-trim data-line-numbers="1-4|5-6">
+      <p>Un constructor tiene el mismo nombre que la clase y no declara tipo de retorno. Se ejecuta una sola vez y deja los campos en un estado válido.</p>
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-4|5-6">
 class Punto {
     int x, y;
 public:
@@ -133,9 +133,9 @@ ConLista:
       <ul>
         <li class="fragment">Al entrar al cuerpo del constructor, todos los miembros ya están construidos. El cuerpo solo puede asignarles valores nuevos.</li>
         <li class="fragment">Un miembro <code>const</code> no admite asignación después de construido, y una referencia tampoco: hay que darles su valor en el momento de nacer.</li>
-        <li class="fragment">Para esos dos casos la lista de inicialización es la única vía que existe en el lenguaje.</li>
+        <li class="fragment">Para esos dos casos la lista es la única vía.</li>
       </ul>
-      <pre data-title="sensor.cpp"><code class="language-cpp" data-trim>
+      <pre><code class="language-cpp" data-trim>
 class Sensor {
     const int id;
 public:
@@ -160,8 +160,8 @@ public:
     <section>
       <span class="kicker">R10 · Destructor</span>
       <h2>El método que corre al morir el objeto</h2>
-      <p>Se llama igual que la clase con una virgulilla delante, no recibe parámetros y no se puede sobrecargar. Cada clase tiene exactamente uno.</p>
-      <pre data-title="punto.cpp"><code class="language-cpp" data-trim>
+      <p>Se llama igual que la clase con una virgulilla delante, no recibe parámetros y no se sobrecarga.</p>
+      <pre><code class="language-cpp" data-trim>
 ~Punto() { std::cout &lt;&lt; "~Punto(" &lt;&lt; x &lt;&lt; "," &lt;&lt; y &lt;&lt; ")\n"; }
       </code></pre>
       <p>Se invoca solo, sin que nadie lo escriba, en tres momentos:</p>
@@ -218,7 +218,7 @@ fin de main
     <section>
       <span class="kicker">R10 · El puntero this</span>
       <h2>Dentro de un método, <code>this</code> es la dirección del objeto</h2>
-      <pre data-title="contador.cpp"><code class="language-cpp" data-trim data-line-numbers="5|8-10">
+      <pre><code class="language-cpp" data-trim data-line-numbers="5|8-10">
 class Contador {
     int valor;
 public:
@@ -233,14 +233,14 @@ public:
 Contador c(10);
 c.sumar(5).sumar(3).imprimir();   // imprime 18
       </code></pre>
-      <p class="fragment">Los dos usos legítimos son estos: desambiguar cuando el parámetro se llama igual que el miembro, y devolver <code>*this</code> para encadenar llamadas. Escribir <code>this-&gt;</code> delante de cada miembro sin necesidad solo agrega ruido.</p>
+      <p class="fragment">Dos usos legítimos: desambiguar cuando el parámetro se llama igual que el miembro, y devolver <code>*this</code> para encadenar. Escribir <code>this-&gt;</code> en todas partes agrega ruido.</p>
     </section>
 
     <!-- ============ 14 · MOST VEXING PARSE ============ -->
     <section>
       <span class="kicker">R10 · Trampa clásica</span>
       <h2><code>Reloj r();</code> declara una función</h2>
-      <pre data-title="reloj.cpp"><code class="language-cpp" data-trim>
+      <pre><code class="language-cpp" data-trim>
 int main() {
     Reloj r();       // una funcion r que no recibe nada
     r.hora();        //  y devuelve un Reloj
@@ -252,7 +252,7 @@ reloj.cpp:8:12: warning: empty parentheses were disambiguated
 reloj.cpp:9:7: error: request for member 'hora' in 'r',
                which is of non-class type 'Reloj()'
       </code></pre>
-      <p class="fragment">La gramática de C++ resuelve la ambigüedad a favor de la declaración de función. Se conoce como <span class="term" data-term="vexing">most vexing parse</span>. La forma correcta es <code>Reloj r;</code> o <code>Reloj r{};</code>. Nota que el mensaje del constructor nunca se imprime: el objeto no llegó a existir.</p>
+      <p class="fragment">C++ resuelve la ambigüedad a favor de la declaración de función: es el <span class="term" data-term="vexing">most vexing parse</span>. Se escribe <code>Reloj r;</code> o <code>Reloj r{};</code>.</p>
     </section>
 
     <!-- ============ 15 · CHECKPOINT 4 ============ -->
@@ -283,20 +283,15 @@ reloj.cpp:9:7: error: request for member 'hora' in 'r',
     <section>
       <span class="kicker">R10 · Ejercicio</span>
       <h2>Predice el orden de los mensajes</h2>
-      <pre data-title="ejercicio.cpp"><code class="language-cpp" data-trim>
-Sesion global("global");
-
+      <pre><code class="language-cpp" data-trim>
+Sesion global("global");  // constructores y destructor imprimen
 int main() {
     Sesion a("a");
-    {
-        Sesion b("b");
-        Sesion c("c", 2);
-    }
+    { Sesion b("b"); Sesion c("c", 2); }
     std::cout &lt;&lt; "--- medio ---\n";
     Sesion d;
 }
       </code></pre>
-      <p class="muted">La clase <code>Sesion</code> tiene tres constructores —sin argumentos, con nombre, con nombre y prioridad— y un destructor; los cuatro imprimen su nombre. Escribe la salida completa antes de abrir la solución.</p>
       <div class="solucion" data-label="Ver mi predicción">
         <pre><code class="language-plaintext" data-trim>
 Sesion(global)

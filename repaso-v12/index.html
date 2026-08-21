@@ -63,13 +63,13 @@ $ g++ -std=c++17 pila.cpp  2&gt;&amp;1 | wc -l
     <section>
       <span class="kicker">R12 · Cómo leer la salida</span>
       <h2>Solo el primer error es información</h2>
-      <p>El compilador lee tu archivo de arriba abajo. Cuando encuentra algo que no puede interpretar, hace una suposición y sigue, para reportar de una vez todo lo que pueda. Si la suposición es incorrecta, todo lo que lee después se interpreta mal.</p>
+      <p>El compilador lee de arriba abajo. Cuando algo no encaja, hace una suposición y sigue. Si la suposición es incorrecta, todo lo que lee después se interpreta mal.</p>
       <ul>
         <li class="fragment">Los errores posteriores describen el estado confundido del compilador, no tu programa.</li>
-        <li class="fragment">El procedimiento es: leer el primer error, corregirlo, recompilar. Nunca corregir la lista completa de una pasada.</li>
-        <li class="fragment">Para ver solo el principio: <code>g++ archivo.cpp 2&gt;&amp;1 | head -20</code>, o directamente <code>g++ -fmax-errors=1 archivo.cpp</code>.</li>
+        <li class="fragment">Leer el primer error, corregirlo, recompilar. Nunca corregir la lista completa de una pasada.</li>
+        <li class="fragment">Para ver solo el principio: <code>g++ -fmax-errors=1 archivo.cpp</code>.</li>
       </ul>
-      <div class="box-key">Un error corregido puede eliminar cuarenta mensajes. Contar los mensajes no mide cuánto falta.</div>
+      <div class="box-key">Un error corregido puede eliminar cuarenta mensajes.</div>
     </section>
 
     <!-- ============ 5 · ANATOMÍA DE LA LÍNEA ============ -->
@@ -85,8 +85,8 @@ e3.cpp:3:15: note:   initializing argument 1 of 'int doble(int)'
       |           ~~~~^
       </code></pre>
       <ul>
-        <li class="fragment"><code>e3.cpp:6:24</code> — archivo, línea y columna. La columna es donde el compilador se detuvo, que no siempre es donde está la falta.</li>
-        <li class="fragment"><code>error</code> — la severidad. <code>warning</code> no detiene la compilación; <code>note</code> no es un problema aparte sino contexto del <span class="term" data-term="diagnostico">diagnóstico</span> anterior.</li>
+        <li class="fragment"><code>e3.cpp:6:24</code> — archivo, línea y columna donde se detuvo.</li>
+        <li class="fragment"><code>error</code> — la severidad. <code>warning</code> no detiene la compilación; <code>note</code> da contexto del <span class="term" data-term="diagnostico">diagnóstico</span> anterior.</li>
         <li class="fragment">El texto del mensaje, y debajo la línea de código con un cursor apuntando a la posición exacta.</li>
       </ul>
     </section>
@@ -107,7 +107,7 @@ e3.cpp:3:15: note:   initializing argument 1 of 'int doble(int)'
     <section>
       <span class="kicker">R12 · Errores de sintaxis</span>
       <h2>El punto y coma que falta se reporta una línea después</h2>
-      <pre data-title="e5.cpp"><code class="language-cpp" data-trim data-line-numbers="7|9">
+      <pre><code class="language-cpp" data-trim data-line-numbers="7|9">
 #include &lt;iostream&gt;
 class Punto {
     int x, y;
@@ -123,7 +123,7 @@ int suma(Punto a, Punto b) { return a.getX() + b.getX(); }
 e5.cpp:9:7: error: expected initializer before 'origen'
 e5.cpp:13:23: error: 'origen' was not declared in this scope
       </code></pre>
-      <p class="fragment">Sin el punto y coma, <code>Punto</code> y lo que sigue forman una sola declaración, así que el compilador espera un inicializador donde tú escribiste un nombre de variable. La falta está en la línea 7 y el mensaje habla de la 9. El segundo error es eco: <code>origen</code> no existe porque su declaración no llegó a formarse.</p>
+      <p class="fragment">Sin el punto y coma, <code>Punto</code> y lo que sigue forman una sola declaración. La falta está en la línea 7 y el mensaje habla de la 9.</p>
     </section>
 
     <!-- ============ 8 · EL CASCADEO ============ -->
@@ -142,7 +142,7 @@ pila.cpp:14:2: error: expected unqualified-id at end of input
       <ul>
         <li class="fragment">La <code>note</code> de la línea 2 es la pista real: el compilador llegó al final del archivo buscando la llave que cierra <code>class Pila</code>.</li>
         <li class="fragment"><code>In member function 'int Pila::main()'</code> revela lo ocurrido: <code>main</code> quedó absorbido dentro de la clase.</li>
-        <li class="fragment">Los tres mensajes restantes son consecuencias de esa absorción. Agregar la llave los borra todos.</li>
+        <li class="fragment">Los tres mensajes restantes desaparecen al agregar la llave.</li>
       </ul>
     </section>
 
@@ -180,13 +180,13 @@ pila.cpp:14:2: error: expected unqualified-id at end of input
 /usr/bin/ld: main.o: in function `main':
 main.cpp:(.text+0x3c): undefined reference to
                        `Cuenta::depositar(double)'
-collect2: error: ld returned 1 exit status
+[...]
       </code></pre>
-      <p>El mensaje se lee de dentro hacia fuera: <em>quién</em> lo necesita (<code>main.o</code>, dentro de <code>main</code>) y <em>qué</em> le falta (el cuerpo de <code>Cuenta::depositar(double)</code>). Las causas posibles son pocas:</p>
+      <p>El mensaje dice quién lo necesita (<code>main.o</code>) y qué falta (el cuerpo de <code>Cuenta::depositar(double)</code>). Las causas son pocas:</p>
       <ul>
-        <li class="fragment">El método se declaró en el header y su cuerpo no se escribió en ningún <code>.cpp</code>.</li>
-        <li class="fragment">El cuerpo existe pero el archivo que lo contiene no se pasó al comando de enlazado.</li>
-        <li class="fragment">Las firmas no coinciden: falta el <code>Clase::</code>, sobra o falta un <code>const</code>, o un parámetro es <code>int</code> en un lado y <code>double</code> en el otro. El nombre entre comillas del mensaje trae la firma completa, así que compáralo con tu declaración carácter por carácter.</li>
+        <li class="fragment">El cuerpo del método no se escribió en ningún <code>.cpp</code>.</li>
+        <li class="fragment">El archivo que lo contiene no se pasó al comando de enlazado.</li>
+        <li class="fragment">Las firmas no coinciden: falta el <code>Clase::</code>, sobra un <code>const</code> o cambia un tipo. Compárala con la del mensaje.</li>
       </ul>
     </section>
 
@@ -224,9 +224,8 @@ e4.cpp:4:5: error: 'v' was not declared in this scope
     <section>
       <span class="kicker">R12 · Plantillas</span>
       <h2>Ciento catorce líneas para un operador que falta</h2>
-      <pre data-title="tpl.cpp"><code class="language-cpp" data-trim>
+      <pre><code class="language-cpp" data-trim>
 struct Punto { int x, y; };
-
 std::vector&lt;Punto&gt; v{{3,1},{1,2}};
 std::sort(v.begin(), v.end());
       </code></pre>
@@ -238,7 +237,7 @@ tpl.cpp:6:14:   required from here
 predefined_ops.h:45:23: error: no match for 'operator&lt;'
                         (operand types are 'Punto' and 'Punto')
       </code></pre>
-      <p class="fragment">Las decenas de líneas <code>required from</code> son la cadena de <span class="term" data-term="instanciacion">instanciación</span>: cómo se llegó desde tu código hasta el interior de la biblioteca. Se leen dos líneas: la que dice <code>required from here</code> y menciona <em>tu</em> archivo, y la que empieza con <code>error:</code>. Aquí: <code>Punto</code> no tiene <code>operator&lt;</code> y <code>std::sort</code> lo necesita.</p>
+      <p class="fragment">Las líneas <code>required from</code> son la cadena de <span class="term" data-term="instanciacion">instanciación</span>. Se leen dos: la que dice <code>required from here</code> y menciona tu archivo, y la que empieza con <code>error:</code>. Aquí, <code>Punto</code> no tiene <code>operator&lt;</code>.</p>
     </section>
 
     <!-- ============ 15 · CHECKPOINT 4 ============ -->

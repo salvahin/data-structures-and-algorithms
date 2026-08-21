@@ -43,15 +43,11 @@
       <span class="kicker">R7 · Punto de partida</span>
       <h2>Este programa encuentra lo que no existe</h2>
       <pre data-title="buscar.cpp"><code class="language-cpp" data-trim>
-#include &lt;iostream&gt;
 #include &lt;string&gt;
-
 int main() {
     std::string s = "estructuras de datos";
-    if (s.find("arbol") &gt; 0)
-        std::cout &lt;&lt; "arbol si aparece\n";
-    if (s.find("estructuras") &gt; 0)
-        std::cout &lt;&lt; "estructuras si aparece\n";
+    if (s.find("arbol") &gt; 0) std::cout &lt;&lt; "arbol si aparece\n";
+    if (s.find("estructuras") &gt; 0) std::cout &lt;&lt; "estructuras si aparece\n";
 }
       </code></pre>
       <pre><code class="language-plaintext" data-trim>
@@ -65,10 +61,9 @@ arbol si aparece
     <section>
       <span class="kicker">R7 · Operaciones básicas</span>
       <h2>Crear y unir cadenas</h2>
-      <pre data-title="cadenas.cpp"><code class="language-cpp" data-trim data-line-numbers="5-6|7|8|9">
+      <pre><code class="language-cpp" data-trim data-line-numbers="4-5|6|7|8">
 #include &lt;iostream&gt;
 #include &lt;string&gt;
-
 int main() {
     std::string curso = "Estructuras";
     std::string tema  = "Datos";
@@ -79,9 +74,9 @@ int main() {
 }
       </code></pre>
       <ul>
-        <li class="fragment"><code>+</code> produce una cadena nueva; <code>+=</code> modifica la que ya tienes y evita la copia.</li>
-        <li class="fragment">El constructor <code>std::string linea(5, '-')</code> repite un carácter. Es útil para separadores y para reservar espacio inicial.</li>
-        <li class="fragment">Hay que incluir <code>&lt;string&gt;</code>. Que a veces funcione sin él es un accidente de qué arrastra <code>&lt;iostream&gt;</code> en tu compilador.</li>
+        <li class="fragment"><code>+</code> crea una cadena nueva; <code>+=</code> evita esa copia.</li>
+        <li class="fragment"><code>std::string linea(5, '-')</code> repite un carácter.</li>
+        <li class="fragment">Hay que incluir <code>&lt;string&gt;</code>: sin él solo funciona por accidente.</li>
       </ul>
     </section>
 
@@ -120,13 +115,12 @@ std::cout &lt;&lt; s.empty() &lt;&lt; '\n';         // 0
     <section>
       <span class="kicker">R7 · Búsqueda</span>
       <h2><code>find</code> y el valor <code>npos</code></h2>
-      <pre data-title="buscar.cpp · corregido"><code class="language-cpp" data-trim data-line-numbers="2|3-4|5-6">
+      <pre><code class="language-cpp" data-trim data-line-numbers="2|3-4|5">
 std::string s = "estructuras de datos";
 std::size_t p = s.find("datos");
 if (p != std::string::npos)
     std::cout &lt;&lt; "encontrado en " &lt;&lt; p &lt;&lt; '\n';   // 15
-if (s.find("arbol") == std::string::npos)
-    std::cout &lt;&lt; "no aparece\n";
+if (s.find("arbol") == std::string::npos) std::cout &lt;&lt; "no aparece\n";
       </code></pre>
       <ul>
         <li class="fragment"><code>find</code> devuelve la posición del primer carácter de la coincidencia, y <span class="term" data-term="npos"><code>std::string::npos</code></span> cuando no hay ninguna.</li>
@@ -139,15 +133,13 @@ if (s.find("arbol") == std::string::npos)
     <section>
       <span class="kicker">R7 · Comparar y recorrer</span>
       <h2>Comparación y recorrido carácter por carácter</h2>
-      <pre data-title="recorrer.cpp"><code class="language-cpp" data-trim data-line-numbers="1-3|5-7|9-10">
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-3|4-6|7-8">
 std::string a = "casa", b = "Casa";
 if (a == b) std::cout &lt;&lt; "iguales\n";      // no entra
 if (b &lt; a)  std::cout &lt;&lt; "Casa antes\n";   // 'C'=67, 'c'=99
-
 // recorrido por indice
 for (std::size_t i = 0; i &lt; a.size(); i++)
     std::cout &lt;&lt; a[i] &lt;&lt; '-';              // c-a-s-a-
-
 // recorrido por rango
 for (char c : a) std::cout &lt;&lt; c;           // casa
       </code></pre>
@@ -181,8 +173,7 @@ const char* b = "hola";
 a == b;              // compara direcciones
 std::strcmp(a, b);   // compara contenido
 std::strlen(a);      // recorre hasta el '\0'
-// concatenar exige reservar
-// espacio a mano
+// concatenar exige reservar espacio a mano
           </code></pre>
         </div>
         <div>
@@ -196,7 +187,7 @@ x += " mundo";       // crece sola
         </div>
       </div>
       <ul>
-        <li class="fragment"><span class="term" data-term="cadena-c">Una cadena de C</span> es un arreglo de <code>char</code> que termina en <code>'\0'</code>. Conoce su final solo recorriéndose, y quien la use administra su memoria.</li>
+        <li class="fragment"><span class="term" data-term="cadena-c">Una cadena de C</span> es un arreglo de <code>char</code> terminado en <code>'\0'</code>; quien la usa administra su memoria.</li>
         <li class="fragment"><code>std::string</code> guarda su tamaño, ajusta su capacidad al crecer y libera su memoria al salir de ámbito. En este curso se usa siempre.</li>
       </ul>
     </section>
@@ -217,16 +208,15 @@ x += " mundo";       // crece sola
     <section>
       <span class="kicker">R7 · Espacios de nombres</span>
       <h2>Qué problema resuelven</h2>
-      <pre data-title="colision"><code class="language-cpp" data-trim>
+      <pre><code class="language-cpp" data-trim>
 // lista.h  (biblioteca de listas)
 struct Nodo { int dato; Nodo* siguiente; };
 void imprimir(const Nodo* n);
-
 // arbol.h  (biblioteca de arboles)
 struct Nodo { int dato; Nodo* izq; Nodo* der; };
 void imprimir(const Nodo* n);
       </code></pre>
-      <p class="fragment">Incluir los dos archivos en el mismo <code>.cpp</code> produce <code>redefinition of 'struct Nodo'</code>. Las dos bibliotecas son correctas por separado y ninguna puede renombrar sus tipos sin romper a sus usuarios.</p>
+      <p class="fragment">Incluir los dos en el mismo <code>.cpp</code> produce <code>redefinition of 'struct Nodo'</code>, y ninguna biblioteca puede renombrar sus tipos.</p>
       <p class="fragment"><span class="term" data-term="namespace">Un espacio de nombres</span> agrega un prefijo a cada nombre, así que <code>lista::Nodo</code> y <code>arbol::Nodo</code> conviven.</p>
     </section>
 
@@ -234,24 +224,22 @@ void imprimir(const Nodo* n);
     <section>
       <span class="kicker">R7 · Espacios de nombres</span>
       <h2>Definir uno y usarlo</h2>
-      <pre data-title="areas.cpp"><code class="language-cpp" data-trim data-line-numbers="1-4|6-8|11-12">
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-4|5-7|9-10">
 namespace geometria {
     const double PI = 3.14159265;
     double area(double r) { return PI * r * r; }
 }
-
 namespace fisica {
     double area(double b, double h) { return b * h; }
 }
-
 int main() {
     std::cout &lt;&lt; geometria::area(2.0) &lt;&lt; '\n';   // 12.5664
     std::cout &lt;&lt; fisica::area(3.0, 4.0) &lt;&lt; '\n'; // 12
 }
       </code></pre>
       <ul>
-        <li class="fragment">El bloque <code>namespace</code> no lleva punto y coma final y puede reabrirse en varios archivos: todo lo que declares dentro se acumula bajo el mismo prefijo.</li>
-        <li class="fragment">El operador <code>::</code> elige de qué espacio viene el nombre. <code>std::string</code> y <code>std::cout</code> son exactamente eso.</li>
+        <li class="fragment">El bloque <code>namespace</code> no lleva punto y coma final y puede reabrirse en varios archivos.</li>
+        <li class="fragment"><code>::</code> elige de qué espacio viene el nombre.</li>
       </ul>
     </section>
 
@@ -259,7 +247,7 @@ int main() {
     <section>
       <span class="kicker">R7 · Espacios de nombres</span>
       <h2><code>using namespace std;</code>: dónde sí y dónde no</h2>
-      <pre data-title="util.h · lo que no se hace"><code class="language-cpp" data-trim data-line-numbers="3|4">
+      <pre><code class="language-cpp" data-trim data-line-numbers="3|4">
 #pragma once
 #include &lt;string&gt;
 using namespace std;      // viaja a todo .cpp que lo incluya
@@ -267,14 +255,13 @@ string saludo();
       </code></pre>
       <pre><code class="language-plaintext" data-trim>
 main.cpp:8:5: error: reference to 'count' is ambiguous
-    8 |     count++;
-      |     ^~~~~
+[...]
 note: candidates are: 'template&lt;...&gt; std::count(...)'
 note:                 'int count'
       </code></pre>
       <ul>
-        <li class="fragment">Quien incluya <code>util.h</code> recibe los mil nombres de <code>std</code> aunque no los pidió, y su variable <code>count</code> deja de compilar. El error aparece en su archivo, no en el header culpable.</li>
-        <li class="fragment">En un <code>.cpp</code> de práctica el efecto termina en ese archivo y nadie más lo sufre. En un header nunca se escribe.</li>
+        <li class="fragment">Quien incluya <code>util.h</code> recibe todos los nombres de <code>std</code> sin pedirlos, y su variable <code>count</code> deja de compilar.</li>
+        <li class="fragment">En un <code>.cpp</code> el efecto termina ahí. En un header, nunca.</li>
       </ul>
     </section>
 

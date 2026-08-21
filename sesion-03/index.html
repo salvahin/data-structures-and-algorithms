@@ -144,13 +144,13 @@
       <span class="kicker">3.1.1 · Preliminares matemáticos</span>
       <h2>Series geométricas e inducción</h2>
       <ul>
-        <li class="fragment"><strong>Geométrica creciente:</strong> la suma completa vale menos que el doble del último término — el último nivel domina.
+        <li class="fragment"><strong>Geométrica creciente:</strong> el último nivel domina la suma.
           <div class="eq">\[ 1 + 2 + 4 + \cdots + 2^{k} \;=\; \sum_{i=0}^{k} 2^{i} \;=\; 2^{k+1} - 1 \]</div>
         </li>
-        <li class="fragment"><strong>Geométrica decreciente</strong> (razón \(r &lt; 1\)): un costo que se reduce a la mitad en cada paso suma, en total, una constante por el primer término.
+        <li class="fragment"><strong>Geométrica decreciente</strong> (razón \(r &lt; 1\)): la suma total es una constante por el primer término.
           <div class="eq">\[ \sum_{i=0}^{\infty} r^{i} \;=\; \frac{1}{1-r} \]</div>
         </li>
-        <li class="fragment"><strong>Inducción:</strong> la herramienta para demostrar que una fórmula vale para <em>toda</em> \(n\), no solo para los casos que probaste a mano — caso base más paso inductivo. Es el mismo esquema de la hipótesis recursiva de la sesión pasada, y la usaremos en la sesión 4 para verificar soluciones de recurrencias.</li>
+        <li class="fragment"><strong>Inducción:</strong> caso base más paso inductivo para demostrar que una fórmula vale para <em>toda</em> \(n\). La usaremos en la sesión 4 con recurrencias.</li>
       </ul>
     </section>
 
@@ -209,12 +209,11 @@ return total;                      // 1
     <section>
       <span class="kicker">3.1.2 · Contar operaciones</span>
       <h2>Ciclos anidados: multiplicar y sumar</h2>
-      <pre><code class="language-cpp" data-trim data-line-numbers="1-4|6-9">
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-4|5-8">
 // Anidado completo: el cuerpo corre n · n veces
 for (int i = 0; i &lt; n; ++i)
     for (int j = 0; j &lt; n; ++j)
         cuenta += m[i][j];               // n² ejecuciones
-
 // Anidado triangular: j arranca en i+1
 for (int i = 0; i &lt; n; ++i)
     for (int j = i + 1; j &lt; n; ++j)
@@ -374,7 +373,7 @@ for (int paso = n; paso &gt; 0; paso /= 2)
         \[ f(n) = O\bigl(g(n)\bigr) \iff \exists\, c &gt; 0,\; n_0 \;:\; f(n) \le c \cdot g(n) \quad \forall\, n \ge n_0 \]
       </div>
       <ul>
-        <li class="fragment">En palabras: a partir de cierto tamaño, \(f\) queda por debajo de un múltiplo fijo de \(g\). Es una <strong><span class="term" data-term="cota">cota superior</span></strong> sobre el crecimiento: un techo que el costo ya no rebasa.</li>
+        <li class="fragment">En palabras: a partir de cierto tamaño, \(f\) queda por debajo de un múltiplo fijo de \(g\). Es una <strong><span class="term" data-term="cota">cota superior</span></strong> sobre el crecimiento.</li>
         <li class="fragment">Ejemplo, con \(c = 6\) y \(n_0 = 2\):
           <div class="eq">\[ 4n + 4 \le 6n \quad \forall\, n \ge 2 \;\Longrightarrow\; 4n + 4 = O(n) \]</div>
         </li>
@@ -423,7 +422,7 @@ for (int paso = n; paso &gt; 0; paso /= 2)
       <span class="fragment"></span>
       <span class="fragment"></span>
       <span class="fragment"></span>
-      <p class="fragment">Con \(c = 5\) y \(n_0 = 20\): \(3n + 40 \le 5n\) para toda \(n \ge 20\), es decir \(3n + 40 = O(n)\). Antes de \(n_0\) la curva de \(f\) va por arriba de \(c\,g\), y la definición lo permite: solo exige que a partir de algún punto deje de hacerlo.</p>
+      <p class="fragment">Con \(c = 5\) y \(n_0 = 20\): \(3n + 40 \le 5n\) para toda \(n \ge 20\), es decir \(3n + 40 = O(n)\). Antes de \(n_0\), \(f\) va por arriba de \(c\,g\) y la definición lo permite.</p>
     </section>
 
     <!-- ============ PARA QUÉ SIRVEN c Y n0 ============ -->
@@ -433,7 +432,7 @@ for (int paso = n; paso &gt; 0; paso /= 2)
       <p>En el día a día escribes solo la etiqueta; la pareja es lo que la sostiene.</p>
       <ul>
         <li class="fragment"><strong>Es la prueba.</strong> Decir "esto es \(O(n)\)" sin exhibir una pareja es una conjetura; con ella, queda demostrado.</li>
-        <li class="fragment"><strong>\(c\) marca qué es negociable.</strong> Compilador, caché y costo por operación mueven \(c\) y dejan igual la forma del crecimiento: ahí está la frontera entre optimizar y cambiar de algoritmo.</li>
+        <li class="fragment"><strong>\(c\) marca qué es negociable.</strong> Compilador, caché y costo por operación mueven \(c\) y dejan igual la forma del crecimiento.</li>
         <li class="fragment"><strong>\(n_0\) es la letra chica.</strong> Por debajo de ese tamaño la notación calla, y por eso <code>std::sort</code> cambia a inserción en tramos cortos.</li>
         <li class="fragment"><strong>Lo usas la próxima sesión:</strong> verificar una recurrencia por sustitución es proponer una cota y demostrarla con una \(c\) concreta.</li>
       </ul>
@@ -591,7 +590,7 @@ for (int i = 0; i &lt; n; ++i)          // bloque 2
       <ul>
         <li class="fragment"><strong>1. Cuenta cada bloque por separado.</strong> El primero da \(n\) vueltas; el segundo, \(n \cdot n\).</li>
         <li class="fragment"><strong>2. Suma los bloques</strong> (van uno después del otro, no anidados): \(T(n) = a\,n + b\,n^{2}\).</li>
-        <li class="fragment"><strong>3. Quédate con el término dominante y concluye.</strong> Para \(n\) grande \(b\,n^{2}\) supera a \(a\,n\) valgan lo que valgan \(a\) y \(b\), así que \(T(n) = \Theta(n^{2})\): el bloque 1 no cambia nada.</li>
+        <li class="fragment"><strong>3. Quédate con el término dominante.</strong> Para \(n\) grande, \(b\,n^{2}\) supera a \(a\,n\) valgan lo que valgan \(a\) y \(b\): \(T(n) = \Theta(n^{2})\).</li>
       </ul>
     </section>
 

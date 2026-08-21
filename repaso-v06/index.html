@@ -42,17 +42,14 @@
     <section>
       <span class="kicker">R6 · Punto de partida</span>
       <h2>Este programa suma mal</h2>
-      <pre data-title="suma.cpp"><code class="language-cpp" data-trim>
+      <pre><code class="language-cpp" data-trim>
 #include &lt;iostream&gt;
 const int N = 8;
-
 int sumar(const int datos[], int n) {
     int total = 0;
-    for (int i = 1; i &lt; n; i++)
-        total += datos[i];
+    for (int i = 1; i &lt; n; i++) total += datos[i];
     return total;
 }
-
 int main() {
     int datos[N] = {3, 1, 4, 1, 5, 9, 2, 6};
     std::cout &lt;&lt; "Suma: " &lt;&lt; sumar(datos, N) &lt;&lt; '\n';
@@ -125,7 +122,6 @@ g++ -std=c++17 -Wall -Wextra -g suma.cpp -o suma
   "type": "cppdbg",
   "request": "launch",
   "program": "${workspaceFolder}/programa",
-  "cwd": "${workspaceFolder}",
   "MIMode": "gdb",
   "externalConsole": false,
   "preLaunchTask": "compilar"
@@ -145,7 +141,7 @@ g++ -std=c++17 -Wall -Wextra -g suma.cpp -o suma
           </code></pre>
         </div>
       </div>
-      <p class="fragment"><code>preLaunchTask</code> busca la tarea que se llame <code>compilar</code> y la ejecuta antes de lanzar el programa. Con eso nunca depuras un binario viejo.</p>
+      <p class="fragment"><code>preLaunchTask</code> ejecuta la tarea <code>compilar</code> antes de lanzar, así que nunca depuras un binario viejo.</p>
     </section>
 
     <!-- ============ 8 · CHECKPOINT 1 ============ -->
@@ -178,24 +174,20 @@ g++ -std=c++17 -Wall -Wextra -g suma.cpp -o suma
     <section>
       <span class="kicker">R6 · Los cuatro movimientos</span>
       <h2>La diferencia entre F10 y F11</h2>
-      <pre data-title="suma.cpp"><code class="language-cpp" data-trim data-line-numbers="13|4-8">
+      <pre><code class="language-cpp" data-trim data-line-numbers="10|3-6">
 #include &lt;iostream&gt;
 const int N = 8;
-
 int sumar(const int datos[], int n) {
     int total = 0;
-    for (int i = 1; i &lt; n; i++)
-        total += datos[i];
+    for (int i = 1; i &lt; n; i++) total += datos[i];
     return total;
 }
-
 int main() {
     int datos[N] = {3, 1, 4, 1, 5, 9, 2, 6};
     std::cout &lt;&lt; "Suma: " &lt;&lt; sumar(datos, N) &lt;&lt; '\n';
 }
       </code></pre>
-      <p class="fragment">Detenido en la línea 13: <code>F10</code> ejecuta <code>sumar</code> completa y te deja en la llave de cierre con el resultado ya calculado. <code>F11</code> te deja en la línea 5, dentro de <code>sumar</code>, con <code>datos</code> y <code>n</code> a la vista.</p>
-      <p class="fragment">Como el error está adentro, aquí se entra con F11.</p>
+      <p class="fragment"><code>F10</code> en la línea 10 ejecuta <code>sumar</code> completa; <code>F11</code> entra en la línea 4, con <code>datos</code>, <code>n</code> y <code>total</code> a la vista.</p>
     </section>
 
     <!-- ============ 11 · VARIABLES Y WATCH ============ -->
@@ -205,7 +197,7 @@ int main() {
       <ul>
         <li class="fragment">El panel <strong>Variables</strong> lista los parámetros y las locales del punto donde estás detenido. Se actualizan solas en cada paso.</li>
         <li class="fragment">Los arreglos se despliegan elemento por elemento, así que puedes revisar <code>datos[0]</code> hasta <code>datos[7]</code> sin escribir nada.</li>
-        <li class="fragment">El panel <strong>Watch</strong> evalúa expresiones que tú escribes, no solo nombres de variables.</li>
+        <li class="fragment">El panel <strong>Watch</strong> evalúa expresiones, no solo nombres.</li>
       </ul>
       <pre><code class="language-plaintext" data-trim>
 Watch
@@ -214,7 +206,6 @@ Watch
   datos[i]       1
   total + datos[i]   1
       </code></pre>
-      <p class="fragment">Poner <code>i</code> y <code>total</code> en Watch y presionar F10 en cada vuelta muestra la aritmética del ciclo paso a paso.</p>
     </section>
 
     <!-- ============ 12 · CHECKPOINT 2 ============ -->
@@ -264,7 +255,6 @@ CALL STACK
       <ul>
         <li class="fragment">Se lee de arriba hacia abajo: el marco superior es donde estás; los de abajo son las llamadas que siguen esperando su resultado.</li>
         <li class="fragment">Al hacer clic en cualquier marco, el panel Variables cambia a las locales de <em>esa</em> llamada. Cada nivel tiene su propia <code>n</code>.</li>
-        <li class="fragment">Cuando el programa aborta, este panel muestra la ruta exacta que llevó a la línea que falló.</li>
       </ul>
     </section>
 
@@ -272,7 +262,7 @@ CALL STACK
     <section>
       <span class="kicker">R6 · Breakpoints condicionales</span>
       <h2>Detenerse en la vuelta 47 de mil</h2>
-      <pre data-title="ciclo.cpp"><code class="language-cpp" data-trim data-line-numbers="4">
+      <pre><code class="language-cpp" data-trim data-line-numbers="4">
 int main() {
     long long acum = 0;
     for (int i = 0; i &lt; 1000; i++) {
@@ -282,8 +272,8 @@ int main() {
       </code></pre>
       <ul>
         <li class="fragment">Clic derecho sobre el punto rojo, <em>Edit Breakpoint</em>, y en <strong>Expression</strong> escribes <code>i == 47</code>.</li>
-        <li class="fragment">El programa corre a toda velocidad y se detiene una sola vez, con <code>i</code> valiendo 47.</li>
-        <li class="fragment">El mismo menú ofrece <strong>Hit Count</strong>, que se detiene en la enésima vez que pasa por la línea, y funciona cuando no hay una variable de control a la mano.</li>
+        <li class="fragment">Se detiene una sola vez, con <code>i</code> valiendo 47.</li>
+        <li class="fragment">El mismo menú ofrece <strong>Hit Count</strong>, que se detiene en la enésima vez que pasa por la línea.</li>
       </ul>
     </section>
 
@@ -315,8 +305,8 @@ DEBUG CONSOLE
   vuelta i=2  total=1  datos[i]=4
       </code></pre>
       <ul>
-        <li class="fragment">El programa no se detiene: escribe la línea en la consola de depuración y sigue.</li>
-        <li class="fragment">No se recompila nada y el archivo <code>.cpp</code> queda intacto, así que no hay líneas de diagnóstico que borrar después.</li>
+        <li class="fragment">El programa sigue corriendo; la línea va a la consola.</li>
+        <li class="fragment">No se recompila nada y el <code>.cpp</code> queda intacto.</li>
       </ul>
     </section>
 
@@ -325,7 +315,7 @@ DEBUG CONSOLE
       <span class="kicker">R6 · El error del arranque</span>
       <h2>Un minuto con el depurador</h2>
       <ol>
-        <li class="fragment">F11 en la línea 13 para entrar a <code>sumar</code>.</li>
+        <li class="fragment">F11 en la línea 10 para entrar a <code>sumar</code>.</li>
         <li class="fragment"><code>i</code> y <code>total</code> al panel Watch.</li>
         <li class="fragment">Primer F10 dentro del ciclo: <code>i</code> vale <strong>1</strong>, no 0. El primer elemento nunca se suma.</li>
       </ol>
@@ -367,14 +357,14 @@ DEBUG CONSOLE
       <p class="muted">Cópialas a tres archivos, compílalas con <code>-g</code> y localiza cada error solo con el depurador.</p>
       <div class="cols">
         <div>
-          <pre data-title="A y B"><code class="language-cpp" data-trim>
-int suma(const int v[], int n) {
+          <pre><code class="language-cpp" data-trim>
+int suma(const int v[], int n) { // A
     int s = 0;
     for (int i = 0; i &lt;= n; i++)
         s += v[i];
     return s;
 }
-int pares(const int v[], int n) {
+int pares(const int v[], int n) { // B
     int c = 0;
     for (int i = 0; i &lt; n; i++)
         if (v[i] % 2 != 0) c++;
@@ -383,8 +373,8 @@ int pares(const int v[], int n) {
           </code></pre>
         </div>
         <div>
-          <pre data-title="C"><code class="language-cpp" data-trim>
-int maximo(const int v[], int n) {
+          <pre><code class="language-cpp" data-trim>
+int maximo(const int v[], int n) { // C
     int mejor;
     for (int i = 0; i &lt; n; i++)
         if (v[i] &gt; mejor)
@@ -394,6 +384,12 @@ int maximo(const int v[], int n) {
           </code></pre>
         </div>
       </div>
+    </section>
+
+    <!-- ============ 22 · EJERCICIO · SOLUCIÓN ============ -->
+    <section>
+      <span class="kicker">R6 · Ejercicio</span>
+      <h2>Los tres errores, uno por uno</h2>
       <div class="solucion">
         <pre><code class="language-cpp" data-trim>
 // A: Watch sobre i y n. En la ultima vuelta i == n y se

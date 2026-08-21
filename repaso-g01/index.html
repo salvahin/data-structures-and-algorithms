@@ -54,7 +54,7 @@ arreglo2.cpp       arreglo_final_ESTE_SI.cpp
     <section>
       <span class="kicker">G1 · Modelo mental</span>
       <h2>Tres áreas, dos comandos</h2>
-      <svg viewBox="0 0 1150 300">
+      <svg viewBox="0 74 1150 188">
         <g class="anim-step" data-step="1">
           <rect class="svg-node" x="10" y="80" width="300" height="95" rx="10"/>
           <text class="svg-label" x="160" y="118" text-anchor="middle">Directorio de trabajo</text>
@@ -141,7 +141,6 @@ Initialized empty Git repository in /ruta/repaso-cpp/.git/
 *.out
 *.exe
 programa
-
 # Sistema operativo y editor
 .DS_Store
 .vscode/
@@ -197,18 +196,15 @@ $ git commit -m "R0: compilacion desde la terminal"
 $ git log --oneline
 650683f R11: ejercicio de la sesion
 ed4156c R10: ejercicio de la sesion
-cf91ed7 R9: ejercicio de la sesion
-203e666 R8: ejercicio de la sesion
-b5cee31 R7: ejercicio de la sesion
-6f3feea R6: ejercicio de la sesion
+[...]
       </code></pre>
-      <p class="muted">Cada línea es un commit: identificador y mensaje. Esta historia lleva seis sesiones guardadas.</p>
+      <p class="muted">Cada línea es un commit: identificador y mensaje.</p>
       <div class="cols">
         <div>
-          <p><strong>Sirven:</strong> qué se hizo, en una línea, sin punto final.</p>
+          <p><strong>Sirven:</strong> qué se hizo, en una línea.</p>
           <ul>
-            <li><code>R5: arreglo dinamico con destructor</code></li>
-            <li><code>R8: corrige el indice fuera de rango</code></li>
+            <li><code>R5: arreglo con destructor</code></li>
+            <li><code>R8: corrige indice fuera de rango</code></li>
           </ul>
         </div>
         <div>
@@ -239,9 +235,7 @@ b5cee31 R7: ejercicio de la sesion
       <span class="kicker">G1 · Qué cambié</span>
       <h2>Dejó de compilar y no sabes qué tocaste</h2>
       <pre><code class="language-plaintext" data-trim>
-$ cd r00-compilacion
 $ g++ -std=c++17 main.cpp -o programa
-main.cpp: In function 'int main()':
 main.cpp:2:18: error: 'cot' is not a member of 'std'; [...]
     2 | int main(){ std::cot &lt;&lt; "hola\n"; }
       |                  ^~~
@@ -249,9 +243,7 @@ main.cpp:2:18: error: 'cot' is not a member of 'std'; [...]
       <pre><code class="language-plaintext" data-trim>
 $ git diff
 diff --git a/r00-compilacion/main.cpp b/r00-compilacion/main.cpp
-index 2481a48..0e9df85 100644
---- a/r00-compilacion/main.cpp
-+++ b/r00-compilacion/main.cpp
+[...]
 @@ -1,2 +1,2 @@
  #include &lt;iostream&gt;
 -int main(){ std::cout &lt;&lt; "hola\n"; }
@@ -267,9 +259,7 @@ index 2481a48..0e9df85 100644
       <pre><code class="language-plaintext" data-trim>
 $ git status --short
  M r00-compilacion/main.cpp
-
 $ git restore r00-compilacion/main.cpp
-
 $ git status --short
       </code></pre>
       <p><code>git restore</code> no imprime nada y <code>git status --short</code> queda vacío: el archivo volvió al contenido que tenía en el staging y el programa compila otra vez. Como no habías hecho <code>git add</code>, el staging todavía guardaba lo del último commit, así que el archivo quedó como en <span class="term" data-term="head">HEAD</span>.</p>
@@ -281,17 +271,15 @@ $ git status --short
       <span class="kicker">G1 · Deshacer</span>
       <h2>Las dos columnas de <code>git status --short</code></h2>
       <pre><code class="language-plaintext" data-trim>
-# tras editar main.cpp otra vez
 $ git add r00-compilacion/main.cpp
 $ git status --short
 M  r00-compilacion/main.cpp     &lt;- primera columna: staging
-
 $ git restore --staged r00-compilacion/main.cpp
 $ git status --short
  M r00-compilacion/main.cpp     &lt;- segunda columna: disco
       </code></pre>
-      <p class="fragment">La primera columna describe el staging y la segunda el directorio de trabajo. <code>git restore --staged</code> saca el archivo del staging y deja el contenido del disco intacto; <code>git restore</code> sin bandera sobrescribe el archivo del disco con lo que haya en el staging.</p>
-      <p class="fragment muted">Si ya hiciste <code>git add</code> de una versión rota y quieres volver al último commit, hacen falta los dos: <code>git restore --staged archivo</code> y después <code>git restore archivo</code>. En un solo comando, <code>git restore --source=HEAD --staged --worktree archivo</code>.</p>
+      <p class="fragment">La primera columna describe el staging y la segunda el directorio de trabajo. <code>git restore --staged</code> saca el archivo del staging y deja el disco intacto.</p>
+      <p class="fragment muted">Si ya hiciste <code>git add</code> de una versión rota, hacen falta los dos: <code>git restore --staged archivo</code> y después <code>git restore archivo</code>. En uno solo, <code>git restore --source=HEAD --staged --worktree archivo</code>.</p>
     </section>
 
     <!-- 16 ============ CHECKPOINT 3 ============ -->
@@ -329,7 +317,6 @@ gh repo create repaso-cpp --public --source . --push
 $ git push
 To https://github.com/USUARIO/repaso-cpp.git
    4f155c6..34197bb  main -&gt; main
-
 $ git status
 On branch main
 Your branch is up to date with 'origin/main'.
@@ -356,38 +343,26 @@ nothing to commit, working tree clean
       <span class="kicker">G1 · Trampas comunes</span>
       <h2>Cuatro maneras de complicarte</h2>
       <ul>
-        <li class="fragment">Commitear binarios: quitarlos después exige <code>git rm --cached</code> y siguen pesando en los commits viejos. Por eso el <code>.gitignore</code> va en el primero.</li>
+        <li class="fragment">Commitear binarios: sacarlos después exige <code>git rm --cached</code>.</li>
         <li class="fragment">Escribir <code>git add .</code> sin leer antes <code>git status</code>.</li>
         <li class="fragment">Ejecutar <code>git commit</code> sin <code>-m</code> y caer en un editor desconocido.</li>
-        <li class="fragment">Creer que <code>git push</code> respalda el trabajo del día. Envía commits; lo que no commiteaste se queda en tu máquina.</li>
+        <li class="fragment">Creer que <code>git push</code> respalda el trabajo del día: envía commits, no lo que dejaste sin commitear.</li>
       </ul>
       <pre><code class="language-plaintext" data-trim>
 $ git commit
-# Please enter the commit message for your changes. Lines starting
-# with '#' will be ignored, and an empty message aborts the commit.
-
+# Please enter the commit message for your changes. [...]
    nano (Linux, WSL):  Ctrl+X
    vim  (macOS):       Esc  luego  :q!  y Enter
-
 Aborting commit due to empty commit message.
       </code></pre>
-      <p class="muted">Para saber cuál te va a abrir: <code>git var GIT_EDITOR</code>.</p>
     </section>
 
     <!-- 21 ============ EJERCICIO ============ -->
     <section>
       <span class="kicker">G1 · Ejercicio</span>
       <h2>Arma el repositorio de la serie</h2>
-      <pre><code class="language-plaintext" data-trim>
-repaso-cpp/
-├── .gitignore
-├── README.md
-├── r00-compilacion/
-├── r01-vscode/
-└── …   una carpeta por sesión, hasta r19-stl/
-      </code></pre>
       <ol>
-        <li>Crea el repositorio y mueve ahí lo que escribiste en R0 y en R1.</li>
+        <li>Crea <code>repaso-cpp</code> con una carpeta por sesión (<code>r00-compilacion/</code>, <code>r01-vscode/</code>, … hasta <code>r19-stl/</code>) y mueve ahí lo que escribiste en R0 y en R1.</li>
         <li>Haz dos commits separados, uno por sesión, con el <code>.gitignore</code> en el primero.</li>
         <li>Publícalo en GitHub con <code>gh</code> y revísalo en el navegador.</li>
       </ol>
@@ -400,10 +375,9 @@ git add .gitignore README.md r00-compilacion
 git commit -m "R0: compilacion desde la terminal"
 git add r01-vscode
 git commit -m "R1: tareas de compilacion en VS Code"
-git log --oneline
 gh repo create repaso-cpp --public --source . --push
         </code></pre>
-        <p class="muted">El <code>.gitignore</code>, el <code>README.md</code> y un script que crea las veinte carpetas están en <a href="../repaso/plantilla/">la plantilla del repositorio</a>. Nombrar los archivos en <code>git add</code> en vez de usar <code>.</code> es lo que permite separar los dos commits.</p>
+        <p class="muted">El <code>.gitignore</code>, el <code>README.md</code> y un script que crea las veinte carpetas están en <a href="../repaso/plantilla/">la plantilla del repositorio</a>. Nombrar los archivos en <code>git add</code> es lo que separa los dos commits.</p>
       </div>
     </section>
 

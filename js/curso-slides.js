@@ -191,13 +191,48 @@ const CursoSlides = (() => {
       box.appendChild(btn);
       box.appendChild(body);
 
+      // Marca "▾ sigue" mientras quede contenido por debajo del área visible
+      const marcarSobrante = () => {
+        const sobra = body.scrollHeight - body.clientHeight - body.scrollTop > 4;
+        box.classList.toggle('hay-mas', sobra);
+      };
+      body.addEventListener('scroll', marcarSobrante);
+
       btn.addEventListener('click', () => {
         const abierto = box.classList.toggle('open');
         btn.setAttribute('aria-expanded', String(abierto));
         btn.textContent = abierto ? 'Ocultar' : label;
+        if (abierto) {
+          ajustarAlturaSolucion(box, body);
+          body.scrollTop = 0;
+          marcarSobrante();
+        } else {
+          box.classList.remove('hay-mas');
+        }
         if (window.Reveal) Reveal.layout();
       });
     });
+  }
+
+  /* Calcula cuánto espacio le queda a la solución dentro del lienzo de 720px.
+     Se mide con la caja todavía cerrada: lo que sobra es lo que puede crecer.
+     Si algo sale fuera de rango se deja el valor por omisión del CSS. */
+  const LIENZO = 720;
+
+  function ajustarAlturaSolucion(box, body) {
+    const slide = box.closest('section');
+    if (!slide) return;
+    box.style.removeProperty('--solucion-max');
+
+    const previo = box.classList.contains('open');
+    box.classList.remove('open');
+    const usado = slide.scrollHeight;          // altura del slide sin la solución
+    if (previo) box.classList.add('open');
+
+    const disponible = LIENZO - usado - 28;    // 28px de respiro inferior
+    if (disponible > 140 && disponible < 620) {
+      box.style.setProperty('--solucion-max', Math.floor(disponible) + 'px');
+    }
   }
 
   /* ----------------------------------------------------------

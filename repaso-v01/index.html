@@ -102,7 +102,7 @@ proyecto/
     <section>
       <span class="kicker">R1 · tasks.json</span>
       <h2>Un tasks.json completo</h2>
-      <pre data-title=".vscode/tasks.json"><code class="language-json" data-trim>
+      <pre><code class="language-json" data-trim>
 {
   "version": "2.0.0",
   "tasks": [{
@@ -117,7 +117,7 @@ proyecto/
   }]
 }
       </code></pre>
-      <p class="muted">En macOS, <code>"command": "/usr/bin/clang++"</code>. En Windows con MinGW, la ruta del <code>g++.exe</code> instalado.</p>
+      <p class="muted">En macOS, <code>"/usr/bin/clang++"</code>. En Windows con MinGW, la ruta del <code>g++.exe</code>.</p>
     </section>
 
     <!-- 8 ============ TASKS.JSON EXPLICADO ============ -->
@@ -182,7 +182,7 @@ main.cpp:5:22: error: expected ';' before '}' token
     <section>
       <span class="kicker">R1 · Tres minutos de depurador</span>
       <h2>El programa se detiene donde tú decidas</h2>
-      <pre data-title="suma.cpp"><code class="language-cpp" data-trim data-line-numbers="|5">
+      <pre><code class="language-cpp" data-trim data-line-numbers="|5">
 #include &lt;iostream&gt;
 
 int main() {
@@ -196,7 +196,7 @@ int main() {
         <li class="fragment"><code>F5</code> y elige <em>C++ (GDB/LLDB)</em>. VS Code genera un <code>launch.json</code>.</li>
         <li class="fragment">El programa se detiene en la línea 5 y el panel de variables muestra <code>total</code> e <code>i</code>. <code>F5</code> otra vez avanza a la siguiente vuelta.</li>
       </ol>
-      <p class="muted">Hasta aquí llega R1. Los cuatro movimientos, la pila de llamadas y los <span class="term" data-term="breakpoint">puntos de interrupción</span> condicionales son el contenido de R6.</p>
+      <p class="muted">Los movimientos, la pila de llamadas y los <span class="term" data-term="breakpoint">puntos de interrupción</span> condicionales son de R6.</p>
     </section>
 
     <!-- 13 ============ CHECKPOINT 3 ============ -->

@@ -341,7 +341,7 @@ long long fib(int n) {
         </tbody>
       </table>
       <ul>
-        <li class="fragment">Sumar 10 a <code>n</code> multiplica el número de llamadas por más de 100. Con <code>n = 50</code> el programa no termina en un tiempo razonable.</li>
+        <li class="fragment">Sumar 10 a <code>n</code> multiplica las llamadas por más de 100.</li>
         <li class="fragment">La memoria se mantiene chica porque solo hay una cadena de llamadas viva a la vez. El problema es el tiempo, no el espacio.</li>
         <li class="fragment muted">En la sesión 3 le pondremos nombre y notación a esta forma de crecer; en la sesión 4 veremos cómo evitar el trabajo repetido.</li>
       </ul>
@@ -392,7 +392,7 @@ suma(10000000);  // aborta: diez millones de marcos no caben
     <section>
       <span class="kicker">2.2 · Caso 1: sistema de archivos</span>
       <h2>Recorrer carpetas dentro de carpetas</h2>
-      <pre data-title="listar.cpp"><code class="language-cpp" data-trim data-line-numbers="1-7|4-5">
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-7|4-5">
 void listar(const fs::path&amp; dir, int nivel) {
     for (const auto&amp; e : fs::directory_iterator(dir)) {
         imprimir(e.path(), nivel);
@@ -466,7 +466,7 @@ int evaluar(const std::string&amp; s, int&amp; i) {
     <section>
       <span class="kicker">2.2 · Caso 3: N-reinas</span>
       <h2><span class="term" data-term="backtracking">Backtracking</span>: decidir, explorar, deshacer</h2>
-      <pre data-title="nreinas.cpp"><code class="language-cpp" data-trim data-line-numbers="1-8|2|4|5-7">
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-8|2|4|5-7">
 void resolver(int fila) {
     if (fila == n) { soluciones++; return; }   // caso base: tablero completo
     for (int col = 0; col &lt; n; ++col) {
@@ -533,9 +533,9 @@ void recorrer(const json&amp; j) {
             </code></pre>
           </div>
           <ul>
-            <li class="fragment">Un LLM devuelve JSON con objetos dentro de objetos y listas dentro de listas. Recorrerlo completo es el Caso 1 con otro nombre.</li>
+            <li class="fragment">Un LLM devuelve JSON con objetos y listas anidados. Recorrerlo es el Caso 1 con otro nombre.</li>
             <li class="fragment">Convertir ese texto en datos usables consiste en entrar y salir de niveles anidados, igual que en el Caso 2.</li>
-            <li class="fragment">Un agente que planifica en varios pasos prueba una acción, explora a dónde lleva y retrocede cuando no funciona — el esquema del Caso 3.</li>
+            <li class="fragment">Un agente que planifica prueba una acción, explora a dónde lleva y retrocede cuando falla: el esquema del Caso 3.</li>
           </ul>
         </div>
       </div>
@@ -556,7 +556,7 @@ do {
 } while (std::next_permutation(v.begin(), v.end()));
       </code></pre>
       <ul>
-        <li class="fragment"><code>recursive_directory_iterator</code> hace el recorrido del Caso 1 sin que escribas la recursión. Por dentro suele llevar su propia lista de carpetas pendientes en vez de llamarse a sí mismo.</li>
+        <li class="fragment"><code>recursive_directory_iterator</code> hace el recorrido del Caso 1 sin escribir la recursión; por dentro lleva su propia lista de carpetas pendientes.</li>
         <li class="fragment"><code>std::next_permutation</code> genera todas las permutaciones con un ciclo, sin llamadas anidadas. Le falta la poda, así que sirve para recorrer todo el espacio pero no sustituye al backtracking de N-reinas.</li>
       </ul>
     </section>
@@ -575,21 +575,20 @@ do {
           <h3>LC 50 · Pow(x, n) — Media</h3>
           <ul>
             <li>Calcula xⁿ con <code>n</code> entero, posiblemente negativo.</li>
-            <li>Multiplicar <code>x</code> por sí mismo <code>n</code> veces excede el límite de tiempo del caso grande.</li>
-            <li>Pista: xⁿ se arma a partir de x<sup>n/2</sup>, así cada llamada reduce <code>n</code> a la mitad.</li>
-            <li class="muted">Casos: (2, 10) → 1024 · (2, −2) → 0.25 · (1.0000000001, 2147483647) → ≈ 1.2397</li>
+            <li>Multiplicar <code>x</code> por sí mismo <code>n</code> veces excede el límite de tiempo.</li>
+            <li>Pista: xⁿ se arma a partir de x<sup>n/2</sup>.</li>
+            <li class="muted">Casos: (2, 10) → 1024 · (2, −2) → 0.25</li>
           </ul>
         </div>
         <div>
           <h3>LC 51 · N-Queens — Alta</h3>
           <ul>
             <li>Devuelve <em>todas</em> las configuraciones válidas de n reinas.</li>
-            <li>Parte del esqueleto de backtracking de hoy; puede quedar abierto y terminarse fuera de clase.</li>
+            <li>Parte del esqueleto de backtracking de hoy.</li>
             <li class="muted">Casos: n=1 → 1 solución · n=4 → 2 · n=8 → 92</li>
           </ul>
         </div>
       </div>
-      <p class="fragment">Los casos de prueba vienen en el enunciado y se corren localmente. Entrega al LMS antes de la próxima sesión.</p>
     </section>
 
     <!-- ============ PRÓXIMA SESIÓN ============ -->

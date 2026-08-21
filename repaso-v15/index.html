@@ -65,18 +65,16 @@ note:   candidate expects 1 argument, 0 provided
     <section>
       <span class="kicker">R15 · Base y derivada</span>
       <h2>La derivada contiene a la base</h2>
-      <pre data-title="personal.h"><code class="language-cpp" data-trim data-line-numbers="1-6|8-10|12-13">
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-6|7-9|10-11">
 class Persona {                    // base
     std::string nombre_;
 public:
     Persona(const std::string&amp; n) : nombre_(n) {}
     std::string nombre() const { return nombre_; }
 };
-
 class Empleado : public Persona {  // derivada
     double sueldo_;                // + el constructor del slide 5
 };
-
 Empleado e("Ana", 1000);
 e.nombre();      // método que Empleado no declaró
       </code></pre>
@@ -87,7 +85,7 @@ e.nombre();      // método que Empleado no declaró
     <section>
       <span class="kicker">R15 · Constructores</span>
       <h2>La base se construye desde la lista de inicialización</h2>
-      <pre data-title="personal.h"><code class="language-cpp" data-trim data-line-numbers="1-7|4|5">
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-7|4|5">
 class Empleado : public Persona {
     double sueldo_;
 public:
@@ -99,7 +97,7 @@ public:
       <ul>
         <li class="fragment">El nombre de la base va primero en la lista, antes que cualquier miembro. Es la única forma de pasarle argumentos.</li>
         <li class="fragment">Si omites <code>Persona(n)</code>, el compilador intenta el constructor por omisión de la base. Cuando la base no lo tiene, sale el error del arranque.</li>
-        <li class="fragment">El cuerpo del constructor derivado corre cuando la base ya está construida, así que ahí dentro puedes usar sus métodos.</li>
+        <li class="fragment">El cuerpo del constructor derivado corre con la base ya construida.</li>
       </ul>
     </section>
 
@@ -119,14 +117,13 @@ public:
     <section>
       <span class="kicker">R15 · Acceso</span>
       <h2><code>protected</code>: visible para las derivadas</h2>
-      <pre data-title="personal.h"><code class="language-cpp" data-trim data-line-numbers="1-6|8-14">
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-6|7-13">
 class Persona {
 private:
     int edad_ = 0;           // ni siquiera la derivada lo ve
 protected:
     std::string nombre_;     // la derivada sí
 };
-
 class Empleado : public Persona {
 public:
     void saludar() const {
@@ -135,7 +132,7 @@ public:
     }
 };
       </code></pre>
-      <p class="fragment"><code>protected</code> se comporta como <code>private</code> frente al código de fuera y como <code>public</code> frente a las clases derivadas. Cuando un método público de la base ya te da el dato, prefiérelo: <code>protected</code> ata las derivadas a los nombres de los campos y cambiarlos después rompe todas.</p>
+      <p class="fragment"><code>protected</code> se comporta como <code>private</code> frente al código de fuera y como <code>public</code> frente a las derivadas. Ata cada derivada a los nombres de los campos, así que prefiere un método público de la base cuando exista.</p>
     </section>
 
     <!-- ============ 8 · ORDEN DE CONSTRUCCIÓN ============ -->
@@ -182,7 +179,7 @@ public:
     <section>
       <span class="kicker">R15 · Orden de destrucción</span>
       <h2>Se destruye en el orden inverso</h2>
-      <pre data-title="orden.cpp"><code class="language-cpp" data-trim>
+      <pre><code class="language-cpp" data-trim>
 int main() {
     std::cout &lt;&lt; "--- inicio ---\n";
     { Gerente g("Ana", 1000, 5); }   // vive dentro del bloque
@@ -195,7 +192,7 @@ Persona(Ana)   Empleado   Gerente
 ~Gerente       ~Empleado  ~Persona
 --- fin ---
       </code></pre>
-      <p class="fragment">La salida real trae una línea por mensaje; aquí van agrupadas por fase. La destrucción invierte la construcción: primero <code>~Gerente</code>, que libera lo que <code>Gerente</code> pidió, y al final <code>~Persona</code>. Ninguna clase destruye recursos que otra todavía pueda estar usando.</p>
+      <p class="fragment">Los mensajes van agrupados por fase. La destrucción invierte la construcción: ninguna clase libera recursos que otra pueda usar.</p>
     </section>
 
     <!-- ============ 10 · CHECKPOINT 2 ============ -->
