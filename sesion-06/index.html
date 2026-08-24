@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sesión 6 — Algoritmos de búsqueda</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+  <link rel="stylesheet" href="../css/theme-curso.css">
+</head>
+<body>
+<div class="reveal">
+  <div class="slides">
+
+    <!-- ============ PORTADA ============ -->
+    <section class="cover">
+      <span class="kicker">Estructuras de Datos y Algoritmos · Bloque 1</span>
+      <h1>Algoritmos de búsqueda</h1>
+      <div class="cover-meta">
+        Sesión 6 · Semana 3<br>
+        Salvador Hinojosa
+      </div>
+    </section>
+
+    <!-- ============ RETO ANTERIOR ============ -->
+    <section>
+      <span class="kicker">Apertura · Reto anterior (5 min)</span>
+      <h2>¿Cómo les fue con divide y vencerás?</h2>
+      <p>Una pareja pasa a explicar su enfoque de la sesión 4:</p>
+      <ul>
+        <li class="fragment"><strong>LC 241 — Different Ways to Add Parentheses.</strong> ¿Dónde partieron la expresión y qué devolvía cada llamada recursiva?</li>
+        <li class="fragment"><strong>LC 329 — Longest Increasing Path.</strong> ¿Qué guardaron en la caché de memoización y cuántas veces se calcula cada celda?</li>
+        <li class="fragment">Pregunta para el grupo: en el 329, ¿qué complejidad queda <em>sin</em> memoización y cuál con ella?</li>
+      </ul>
+    </section>
+
+    <!-- ============ AGENDA ============ -->
+    <section>
+      <span class="kicker">Sesión 6 · Agenda</span>
+      <h2>Qué vamos a ver hoy</h2>
+      <table>
+        <tbody>
+          <tr><td>15 min</td><td>Presentación: algoritmos de búsqueda y ordenamiento</td></tr>
+          <tr><td>25 min</td><td>4.1 Búsqueda secuencial</td></tr>
+          <tr><td>45 min</td><td>4.2 Búsqueda binaria: código, invariante, O(log n)</td></tr>
+          <tr><td>20 min</td><td>4.3 El costo oculto: ¿cuándo compensa ordenar?</td></tr>
+          <tr><td>15 min</td><td>4.4 Búsqueda binaria sobre la respuesta</td></tr>
+          <tr><td>25 min</td><td>Cierre STL · Reto en parejas</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ============ OBJETIVO ============ -->
+    <section>
+      <span class="kicker">Objetivo de hoy</span>
+      <h2>Al salir de esta sesión podrás…</h2>
+      <ul>
+        <li class="fragment">Implementar búsqueda secuencial y binaria, y demostrar sus complejidades O(n) y O(log n).</li>
+        <li class="fragment">Enunciar el <span class="term" data-term="invariante">invariante</span> del ciclo de la búsqueda binaria y usarlo para argumentar que el código es correcto.</li>
+        <li class="fragment">Calcular a partir de cuántas consultas compensa pagar el costo de ordenar.</li>
+        <li class="fragment">Aplicar búsqueda binaria sobre el espacio de respuestas en problemas de optimización con predicado <span class="term" data-term="monotonia">monótono</span>.</li>
+      </ul>
+    </section>
+
+    <!-- ============ DIVIDER 4.1 ============ -->
+    <section class="divider">
+      <h2>4.1 Búsqueda secuencial</h2>
+    </section>
+
+    <!-- ============ 4.1 CÓDIGO ============ -->
+    <section>
+      <span class="kicker">4.1 · Búsqueda secuencial</span>
+      <h2>El algoritmo que ya conocen</h2>
+      <pre data-title="busqueda.hpp"><code class="language-cpp" data-trim data-line-numbers="1-7|3-5|6">
+template &lt;typename T&gt;
+int busquedaSecuencial(const std::vector&lt;T&gt;&amp; a, const T&amp; x) {
+    for (int i = 0; i &lt; (int)a.size(); ++i) {
+        if (a[i] == x) return i;
+    }
+    return -1;   // no está
+}
+      </code></pre>
+      <ul>
+        <li class="fragment">Funciona sobre cualquier secuencia, ordenada o no. Solo exige que <code>T</code> admita <code>==</code>.</li>
+        <li class="fragment">Recorre de izquierda a derecha y se detiene en la primera coincidencia.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 4.1 ANÁLISIS ============ -->
+    <section>
+      <span class="kicker">4.1 · Búsqueda secuencial</span>
+      <h2>Análisis de casos</h2>
+      <table>
+        <thead><tr><th>Caso</th><th>Comparaciones</th><th>Cuándo ocurre</th></tr></thead>
+        <tbody>
+          <tr class="fragment"><td>Mejor</td><td>1</td><td><code>x</code> está en la primera posición</td></tr>
+          <tr class="fragment"><td>Peor</td><td>n</td><td><code>x</code> está al final o no está</td></tr>
+          <tr class="fragment"><td>Promedio</td><td>(n+1)/2</td><td><code>x</code> está, en posición uniforme al azar</td></tr>
+        </tbody>
+      </table>
+      <p class="fragment">Los tres casos crecen linealmente con n (la constante ½ no cambia el orden): la búsqueda secuencial es O(n) y también Ω(n) en el peor caso.</p>
+    </section>
+
+    <!-- ============ QUIZ 1 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="c">
+        <p class="quiz-question">En promedio, la búsqueda secuencial encuentra <code>x</code> a la mitad del arreglo. ¿Qué complejidad tiene el caso promedio?</p>
+        <button class="quiz-option" data-opt="a">O(n/2), que es un orden menor que O(n).</button>
+        <button class="quiz-option" data-opt="b">O(log n), porque en promedio se descarta la mitad del arreglo.</button>
+        <button class="quiz-option" data-opt="c">O(n): n/2 comparaciones siguen creciendo linealmente con n.</button>
+        <div class="quiz-explain">
+          <strong>C.</strong> n/2 es una función lineal: la constante ½ desaparece en la notación O
+          y el caso promedio queda en O(n). La opción B confunde "revisar la mitad" con "descartar
+          la mitad en cada paso" — eso solo lo hace la búsqueda binaria, y requiere orden previo.
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ DIVIDER 4.2 ============ -->
+    <section class="divider">
+      <h2>4.2 Búsqueda binaria</h2>
+    </section>
+
+    <!-- ============ 4.2 IDEA ============ -->
+    <section>
+      <span class="kicker">4.2 · Búsqueda binaria</span>
+      <h2>Descartar la mitad en cada paso</h2>
+      <ul>
+        <li class="fragment"><strong>Precondición:</strong> el arreglo está ordenado. Sin esa condición el algoritmo devuelve basura sin avisar.</li>
+        <li class="fragment">Comparar <code>x</code> con el elemento de en medio decide en qué mitad puede estar, y la otra mitad se descarta completa.</li>
+        <li class="fragment">Cada comparación reduce el intervalo de búsqueda a la mitad: de n a n/2, a n/4, … a 1.</li>
+      </ul>
+      <p class="fragment box-key">Toda la corrección del algoritmo descansa en una sola frase: <em>si x está, está en a[lo..hi]</em>.</p>
+    </section>
+
+    <!-- ============ 4.2 CÓDIGO ============ -->
+    <section>
+      <span class="kicker">4.2 · Búsqueda binaria</span>
+      <h2>Codificación cuidadosa</h2>
+      <pre data-title="busqueda.hpp"><code class="language-cpp" data-trim data-line-numbers="1-11|2|3|4|5-7|8|10">
+int busquedaBinaria(const std::vector&lt;int&gt;&amp; a, int x) {
+    int lo = 0, hi = (int)a.size() - 1;
+    while (lo &lt;= hi) {                    // intervalo no vacío
+        int mid = lo + (hi - lo) / 2;     // punto medio seguro
+        if (a[mid] == x)      return mid;
+        else if (a[mid] &lt; x)  lo = mid + 1;
+        else                  hi = mid - 1;
+    }
+    return -1;   // el intervalo quedó vacío: x no está
+}
+      </code></pre>
+      <p class="fragment muted">Cada detalle está ahí por una razón: <code>&lt;=</code> en la condición, <code>+1</code> y <code>-1</code> en las actualizaciones, y la forma del punto medio. Los tres son fuente clásica de errores.</p>
+    </section>
+
+    <!-- ============ 4.2 SVG ANIMACIÓN ============ -->
+    <section>
+      <span class="kicker">4.2 · Búsqueda binaria</span>
+      <h2>El invariante en acción: buscar 37</h2>
+      <svg viewBox="0 0 1100 420" style="width:100%; max-height:420px;">
+        <text x="30" y="50" style="font-size:26px; font-weight:700;" fill="#0b57d0">Invariante: si 37 está en el arreglo, está en a[lo..hi]</text>
+        <text x="30" y="95" class="svg-label" style="font-size:22px;">Buscamos x = 37 en 16 elementos ordenados</text>
+
+        <!-- celdas base -->
+        <g>
+          <rect class="svg-node" x="20"  y="150" width="62" height="76" rx="8"/><text class="svg-label" x="51"  y="198" text-anchor="middle" style="font-size:22px;">3</text>
+          <rect class="svg-node" x="86"  y="150" width="62" height="76" rx="8"/><text class="svg-label" x="117" y="198" text-anchor="middle" style="font-size:22px;">7</text>
+          <rect class="svg-node" x="152" y="150" width="62" height="76" rx="8"/><text class="svg-label" x="183" y="198" text-anchor="middle" style="font-size:22px;">11</text>
+          <rect class="svg-node" x="218" y="150" width="62" height="76" rx="8"/><text class="svg-label" x="249" y="198" text-anchor="middle" style="font-size:22px;">15</text>
+          <rect class="svg-node" x="284" y="150" width="62" height="76" rx="8"/><text class="svg-label" x="315" y="198" text-anchor="middle" style="font-size:22px;">19</text>
+          <rect class="svg-node" x="350" y="150" width="62" height="76" rx="8"/><text class="svg-label" x="381" y="198" text-anchor="middle" style="font-size:22px;">23</text>
+          <rect class="svg-node" x="416" y="150" width="62" height="76" rx="8"/><text class="svg-label" x="447" y="198" text-anchor="middle" style="font-size:22px;">29</text>
+          <rect class="svg-node" x="482" y="150" width="62" height="76" rx="8"/><text class="svg-label" x="513" y="198" text-anchor="middle" style="font-size:22px;">31</text>
+          <rect class="svg-node" x="548" y="150" width="62" height="76" rx="8"/><text class="svg-label" x="579" y="198" text-anchor="middle" style="font-size:22px;">37</text>
+          <rect class="svg-node" x="614" y="150" width="62" height="76" rx="8"/><text class="svg-label" x="645" y="198" text-anchor="middle" style="font-size:22px;">41</text>
+          <rect class="svg-node" x="680" y="150" width="62" height="76" rx="8"/><text class="svg-label" x="711" y="198" text-anchor="middle" style="font-size:22px;">47</text>
+          <rect class="svg-node" x="746" y="150" width="62" height="76" rx="8"/><text class="svg-label" x="777" y="198" text-anchor="middle" style="font-size:22px;">53</text>
+          <rect class="svg-node" x="812" y="150" width="62" height="76" rx="8"/><text class="svg-label" x="843" y="198" text-anchor="middle" style="font-size:22px;">59</text>
+          <rect class="svg-node" x="878" y="150" width="62" height="76" rx="8"/><text class="svg-label" x="909" y="198" text-anchor="middle" style="font-size:22px;">61</text>
+          <rect class="svg-node" x="944" y="150" width="62" height="76" rx="8"/><text class="svg-label" x="975" y="198" text-anchor="middle" style="font-size:22px;">67</text>
+          <rect class="svg-node" x="1010" y="150" width="62" height="76" rx="8"/><text class="svg-label" x="1041" y="198" text-anchor="middle" style="font-size:22px;">71</text>
+          <text class="svg-label" x="51" y="255" text-anchor="middle" style="font-size:17px;">0</text>
+          <text class="svg-label" x="447" y="255" text-anchor="middle" style="font-size:17px;">6</text>
+          <text class="svg-label" x="513" y="255" text-anchor="middle" style="font-size:17px;">7</text>
+          <text class="svg-label" x="579" y="255" text-anchor="middle" style="font-size:17px;">8</text>
+          <text class="svg-label" x="777" y="255" text-anchor="middle" style="font-size:17px;">11</text>
+          <text class="svg-label" x="1041" y="255" text-anchor="middle" style="font-size:17px;">15</text>
+        </g>
+
+        <!-- paso 1: mid=7, descarta [0..7] -->
+        <g class="anim-step" data-step="1" data-step-off="2">
+          <rect x="482" y="150" width="62" height="76" rx="8" fill="none" stroke="#0b57d0" stroke-width="5"/>
+        </g>
+        <g class="anim-step" data-step="1">
+          <rect x="18" y="148" width="528" height="80" rx="8" fill="#eceff3" opacity="0.9"/>
+        </g>
+        <g class="anim-step" data-step="1" data-step-off="2">
+          <text x="30" y="330" class="svg-label" style="font-size:24px;">Paso 1 — a[7] = 31 &lt; 37 → descarta [0..7] · ahora lo = 8, hi = 15</text>
+        </g>
+
+        <!-- paso 2: mid=11, descarta [11..15] -->
+        <g class="anim-step" data-step="2" data-step-off="3">
+          <rect x="746" y="150" width="62" height="76" rx="8" fill="none" stroke="#0b57d0" stroke-width="5"/>
+        </g>
+        <g class="anim-step" data-step="2">
+          <rect x="744" y="148" width="330" height="80" rx="8" fill="#eceff3" opacity="0.9"/>
+        </g>
+        <g class="anim-step" data-step="2" data-step-off="3">
+          <text x="30" y="330" class="svg-label" style="font-size:24px;">Paso 2 — a[11] = 53 &gt; 37 → descarta [11..15] · ahora lo = 8, hi = 10</text>
+        </g>
+
+        <!-- paso 3: mid=9, descarta [9..10] -->
+        <g class="anim-step" data-step="3" data-step-off="4">
+          <rect x="614" y="150" width="62" height="76" rx="8" fill="none" stroke="#0b57d0" stroke-width="5"/>
+        </g>
+        <g class="anim-step" data-step="3">
+          <rect x="612" y="148" width="132" height="80" rx="8" fill="#eceff3" opacity="0.9"/>
+        </g>
+        <g class="anim-step" data-step="3" data-step-off="4">
+          <text x="30" y="330" class="svg-label" style="font-size:24px;">Paso 3 — a[9] = 41 &gt; 37 → descarta [9..10] · ahora lo = hi = 8</text>
+        </g>
+
+        <!-- paso 4: encontrado -->
+        <g class="anim-step" data-step="4">
+          <rect x="546" y="148" width="66" height="80" rx="8" fill="none" stroke="#146c2e" stroke-width="6"/>
+          <text x="30" y="330" style="font-size:24px; font-weight:700;" fill="#146c2e">Paso 4 — a[8] = 37 → encontrado con 4 comparaciones (n = 16, log₂16 = 4)</text>
+        </g>
+      </svg>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+    </section>
+
+    <!-- ============ 4.2 INVARIANTE ============ -->
+    <section>
+      <span class="kicker">4.2 · Búsqueda binaria</span>
+      <h2>El invariante demuestra la corrección</h2>
+      <p><strong>Invariante:</strong> al inicio de cada iteración, si <code>x</code> está en el arreglo, entonces está en <code>a[lo..hi]</code>.</p>
+      <ul>
+        <li class="fragment"><strong>Al entrar:</strong> <code>lo = 0, hi = n−1</code> cubre todo el arreglo.</li>
+        <li class="fragment"><strong>Se preserva:</strong> si <code>a[mid] &lt; x</code>, el orden garantiza que <code>x</code> no está en <code>a[lo..mid]</code>, y <code>[mid+1, hi]</code> mantiene la propiedad. Simétrico en el otro caso.</li>
+        <li class="fragment"><strong>Al salir:</strong> <code>lo &gt; hi</code> significa intervalo vacío; por el invariante, <code>x</code> no está. Devolver −1 es correcto.</li>
+        <li class="fragment"><strong>Termina:</strong> cada iteración descarta al menos un elemento.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 4.2 BUG PUNTO MEDIO ============ -->
+    <section>
+      <span class="kicker">4.2 · Búsqueda binaria</span>
+      <h2>El bug clásico del punto medio</h2>
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-2|4-5">
+int mid = (lo + hi) / 2;        // desborda si lo + hi &gt; INT_MAX
+                                // (comportamiento indefinido en C++)
+
+int mid = lo + (hi - lo) / 2;   // hi - lo siempre cabe en int
+                                // mismo resultado, sin desbordamiento
+      </code></pre>
+      <ul>
+        <li class="fragment">Con arreglos de más de ~2³⁰ elementos, <code>lo + hi</code> puede exceder <code>INT_MAX</code>: <span class="term" data-term="desbordamiento">desbordamiento</span> de entero con signo.</li>
+        <li class="fragment">Este bug vivió casi una década en <code>java.util.Arrays.binarySearch</code> hasta que Joshua Bloch lo documentó en 2006. Código revisado por miles de personas, con pruebas, en producción.</li>
+      </ul>
+    </section>
+
+    <!-- ============ QUIZ 2 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="b">
+        <p class="quiz-question">¿Por qué se escribe <code>mid = lo + (hi - lo) / 2</code> en lugar de <code>(lo + hi) / 2</code>?</p>
+        <button class="quiz-option" data-opt="a">Porque redondea hacia abajo y la otra forma redondea hacia arriba.</button>
+        <button class="quiz-option" data-opt="b">Porque <code>lo + hi</code> puede desbordar el rango de <code>int</code>; <code>hi - lo</code> nunca lo hace con índices válidos.</button>
+        <button class="quiz-option" data-opt="c">Porque el compilador genera código más rápido para la resta que para la suma.</button>
+        <div class="quiz-explain">
+          <strong>B.</strong> Con <code>lo</code> y <code>hi</code> no negativos, <code>hi - lo</code> siempre cabe
+          en <code>int</code>, mientras que <code>lo + hi</code> puede exceder <code>INT_MAX</code> — y el
+          desbordamiento de enteros con signo es comportamiento indefinido en C++. Ambas formas redondean
+          igual (A) y el costo de la operación es idéntico (C).
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 4.2 RECURRENCIA ============ -->
+    <section>
+      <span class="kicker">4.2 · Búsqueda binaria</span>
+      <h2>Demostración de O(log n) vía recurrencia</h2>
+      <p>Cada iteración hace trabajo constante y reduce el problema a la mitad:</p>
+      <p class="fragment" style="font-size:1.2em;"><strong>T(n) = T(n/2) + c</strong></p>
+      <ul>
+        <li class="fragment">Desplegando: T(n) = T(n/4) + 2c = T(n/8) + 3c = … = T(1) + c·log₂n.</li>
+        <li class="fragment">Teorema Maestro: a=1, b=2, f(n)=Θ(1) → caso 2 → <strong>Θ(log n)</strong>.</li>
+      </ul>
+      <table class="fragment">
+        <thead><tr><th>n</th><th>Secuencial (peor caso)</th><th>Binaria (peor caso)</th></tr></thead>
+        <tbody>
+          <tr><td>10³</td><td>1 000</td><td>10</td></tr>
+          <tr><td>10⁶</td><td>1 000 000</td><td>20</td></tr>
+          <tr><td>10⁹</td><td>1 000 000 000</td><td>30</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ============ 4.2 CARRERA ============ -->
+    <section>
+      <span class="kicker">4.2 · Búsqueda binaria</span>
+      <h2>Carrera en vivo: n = 1 000 000</h2>
+      <p>Corremos ambas búsquedas sobre el mismo arreglo ordenado, con contador de comparaciones:</p>
+      <ul>
+        <li class="fragment">Búsqueda secuencial: <strong>≈ 500 000</strong> comparaciones en promedio por consulta.</li>
+        <li class="fragment">Búsqueda binaria: <strong>≤ 20</strong> comparaciones por consulta, siempre.</li>
+        <li class="fragment">La diferencia crece con n: al duplicar el arreglo, la secuencial duplica su trabajo y la binaria suma <em>una</em> comparación.</li>
+      </ul>
+    </section>
+
+    <!-- ============ QUIZ 3 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="a">
+        <p class="quiz-question">Un arreglo ordenado tiene 10⁹ elementos. ¿Cuántas comparaciones hace la búsqueda binaria en el peor caso?</p>
+        <button class="quiz-option" data-opt="a">Alrededor de 30.</button>
+        <button class="quiz-option" data-opt="b">Alrededor de 500 000 000, la mitad del arreglo.</button>
+        <button class="quiz-option" data-opt="c">Alrededor de 31 623, la raíz cuadrada de 10⁹.</button>
+        <div class="quiz-explain">
+          <strong>A.</strong> El peor caso es ⌈log₂(10⁹)⌉ ≈ 30: cada comparación reduce el intervalo a la mitad,
+          y 2³⁰ ≈ 10⁹. La opción B describe el caso promedio de la búsqueda <em>secuencial</em>;
+          la C no corresponde a ningún algoritmo de esta sesión — la intuición de "raíz de n" no aparece aquí.
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ DIVIDER 4.3 ============ -->
+    <section class="divider">
+      <h2>4.3 El costo oculto:<br>ordenar no es gratis</h2>
+    </section>
+
+    <!-- ============ 4.3 PUNTO DE EQUILIBRIO ============ -->
+    <section>
+      <span class="kicker">4.3 · ¿Cuándo compensa ordenar?</span>
+      <h2>El punto de equilibrio</h2>
+      <p>La búsqueda binaria exige un arreglo ordenado, y ordenar cuesta O(n log n). Con <strong>k</strong> consultas sobre los mismos datos:</p>
+      <table>
+        <thead><tr><th>Estrategia</th><th>Costo total</th></tr></thead>
+        <tbody>
+          <tr class="fragment"><td>k búsquedas secuenciales</td><td>O(k · n)</td></tr>
+          <tr class="fragment"><td>Ordenar una vez + k búsquedas binarias</td><td>O(n log n + k · log n)</td></tr>
+        </tbody>
+      </table>
+      <ul>
+        <li class="fragment">Igualando ambos costos: ordenar compensa aproximadamente cuando <strong>k &gt; log n</strong>.</li>
+        <li class="fragment">Con n = 10⁶: si vas a consultar más de ~20 veces, ordena primero. Con una sola consulta, la secuencial gana.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 4.3 CRITERIO ============ -->
+    <section>
+      <span class="kicker">4.3 · ¿Cuándo compensa ordenar?</span>
+      <h2>El criterio de decisión</h2>
+      <ul>
+        <li class="fragment"><strong>Una consulta, datos desordenados:</strong> búsqueda secuencial. Ordenar para buscar una vez tira n log n de trabajo.</li>
+        <li class="fragment"><strong>Muchas consultas, datos estables:</strong> ordenar una vez y amortizar el costo entre todas las búsquedas binarias.</li>
+        <li class="fragment"><strong>Consultas mezcladas con inserciones:</strong> mantener el orden cuesta O(n) por inserción — ninguna de las dos opciones es buena. Ese problema lo resuelven los árboles de búsqueda del bloque 3.</li>
+      </ul>
+      <p class="fragment muted">El mismo razonamiento — costo de preparación contra costo por consulta — reaparece con tablas hash e índices de bases de datos.</p>
+    </section>
+
+    <!-- ============ DIVIDER 4.4 ============ -->
+    <section class="divider">
+      <h2>4.4 Búsqueda binaria<br>sobre la respuesta</h2>
+    </section>
+
+    <!-- ============ 4.4 PATRÓN ============ -->
+    <section>
+      <span class="kicker">4.4 · Búsqueda sobre la respuesta</span>
+      <h2>El patrón: buscar en el espacio de respuestas</h2>
+      <ul>
+        <li class="fragment">Hay problemas donde no buscas un elemento en un arreglo, sino <em>el menor valor que cumple una condición</em>: la capacidad mínima, la velocidad mínima, el tiempo mínimo.</li>
+        <li class="fragment">Si el predicado <code>factible(c)</code> es <span class="term" data-term="monotonia">monótono</span> — falso, falso, …, falso, <strong>verdadero, verdadero, …</strong> — el espacio de respuestas se comporta como un arreglo ordenado de booleanos.</li>
+        <li class="fragment">Y sobre eso se puede hacer búsqueda binaria: encontrar la frontera donde el predicado cambia de falso a verdadero.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 4.4 CÓDIGO ============ -->
+    <section>
+      <span class="kicker">4.4 · Búsqueda sobre la respuesta</span>
+      <h2>La plantilla del patrón</h2>
+      <pre data-title="respuesta.hpp"><code class="language-cpp" data-trim data-line-numbers="1-9|2|4|5-6|9">
+// menor c en [lo, hi] tal que factible(c) es verdadero
+long lo = 1, hi = cotaSuperior;
+while (lo &lt; hi) {
+    long mid = lo + (hi - lo) / 2;
+    if (factible(mid)) hi = mid;      // mid podría ser la respuesta
+    else               lo = mid + 1;  // mid no alcanza: descártalo
+}
+// aquí lo == hi: la primera c factible
+return lo;
+      </code></pre>
+      <ul>
+        <li class="fragment">Nota la variante: <code>hi = mid</code> (no <code>mid − 1</code>), porque <code>mid</code> factible sigue siendo candidato.</li>
+        <li class="fragment">Costo: O(log(rango) · costo de <code>factible</code>). El trabajo duro es demostrar la monotonía.</li>
+      </ul>
+    </section>
+
+    <!-- ============ QUIZ 4 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="c">
+        <p class="quiz-question">¿Qué condición debe cumplir el predicado <code>factible(c)</code> para poder aplicar búsqueda binaria sobre la respuesta?</p>
+        <button class="quiz-option" data-opt="a">Debe poder evaluarse en O(1); si cuesta O(n), el patrón deja de funcionar.</button>
+        <button class="quiz-option" data-opt="b">Los datos del problema deben estar ordenados antes de empezar.</button>
+        <button class="quiz-option" data-opt="c">Debe ser monótono: si <code>factible(c)</code> es verdadero, <code>factible(c')</code> es verdadero para todo <code>c' &gt; c</code>.</button>
+        <div class="quiz-explain">
+          <strong>C.</strong> La monotonía es lo que convierte el espacio de respuestas en una secuencia
+          F…FV…V donde tiene sentido buscar la frontera. El costo de <code>factible</code> puede ser O(n)
+          sin problema (A) — solo multiplica el log. Y no se ordena ningún arreglo (B): el "orden" ya
+          existe en el espacio de respuestas.
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ POR QUÉ IMPORTA HOY ============ -->
+    <section>
+      <span class="kicker kicker-ai">Por qué importa hoy</span>
+      <h2>Por qué un RAG no puede usar búsqueda binaria</h2>
+      <div class="box-ai" data-label="Dónde vive esto en sistemas de IA">
+        <ul>
+          <li class="fragment">La búsqueda semántica de un sistema RAG compara <span class="term" data-term="embedding">embeddings</span>: vectores de 768 o 1536 dimensiones.</li>
+          <li class="fragment">En una dimensión, "ordenado" y "cercano" coinciden: los vecinos de un valor están junto a él en el arreglo. Eso es lo que la búsqueda binaria explota.</li>
+          <li class="fragment">En 1536 dimensiones sí se puede imponer un orden total (lexicográfico, orden de Morton), pero <strong>ninguno compatible con la proximidad</strong>: dos vectores cercanos pueden quedar en extremos opuestos del orden.</li>
+          <li class="fragment">Por eso existen los índices de búsqueda aproximada — <span class="term" data-term="hnsw">HNSW</span>, IVF — que cambian exactitud por velocidad.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============ CIERRE STL ============ -->
+    <section>
+      <span class="kicker">Cierre STL</span>
+      <h2>La búsqueda que ya viene incluida</h2>
+      <table>
+        <thead><tr><th>Algoritmo</th><th>Requiere orden</th><th>Costo</th><th>Devuelve</th></tr></thead>
+        <tbody>
+          <tr class="fragment"><td><code>std::find</code></td><td>No</td><td>O(n)</td><td>iterador al elemento</td></tr>
+          <tr class="fragment"><td><code>std::binary_search</code></td><td>Sí</td><td>O(log n)</td><td>solo <code>bool</code></td></tr>
+          <tr class="fragment"><td><code>std::lower_bound</code></td><td>Sí</td><td>O(log n)</td><td>iterador al primer elemento ≥ x</td></tr>
+          <tr class="fragment"><td><code>std::upper_bound</code></td><td>Sí</td><td>O(log n)</td><td>iterador al primer elemento &gt; x</td></tr>
+          <tr class="fragment"><td><code>std::equal_range</code></td><td>Sí</td><td>O(log n)</td><td>par de iteradores (el rango igual a x)</td></tr>
+        </tbody>
+      </table>
+      <p class="fragment"><code>lower_bound</code> es casi siempre lo que en realidad querías: además de decirte si está, te dice <em>dónde</em> insertarlo si no está.</p>
+    </section>
+
+    <!-- ============ CIERRE STL: TRAMPA ============ -->
+    <section>
+      <span class="kicker">Cierre STL</span>
+      <h2>La trampa: O(log n) exige acceso aleatorio</h2>
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-3|5-7">
+std::vector&lt;int&gt; v = { /* ordenado */ };
+auto it = std::lower_bound(v.begin(), v.end(), x);   // O(log n)
+if (it != v.end() &amp;&amp; *it == x) { /* está */ }
+
+std::list&lt;int&gt; l = { /* ordenado */ };
+auto it2 = std::lower_bound(l.begin(), l.end(), x);  // ¡compila!
+// pero avanza el iterador paso a paso: O(n)
+      </code></pre>
+      <ul>
+        <li class="fragment">Los iteradores de <code>std::list</code> no son de <span class="term" data-term="acceso-aleatorio">acceso aleatorio</span>: llegar al punto medio cuesta n/2 pasos.</li>
+        <li class="fragment"><code>lower_bound</code> sobre una lista hace O(log n) <em>comparaciones</em> pero O(n) <em>movimientos</em> de iterador. Compila, corre y es lento.</li>
+      </ul>
+    </section>
+
+    <!-- ============ RETO EN PAREJAS ============ -->
+    <section>
+      <span class="kicker">Reto en parejas · 25 min</span>
+      <h2>Búsqueda binaria sobre la respuesta, en serio</h2>
+      <div class="cols">
+        <div>
+          <h3>LC 875 — Koko Eating Bananas <span class="muted">[Media]</span></h3>
+          <p>Velocidad mínima para terminar a tiempo. El predicado <code>factible(velocidad)</code> es monótono; aplica la plantilla de hoy.</p>
+        </div>
+        <div>
+          <h3>LC 410 — Split Array Largest Sum <span class="muted">[Alta]</span></h3>
+          <p>Minimizar la suma máxima de un bloque. Además de programarlo, argumenten por escrito <em>por qué</em> el predicado es monótono.</p>
+        </div>
+      </div>
+      <ul>
+        <li class="fragment"><strong>Roles:</strong> driver teclea, navigator revisa y cuestiona. Cambio de rol a la mitad del tiempo.</li>
+      </ul>
+    </section>
+
+    <!-- ============ PRÓXIMA SESIÓN ============ -->
+    <section class="divider">
+      <h2>Próxima sesión:<br>Ordenamiento elemental</h2>
+      <p class="muted" style="margin-top:1em;">Recuerda: la Act 1.3 se entrega este domingo 30 de agosto, 23:59.</p>
+    </section>
+
+    <!-- ============ REFERENCIAS ============ -->
+    <section>
+      <span class="kicker">Sesión 6</span>
+      <h2>Referencias y material para profundizar</h2>
+      <div class="refs cols">
+        <div>
+          <h3>Referencias</h3>
+          <ul>
+            <li><span class="ref-type">Libro</span> Weiss, M. A. <em>Data Structures and Algorithm Analysis in C++</em>, 4.ª ed., Pearson, 2014. Cap. 2.</li>
+            <li><span class="ref-type">Libro</span> Cormen, T. et al. <em>Introduction to Algorithms</em>, 4.ª ed., MIT Press, 2022. Secc. 2.3 y ejercicios de búsqueda binaria.</li>
+            <li><span class="ref-type">Libro</span> Bentley, J. <em>Programming Pearls</em>, 2.ª ed., Addison-Wesley, 2000. Columna 4: escribir una búsqueda binaria correcta.</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Para profundizar</h3>
+          <ul>
+            <li><span class="ref-type">Web</span> <a href="https://en.cppreference.com/w/cpp/algorithm/lower_bound">cppreference — std::lower_bound</a> <span class="ref-nota">— el contrato exacto y el requisito de iteradores.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://research.google/blog/extra-extra-read-all-about-it-nearly-all-binary-searches-and-mergesorts-are-broken/">Google Research — "Nearly all binary searches are broken"</a> <span class="ref-nota">— la historia real del bug del punto medio.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://ann-benchmarks.com/">ANN-Benchmarks</a> <span class="ref-nota">— comparativa de índices de búsqueda aproximada (HNSW, IVF) del "Por qué importa hoy".</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script src="../js/curso-slides.js"></script>
+<script>
+  Reveal.initialize({
+    width: 1280,
+    height: 720,
+    margin: 0.06,
+    hash: true,
+    progress: true,
+    slideNumber: 'c/t',
+    controls: true,
+    transition: 'slide',
+    transitionSpeed: 'fast',
+    plugins: [ RevealHighlight ]
+  }).then(() => {
+    CursoSlides.init({
+      invariante: {
+        titulo: "Invariante de ciclo",
+        def: "Propiedad que es cierta al inicio de cada iteración de un ciclo. Se demuestra en tres pasos: vale al entrar, cada iteración la preserva, y al salir implica que el resultado es correcto. En la búsqueda binaria: «si x está, está en a[lo..hi]»."
+      },
+      monotonia: {
+        titulo: "Predicado monótono",
+        def: "Predicado booleano sobre un rango que cambia de valor a lo más una vez: falso para todo c menor que una frontera y verdadero de la frontera en adelante (o al revés). Es la condición que habilita la búsqueda binaria sobre el espacio de respuestas."
+      },
+      desbordamiento: {
+        titulo: "Desbordamiento de entero (overflow)",
+        def: "Resultado de una operación aritmética que excede el rango del tipo. En C++, el desbordamiento de enteros <em>con signo</em> es comportamiento indefinido: el compilador puede asumir que nunca ocurre y generar código que hace cualquier cosa."
+      },
+      embedding: {
+        titulo: "Embedding",
+        def: "Representación de un dato (texto, imagen, audio) como un vector de números reales en cientos o miles de dimensiones, de modo que la cercanía geométrica entre vectores refleja similitud semántica. Es la entrada de toda búsqueda semántica."
+      },
+      hnsw: {
+        titulo: "HNSW — Hierarchical Navigable Small World",
+        def: "Estructura de grafo por capas para búsqueda aproximada de vecinos más cercanos en espacios vectoriales. Implementación típica detrás de las bases vectoriales. La veremos con detalle al llegar a grafos."
+      },
+      "acceso-aleatorio": {
+        titulo: "Iterador de acceso aleatorio",
+        def: "Categoría de iterador que permite saltar a cualquier posición en O(1) (<code>it + k</code>), como los de <code>std::vector</code>. Los iteradores de <code>std::list</code> solo avanzan de uno en uno, así que «ir al punto medio» cuesta O(n) aunque el algoritmo haga O(log n) comparaciones."
+      }
+    });
+  });
+</script>
+</body>
+</html>
