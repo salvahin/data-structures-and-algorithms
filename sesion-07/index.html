@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sesión 7 — Ordenamiento elemental I: Bubble y Selection</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+  <link rel="stylesheet" href="../css/theme-curso.css">
+</head>
+<body>
+<div class="reveal">
+  <div class="slides">
+
+    <!-- ============ PORTADA ============ -->
+    <section class="cover">
+      <span class="kicker">Estructuras de Datos y Algoritmos · Bloque 1</span>
+      <h1>Ordenamiento elemental I:<br>Bubble y Selection</h1>
+      <div class="cover-meta">
+        Sesión 7 · Semana 4<br>
+        Salvador Hinojosa
+      </div>
+    </section>
+
+    <!-- ============ RETO ANTERIOR ============ -->
+    <section>
+      <span class="kicker">Apertura · Reto anterior (5 min)</span>
+      <h2>¿Cómo les fue con la búsqueda sobre la respuesta?</h2>
+      <p>Una pareja pasa a explicar su enfoque de la sesión 6:</p>
+      <ul>
+        <li class="fragment"><strong>LC 875 — Koko Eating Bananas.</strong> ¿Qué rango de velocidades exploraron y cómo evaluaron <code>factible(v)</code>?</li>
+        <li class="fragment"><strong>LC 410 — Split Array Largest Sum.</strong> ¿Cómo argumentaron la monotonía del predicado?</li>
+        <li class="fragment">Pregunta para el grupo: en el 875, ¿por qué la respuesta se busca con <code>hi = mid</code> y no <code>hi = mid − 1</code>?</li>
+      </ul>
+    </section>
+
+    <!-- ============ AGENDA ============ -->
+    <section>
+      <span class="kicker">Sesión 7 · Agenda</span>
+      <h2>Qué vamos a ver hoy</h2>
+      <table>
+        <tbody>
+          <tr><td>10 min</td><td>El problema del ordenamiento: estabilidad, en sitio, comparadores</td></tr>
+          <tr><td>40 min</td><td>5.1 Bubble Sort: código, optimización, conteo exacto</td></tr>
+          <tr><td>40 min</td><td>5.2 Selection Sort: código, la asimetría comparaciones/intercambios</td></tr>
+          <tr><td>15 min</td><td>Comparación empírica con <code>&lt;chrono&gt;</code></td></tr>
+          <tr><td>25 min</td><td>Cierre STL · Reto en parejas</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ============ OBJETIVO ============ -->
+    <section>
+      <span class="kicker">Objetivo de hoy</span>
+      <h2>Al salir de esta sesión podrás…</h2>
+      <ul>
+        <li class="fragment">Codificar Bubble Sort y Selection Sort, y demostrar que ambos son O(n²) en el peor caso.</li>
+        <li class="fragment">Distinguir con precisión mejor y peor caso de cada uno, y explicar por qué difieren.</li>
+        <li class="fragment">Contar por separado comparaciones e intercambios, y decir cuándo importa esa distinción.</li>
+        <li class="fragment">Definir <span class="term" data-term="estabilidad">estabilidad</span> y ordenamiento <span class="term" data-term="en-sitio">en sitio</span>, las dos propiedades con que clasificaremos todos los algoritmos del bloque.</li>
+      </ul>
+    </section>
+
+    <!-- ============ DIVIDER PROBLEMA ============ -->
+    <section class="divider">
+      <h2>El problema del ordenamiento</h2>
+    </section>
+
+    <!-- ============ PROBLEMA: DEFINICIÓN ============ -->
+    <section>
+      <span class="kicker">Ordenamiento · El problema</span>
+      <h2>Qué pedimos exactamente</h2>
+      <ul>
+        <li class="fragment"><strong>Entrada:</strong> una secuencia de n elementos y un criterio de comparación.</li>
+        <li class="fragment"><strong>Salida:</strong> una permutación de la misma secuencia donde a[0] ≤ a[1] ≤ … ≤ a[n−1] según ese criterio.</li>
+        <li class="fragment">El criterio lo define un <span class="term" data-term="comparador">comparador</span>: para enteros es <code>&lt;</code>, para structs lo escribes tú (por promedio, por fecha, por prioridad).</li>
+        <li class="fragment">Todos los algoritmos de esta semana solo usan dos primitivas sobre los datos: <em>comparar</em> dos elementos y <em>moverlos</em>. Contaremos ambas por separado.</li>
+      </ul>
+    </section>
+
+    <!-- ============ PROBLEMA: PROPIEDADES ============ -->
+    <section>
+      <span class="kicker">Ordenamiento · El problema</span>
+      <h2>Dos propiedades para clasificar algoritmos</h2>
+      <ul>
+        <li class="fragment"><strong><span class="term" data-term="estabilidad">Estable</span>:</strong> los elementos con clave igual conservan su orden relativo original. Importa al encadenar criterios: ordenar por grupo una lista ya ordenada por nombre deja cada grupo alfabético solo si el algoritmo es estable.</li>
+        <li class="fragment"><strong><span class="term" data-term="en-sitio">En sitio</span>:</strong> usa O(1) memoria adicional; reordena dentro del propio arreglo.</li>
+      </ul>
+      <table class="fragment">
+        <thead><tr><th></th><th>Estable</th><th>En sitio</th></tr></thead>
+        <tbody>
+          <tr><td>Bubble Sort</td><td>Sí</td><td>Sí</td></tr>
+          <tr><td>Selection Sort</td><td>No</td><td>Sí</td></tr>
+        </tbody>
+      </table>
+      <p class="fragment muted">Hoy llenamos dos filas de la tabla; al final del bloque tendrá cinco.</p>
+    </section>
+
+    <!-- ============ DIVIDER 5.1 ============ -->
+    <section class="divider">
+      <h2>5.1 Bubble Sort</h2>
+    </section>
+
+    <!-- ============ 5.1 CÓDIGO ============ -->
+    <section>
+      <span class="kicker">5.1 · Bubble Sort</span>
+      <h2>El algoritmo: comparar vecinos, intercambiar</h2>
+      <pre data-title="bubble.hpp"><code class="language-cpp" data-trim data-line-numbers="1-9|3|4|5-6|4">
+void bubbleSort(std::vector&lt;int&gt;&amp; a) {
+    int n = (int)a.size();
+    for (int i = 0; i &lt; n - 1; ++i) {          // n-1 pasadas
+        for (int j = 0; j &lt; n - 1 - i; ++j) {  // zona no ordenada
+            if (a[j] &gt; a[j + 1])
+                std::swap(a[j], a[j + 1]);
+        }
+    }
+}
+      </code></pre>
+      <ul>
+        <li class="fragment">Cada pasada empuja el mayor elemento restante hasta el final de la zona no ordenada.</li>
+        <li class="fragment">Por eso el límite interno es <code>n - 1 - i</code>: los últimos <code>i</code> elementos ya quedaron en su lugar.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 5.1 SVG ANIMACIÓN ============ -->
+    <section>
+      <span class="kicker">5.1 · Bubble Sort</span>
+      <h2>Una pasada, paso a paso</h2>
+      <svg viewBox="0 0 1100 420" style="width:100%; max-height:420px;">
+        <!-- fila 0: estado inicial -->
+        <g>
+          <rect class="svg-node" x="40" y="20" width="62" height="58" rx="8"/><text class="svg-label" x="71" y="57" text-anchor="middle" style="font-size:24px;">5</text>
+          <rect class="svg-node" x="108" y="20" width="62" height="58" rx="8"/><text class="svg-label" x="139" y="57" text-anchor="middle" style="font-size:24px;">3</text>
+          <rect class="svg-node" x="176" y="20" width="62" height="58" rx="8"/><text class="svg-label" x="207" y="57" text-anchor="middle" style="font-size:24px;">8</text>
+          <rect class="svg-node" x="244" y="20" width="62" height="58" rx="8"/><text class="svg-label" x="275" y="57" text-anchor="middle" style="font-size:24px;">4</text>
+          <rect class="svg-node" x="312" y="20" width="62" height="58" rx="8"/><text class="svg-label" x="343" y="57" text-anchor="middle" style="font-size:24px;">7</text>
+          <text class="svg-label" x="420" y="57" style="font-size:22px;">estado inicial</text>
+        </g>
+        <!-- paso 1 -->
+        <g class="anim-step" data-step="1">
+          <rect class="svg-node-hl" x="40" y="100" width="62" height="58" rx="8"/><text class="svg-label" x="71" y="137" text-anchor="middle" style="font-size:24px;">3</text>
+          <rect class="svg-node-hl" x="108" y="100" width="62" height="58" rx="8"/><text class="svg-label" x="139" y="137" text-anchor="middle" style="font-size:24px;">5</text>
+          <rect class="svg-node" x="176" y="100" width="62" height="58" rx="8"/><text class="svg-label" x="207" y="137" text-anchor="middle" style="font-size:24px;">8</text>
+          <rect class="svg-node" x="244" y="100" width="62" height="58" rx="8"/><text class="svg-label" x="275" y="137" text-anchor="middle" style="font-size:24px;">4</text>
+          <rect class="svg-node" x="312" y="100" width="62" height="58" rx="8"/><text class="svg-label" x="343" y="137" text-anchor="middle" style="font-size:24px;">7</text>
+          <text class="svg-label" x="420" y="137" style="font-size:22px;">j=0 · 5 &gt; 3 → intercambio</text>
+        </g>
+        <!-- paso 2 -->
+        <g class="anim-step" data-step="2">
+          <rect class="svg-node" x="40" y="180" width="62" height="58" rx="8"/><text class="svg-label" x="71" y="217" text-anchor="middle" style="font-size:24px;">3</text>
+          <rect class="svg-node-hl" x="108" y="180" width="62" height="58" rx="8"/><text class="svg-label" x="139" y="217" text-anchor="middle" style="font-size:24px;">5</text>
+          <rect class="svg-node-hl" x="176" y="180" width="62" height="58" rx="8"/><text class="svg-label" x="207" y="217" text-anchor="middle" style="font-size:24px;">8</text>
+          <rect class="svg-node" x="244" y="180" width="62" height="58" rx="8"/><text class="svg-label" x="275" y="217" text-anchor="middle" style="font-size:24px;">4</text>
+          <rect class="svg-node" x="312" y="180" width="62" height="58" rx="8"/><text class="svg-label" x="343" y="217" text-anchor="middle" style="font-size:24px;">7</text>
+          <text class="svg-label" x="420" y="217" style="font-size:22px;">j=1 · 5 ≤ 8 → sin intercambio</text>
+        </g>
+        <!-- paso 3 -->
+        <g class="anim-step" data-step="3">
+          <rect class="svg-node" x="40" y="260" width="62" height="58" rx="8"/><text class="svg-label" x="71" y="297" text-anchor="middle" style="font-size:24px;">3</text>
+          <rect class="svg-node" x="108" y="260" width="62" height="58" rx="8"/><text class="svg-label" x="139" y="297" text-anchor="middle" style="font-size:24px;">5</text>
+          <rect class="svg-node-hl" x="176" y="260" width="62" height="58" rx="8"/><text class="svg-label" x="207" y="297" text-anchor="middle" style="font-size:24px;">4</text>
+          <rect class="svg-node-hl" x="244" y="260" width="62" height="58" rx="8"/><text class="svg-label" x="275" y="297" text-anchor="middle" style="font-size:24px;">8</text>
+          <rect class="svg-node" x="312" y="260" width="62" height="58" rx="8"/><text class="svg-label" x="343" y="297" text-anchor="middle" style="font-size:24px;">7</text>
+          <text class="svg-label" x="420" y="297" style="font-size:22px;">j=2 · 8 &gt; 4 → intercambio</text>
+        </g>
+        <!-- paso 4 -->
+        <g class="anim-step" data-step="4">
+          <rect class="svg-node" x="40" y="340" width="62" height="58" rx="8"/><text class="svg-label" x="71" y="377" text-anchor="middle" style="font-size:24px;">3</text>
+          <rect class="svg-node" x="108" y="340" width="62" height="58" rx="8"/><text class="svg-label" x="139" y="377" text-anchor="middle" style="font-size:24px;">5</text>
+          <rect class="svg-node" x="176" y="340" width="62" height="58" rx="8"/><text class="svg-label" x="207" y="377" text-anchor="middle" style="font-size:24px;">4</text>
+          <rect class="svg-node-hl" x="244" y="340" width="62" height="58" rx="8"/><text class="svg-label" x="275" y="377" text-anchor="middle" style="font-size:24px;">7</text>
+          <rect x="312" y="340" width="62" height="58" rx="8" fill="none" stroke="#146c2e" stroke-width="5"/><text class="svg-label" x="343" y="377" text-anchor="middle" style="font-size:24px;">8</text>
+          <text class="svg-label" x="420" y="377" style="font-size:22px;">j=3 · 8 &gt; 7 → intercambio · el mayor llegó al final</text>
+        </g>
+      </svg>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+    </section>
+
+    <!-- ============ 5.1 OPTIMIZACIÓN ============ -->
+    <section>
+      <span class="kicker">5.1 · Bubble Sort</span>
+      <h2>La optimización: detectar que ya terminaste</h2>
+      <pre data-title="bubble.hpp"><code class="language-cpp" data-trim data-line-numbers="1-12|4|8|11">
+void bubbleSort(std::vector&lt;int&gt;&amp; a) {
+    int n = (int)a.size();
+    for (int i = 0; i &lt; n - 1; ++i) {
+        bool hubo = false;                  // ¿esta pasada intercambió algo?
+        for (int j = 0; j &lt; n - 1 - i; ++j) {
+            if (a[j] &gt; a[j + 1]) {
+                std::swap(a[j], a[j + 1]);
+                hubo = true;
+            }
+        }
+        if (!hubo) break;   // pasada limpia: el arreglo ya está ordenado
+    }
+}
+      </code></pre>
+      <p class="fragment">Una pasada sin intercambios demuestra que cada par de vecinos está en orden — y eso implica que todo el arreglo lo está.</p>
+    </section>
+
+    <!-- ============ 5.1 ANÁLISIS ============ -->
+    <section>
+      <span class="kicker">5.1 · Bubble Sort</span>
+      <h2>Conteo exacto</h2>
+      <table>
+        <thead><tr><th>Caso</th><th>Comparaciones</th><th>Intercambios</th></tr></thead>
+        <tbody>
+          <tr class="fragment"><td>Peor (entrada inversa)</td><td>n(n−1)/2</td><td>n(n−1)/2</td></tr>
+          <tr class="fragment"><td>Mejor, con bandera (ya ordenada)</td><td>n−1</td><td>0</td></tr>
+          <tr class="fragment"><td>Mejor, sin bandera</td><td>n(n−1)/2</td><td>0</td></tr>
+        </tbody>
+      </table>
+      <ul>
+        <li class="fragment">Cada intercambio corrige exactamente una <span class="term" data-term="inversion">inversión</span> (un par fuera de orden): el total de intercambios es igual al número de inversiones de la entrada.</li>
+        <li class="fragment">Con la bandera, el mejor caso baja a O(n); sin ella, las pasadas se ejecutan completas aunque no haya nada que hacer.</li>
+      </ul>
+    </section>
+
+    <!-- ============ QUIZ 1 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="b">
+        <p class="quiz-question">Bubble Sort <em>con bandera</em> recibe un arreglo ya ordenado de n elementos. ¿Cuánto trabajo hace?</p>
+        <button class="quiz-option" data-opt="a">n(n−1)/2 comparaciones: las pasadas se ejecutan igual, solo se ahorra los intercambios.</button>
+        <button class="quiz-option" data-opt="b">n−1 comparaciones: la primera pasada no intercambia nada y la bandera detiene el algoritmo.</button>
+        <button class="quiz-option" data-opt="c">Cero comparaciones: el algoritmo detecta el orden antes de empezar.</button>
+        <div class="quiz-explain">
+          <strong>B.</strong> La bandera convierte el mejor caso en O(n): una sola pasada de verificación.
+          La opción A describe la versión <em>sin</em> bandera. La C es imposible para cualquier algoritmo
+          de comparación: verificar que un arreglo está ordenado ya cuesta n−1 comparaciones.
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ DIVIDER 5.2 ============ -->
+    <section class="divider">
+      <h2>5.2 Selection Sort</h2>
+    </section>
+
+    <!-- ============ 5.2 CÓDIGO ============ -->
+    <section>
+      <span class="kicker">5.2 · Selection Sort</span>
+      <h2>El algoritmo: buscar el mínimo, colocarlo</h2>
+      <pre data-title="selection.hpp"><code class="language-cpp" data-trim data-line-numbers="1-10|3|4-6|7">
+void selectionSort(std::vector&lt;int&gt;&amp; a) {
+    int n = (int)a.size();
+    for (int i = 0; i &lt; n - 1; ++i) {
+        int m = i;                          // índice del mínimo
+        for (int j = i + 1; j &lt; n; ++j)
+            if (a[j] &lt; a[m]) m = j;
+        if (m != i) std::swap(a[i], a[m]);  // un intercambio por pasada
+    }
+}
+      </code></pre>
+      <ul>
+        <li class="fragment">La pasada <code>i</code> busca el mínimo de la zona no ordenada y lo coloca en la posición <code>i</code>.</li>
+        <li class="fragment">Busca mucho, mueve poco: n−1−i comparaciones por pasada y a lo más <em>un</em> intercambio.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 5.2 ANÁLISIS ============ -->
+    <section>
+      <span class="kicker">5.2 · Selection Sort</span>
+      <h2>Mejor caso = peor caso = Θ(n²)</h2>
+      <table>
+        <thead><tr><th>Caso</th><th>Comparaciones</th><th>Intercambios</th></tr></thead>
+        <tbody>
+          <tr class="fragment"><td>Ordenada</td><td>n(n−1)/2</td><td>0</td></tr>
+          <tr class="fragment"><td>Inversa</td><td>n(n−1)/2</td><td>⌊n/2⌋</td></tr>
+          <tr class="fragment"><td>Aleatoria</td><td>n(n−1)/2</td><td>≤ n−1</td></tr>
+        </tbody>
+      </table>
+      <ul>
+        <li class="fragment">Las comparaciones no dependen de la entrada: el ciclo interno recorre la zona no ordenada completa siempre, haya o no algo que corregir. Por eso Θ(n²) es cota exacta, en todos los casos.</li>
+        <li class="fragment">A cambio, hace a lo más n−1 intercambios en total — Bubble puede hacer n(n−1)/2.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 5.2 ASIMETRÍA ============ -->
+    <section>
+      <span class="kicker">5.2 · Selection Sort</span>
+      <h2>Cuándo importa la asimetría</h2>
+      <p>Comparar suele ser barato (leer dos claves); mover puede ser caro:</p>
+      <ul>
+        <li class="fragment">Registros grandes: si cada elemento pesa megabytes, cada intercambio copia megabytes.</li>
+        <li class="fragment">Escrituras costosas o limitadas: memoria flash/EEPROM, donde cada escritura desgasta el medio.</li>
+      </ul>
+      <p class="fragment">En esos escenarios, Selection Sort con sus O(n) intercambios puede ganarle a algoritmos con menos comparaciones.</p>
+      <p class="fragment muted">Nota: Selection Sort no es estable — el intercambio puede saltar por encima de un elemento con clave igual.</p>
+    </section>
+
+    <!-- ============ QUIZ 2 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="c">
+        <p class="quiz-question">Selection Sort recibe un arreglo <em>ya ordenado</em>. ¿Cuántas comparaciones hace?</p>
+        <button class="quiz-option" data-opt="a">n−1: detecta el orden en la primera pasada, como Bubble con bandera.</button>
+        <button class="quiz-option" data-opt="b">Cero comparaciones y cero intercambios: no hay nada que hacer.</button>
+        <button class="quiz-option" data-opt="c">n(n−1)/2, exactamente las mismas que con cualquier otra entrada.</button>
+        <div class="quiz-explain">
+          <strong>C.</strong> Selection Sort no tiene forma de "darse cuenta" del orden: para afirmar que
+          a[i] es el mínimo de la zona no ordenada debe compararlo contra todos los demás, siempre.
+          Sus comparaciones son una constante de la talla n, no de la entrada — esa es su firma
+          característica, y la verán en los contadores del experimento.
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ COMPARACIÓN EMPÍRICA ============ -->
+    <section>
+      <span class="kicker">Comparación empírica</span>
+      <h2>Medir con <code>&lt;chrono&gt;</code></h2>
+      <pre data-title="medir.cpp"><code class="language-cpp" data-trim data-line-numbers="1-6|1,3|4-5">
+auto t0 = std::chrono::steady_clock::now();
+bubbleSort(v);
+auto t1 = std::chrono::steady_clock::now();
+auto ms = std::chrono::duration_cast&lt;std::chrono::milliseconds&gt;(t1 - t0);
+std::cout &lt;&lt; ms.count() &lt;&lt; " ms\n";
+      </code></pre>
+      <ul>
+        <li class="fragment"><code>steady_clock</code> avanza de forma monótona; el reloj de pared puede saltar (NTP, cambio de hora).</li>
+        <li class="fragment">Compilar con <code>-O2</code>: medir un binario <code>-O0</code> no dice nada útil sobre el algoritmo.</li>
+        <li class="fragment">Repetir cada medición y quedarse con la mediana: la primera corrida paga costos de caché que las demás no.</li>
+      </ul>
+    </section>
+
+    <!-- ============ EXPERIMENTO ============ -->
+    <section>
+      <span class="kicker">Comparación empírica</span>
+      <h2>Tres entradas, dos algoritmos, cuatro contadores</h2>
+      <p>Corremos ambos sobre entradas <strong>ordenada</strong>, <strong>inversa</strong> y <strong>aleatoria</strong> (n = 20 000), contando comparaciones e intercambios por separado.</p>
+      <ul>
+        <li class="fragment">Los contadores de <strong>Selection no se mueven</strong> entre corridas: mismas comparaciones con cualquier entrada.</li>
+        <li class="fragment"><strong>Bubble optimizado colapsa a O(n)</strong> con la entrada ordenada y explota a n(n−1)/2 con la inversa.</li>
+        <li class="fragment">En intercambios, Selection queda por debajo de Bubble.</li>
+      </ul>
+      <p class="fragment muted">Estos contadores alimentan la Act 1.4: la tabla del experimento se contrasta contra la predicción teórica de hoy.</p>
+    </section>
+
+    <!-- ============ QUIZ 3 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="a">
+        <p class="quiz-question">Cada elemento de tu arreglo pesa 1 MB y copiarlo es la operación cara. ¿Cuál de los dos algoritmos de hoy conviene y por qué?</p>
+        <button class="quiz-option" data-opt="a">Selection Sort: hace a lo más n−1 intercambios, sin importar la entrada.</button>
+        <button class="quiz-option" data-opt="b">Bubble Sort: su mejor caso O(n) lo vuelve más rápido en general.</button>
+        <button class="quiz-option" data-opt="c">Cualquiera de los dos: ambos son O(n²), así que el costo total es el mismo.</button>
+        <div class="quiz-explain">
+          <strong>A.</strong> Cuando mover domina el costo, el criterio es el número de movimientos:
+          Selection garantiza O(n) intercambios contra los O(n²) posibles de Bubble. La opción B solo
+          aplica si la entrada ya viene casi ordenada. La C ignora que O(n²) cuenta <em>comparaciones</em>
+          — con elementos de 1 MB, las operaciones no cuestan lo mismo y la constante manda.
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ POR QUÉ IMPORTA HOY ============ -->
+    <section>
+      <span class="kicker kicker-ai">Por qué importa hoy</span>
+      <h2>El laboratorio de una pregunta de carrera</h2>
+      <div class="box-ai" data-label="Por qué importa hoy">
+        <ul>
+          <li class="fragment">Nadie envía Bubble Sort a producción, y ese no es el punto de esta sesión.</li>
+          <li class="fragment">El punto es la pregunta que vas a enfrentar toda tu carrera: <em>¿por qué este código es lento con estos datos y rápido con estos otros?</em></li>
+          <li class="fragment">Estos dos algoritmos son el laboratorio más limpio para estudiarla: <strong>Selection</strong> tiene costo fijo sin importar la entrada; <strong>Bubble</strong> es enormemente sensible al orden inicial. Dos respuestas opuestas, medibles en una tarde.</li>
+          <li class="fragment">La misma pregunta reaparece al perfilar un pipeline de datos o de entrenamiento: los datos reales rara vez son aleatorios — los logs llegan casi ordenados por timestamp, y esa estructura cambia qué algoritmo conviene.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============ CIERRE STL: SWAP ============ -->
+    <section>
+      <span class="kicker">Cierre STL</span>
+      <h2><code>std::swap</code> y la semántica de movimiento</h2>
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-2|4-6">
+std::vector&lt;int&gt; a(1'000'000), b(1'000'000);
+std::swap(a, b);   // O(1): intercambia punteros, no copia elementos
+
+// desde C++11, swap se implementa con movimiento:
+// tmp = std::move(a); a = std::move(b); b = std::move(tmp);
+// mover un vector transfiere su buffer; no toca los datos
+      </code></pre>
+      <ul>
+        <li class="fragment">Con la <span class="term" data-term="movimiento">semántica de movimiento</span>, intercambiar contenedores cuesta O(1) aunque contengan millones de elementos.</li>
+        <li class="fragment">Para tus propios tipos: si el struct guarda sus datos en contenedores estándar, <code>std::swap</code> ya es barato sin trabajo extra.</li>
+      </ul>
+    </section>
+
+    <!-- ============ CIERRE STL: COMPARADORES ============ -->
+    <section>
+      <span class="kicker">Cierre STL</span>
+      <h2>Comparadores personalizados con lambdas</h2>
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-4|3">
+std::sort(v.begin(), v.end(),
+          [](const Alumno&amp; a, const Alumno&amp; b) {
+              return a.promedio &gt; b.promedio;   // descendente
+          });
+      </code></pre>
+      <ul>
+        <li class="fragment">El comparador debe cumplir <span class="term" data-term="orden-debil-estricto">strict weak ordering</span>: en particular, <code>comp(x, x)</code> debe ser falso.</li>
+        <li class="fragment">Escribir <code>&gt;=</code> en lugar de <code>&gt;</code> lo viola — y el resultado es <strong>comportamiento indefinido</strong>: <code>std::sort</code> puede leer fuera de rango y tronar, no reportar un error.</li>
+        <li class="fragment">Regla práctica: el comparador responde "¿va estrictamente antes?", nunca "¿puede ir antes o igual?".</li>
+      </ul>
+    </section>
+
+    <!-- ============ RETO EN PAREJAS ============ -->
+    <section>
+      <span class="kicker">Reto en parejas · 25 min</span>
+      <h2>Ordenar sin ordenar de más</h2>
+      <div class="cols">
+        <div>
+          <h3>LC 75 — Sort Colors <span class="muted">[Media]</span></h3>
+          <p>Ordenar un arreglo de 0s, 1s y 2s en una sola pasada y en sitio: partición de tres vías (bandera holandesa). Prohibido llamar a <code>sort</code>.</p>
+        </div>
+        <div>
+          <h3>LC 41 — First Missing Positive <span class="muted">[Alta]</span></h3>
+          <p>El menor entero positivo ausente, en O(n) y O(1) de memoria extra: el truco es usar el propio arreglo como tabla de posiciones. Anticipa el hashing del bloque 4.</p>
+        </div>
+      </div>
+      <ul>
+        <li class="fragment"><strong>Roles:</strong> driver teclea, navigator revisa y cuestiona. Cambio de rol a la mitad del tiempo.</li>
+      </ul>
+    </section>
+
+    <!-- ============ PRÓXIMA SESIÓN ============ -->
+    <section class="divider">
+      <h2>Próxima sesión:<br>Insertion Sort y Merge Sort</h2>
+      <p class="muted" style="margin-top:1em;">La Act 1.4 (ordenamiento elemental y merge sort) se publica hoy y se entrega el domingo 6 de septiembre, 23:59.</p>
+    </section>
+
+    <!-- ============ REFERENCIAS ============ -->
+    <section>
+      <span class="kicker">Sesión 7</span>
+      <h2>Referencias y material para profundizar</h2>
+      <div class="refs cols">
+        <div>
+          <h3>Referencias</h3>
+          <ul>
+            <li><span class="ref-type">Libro</span> Weiss, M. A. <em>Data Structures and Algorithm Analysis in C++</em>, 4.ª ed., Pearson, 2014. Cap. 7.</li>
+            <li><span class="ref-type">Libro</span> Sedgewick, R. y Wayne, K. <em>Algorithms</em>, 4.ª ed., Addison-Wesley, 2011. Secc. 2.1: ordenamiento elemental.</li>
+            <li><span class="ref-type">Libro</span> Knuth, D. <em>The Art of Computer Programming, Vol. 3: Sorting and Searching</em>, 2.ª ed., Addison-Wesley, 1998. § 5.2.</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Para profundizar</h3>
+          <ul>
+            <li><span class="ref-type">Web</span> <a href="https://en.cppreference.com/w/cpp/named_req/Compare">cppreference — requisito <em>Compare</em></a> <span class="ref-nota">— la definición formal de strict weak ordering que tu lambda debe cumplir.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://visualgo.net/en/sorting">VisuAlgo — Sorting</a> <span class="ref-nota">— barras animadas de Bubble y Selection para repasar en casa a tu ritmo.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://en.cppreference.com/w/cpp/algorithm/sort">cppreference — std::sort</a> <span class="ref-nota">— el contrato del comparador y las garantías de complejidad.</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script src="../js/curso-slides.js"></script>
+<script>
+  Reveal.initialize({
+    width: 1280,
+    height: 720,
+    margin: 0.06,
+    hash: true,
+    progress: true,
+    slideNumber: 'c/t',
+    controls: true,
+    transition: 'slide',
+    transitionSpeed: 'fast',
+    plugins: [ RevealHighlight ]
+  }).then(() => {
+    CursoSlides.init({
+      estabilidad: {
+        titulo: "Ordenamiento estable",
+        def: "Un algoritmo de ordenamiento es estable si los elementos con clave igual conservan su orden relativo original. Importa al encadenar criterios de ordenamiento: el orden del criterio anterior sobrevive dentro de cada grupo de claves iguales."
+      },
+      "en-sitio": {
+        titulo: "Ordenamiento en sitio (in-place)",
+        def: "Algoritmo que reordena usando O(1) memoria adicional, dentro del propio arreglo. Bubble, Selection e Insertion son en sitio; Merge Sort clásico no (usa O(n) extra)."
+      },
+      inversion: {
+        titulo: "Inversión",
+        def: "Par de posiciones (i, j) con i &lt; j pero a[i] &gt; a[j], es decir, un par fuera de orden. Un arreglo ordenado tiene 0 inversiones; uno inverso tiene n(n−1)/2. Cada intercambio de vecinos corrige exactamente una."
+      },
+      comparador: {
+        titulo: "Comparador",
+        def: "Función (o lambda) que recibe dos elementos y responde si el primero debe ir estrictamente antes que el segundo. Define el criterio de ordenamiento y debe cumplir strict weak ordering."
+      },
+      "orden-debil-estricto": {
+        titulo: "Strict weak ordering",
+        def: "Requisito formal sobre el comparador: irreflexivo (comp(x,x) falso), asimétrico, transitivo, y con transitividad de la equivalencia. Violarlo — por ejemplo usando <code>&lt;=</code> — produce comportamiento indefinido en <code>std::sort</code>, no un mensaje de error."
+      },
+      movimiento: {
+        titulo: "Semántica de movimiento (C++11)",
+        def: "Mecanismo por el que un objeto transfiere sus recursos internos (p. ej. el buffer de un vector) a otro en lugar de copiarlos. <code>std::move</code> marca el origen como transferible; mover un contenedor es O(1)."
+      }
+    });
+  });
+</script>
+</body>
+</html>
