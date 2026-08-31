@@ -142,15 +142,16 @@ void insertionSort(std::vector&lt;int&gt;&amp; a) {
         int j = i - 1;
         while (j &gt;= 0 &amp;&amp; a[j] &gt; x) {
             a[j + 1] = a[j];   // desplaza una posición a la derecha
-            --j;
+            --j;               // el hueco se corrió: ahora está en j+1
         }
-        a[j + 1] = x;          // x cae en su lugar
+        a[j + 1] = x;          // por eso x cae justo en j+1
     }
 }
       </code></pre>
       <ul>
         <li class="fragment">Desplazar en vez de <code>swap</code>: una asignación, no tres.</li>
-        <li class="fragment">La comparación <code>a[j] &gt; x</code> es estricta: los iguales no se desplazan y el algoritmo es <span class="term" data-term="estabilidad">estable</span>.</li>
+        <li class="fragment">Sobre <span class="term" data-term="prefijo-postfijo"><code>--j</code> y <code>j--</code></span>: aquí son idénticos.</li>
+        <li class="fragment">Comparación estricta: no mueve los iguales, así que es <span class="term" data-term="estabilidad">estable</span>.</li>
       </ul>
     </section>
 
@@ -560,6 +561,10 @@ void mergeSort(std::vector&lt;int&gt;&amp; a, int lo, int hi) {
       "divide-y-venceras": {
         titulo: "Divide y vencerás",
         def: "Estrategia algorítmica en tres pasos: dividir el problema en subproblemas más pequeños, resolverlos recursivamente y combinar sus soluciones. Su costo se analiza con recurrencias de la forma T(n) = a·T(n/b) + f(n)."
+      },
+      "prefijo-postfijo": {
+        titulo: "--j frente a j--",
+        def: "Como instrucción suelta, las dos hacen exactamente lo mismo: restarle uno a <code>j</code>. La diferencia aparece solo cuando se usa el <em>valor</em> de la expresión: <code>--j</code> entrega el valor ya decrementado y <code>j--</code> el anterior, así que la forma sufija tiene que conservar una copia del valor viejo. Con un <code>int</code> el compilador genera el mismo código en los dos casos; la costumbre de escribir la forma prefija viene de los iteradores y objetos, donde esa copia sí cuesta. Por eso, cuando el valor no se usa, se escribe <code>--j</code>."
       },
       estabilidad: {
         titulo: "Ordenamiento estable",
