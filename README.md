@@ -19,6 +19,7 @@ Cada deck es un `index.html` autocontenido hecho con [reveal.js](https://revealj
 | `sesion-04/` | S4 — Análisis de algoritmos recursivos |
 | `sesion-06/` | S6 — Algoritmos de búsqueda |
 | `sesion-07/` | S7 — Ordenamiento elemental I: Bubble y Selection |
+| `sesion-08/` | S8 — Insertion Sort y Merge Sort |
 | `taller-01-two-pointers/` | T1 — Patrones de LeetCode: two pointers |
 
 El resto de las sesiones se publica conforme avanza el semestre.

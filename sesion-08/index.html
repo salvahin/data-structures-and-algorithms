@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sesión 8 — Insertion Sort y Merge Sort</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+  <link rel="stylesheet" href="../css/theme-curso.css">
+</head>
+<body>
+<div class="reveal">
+  <div class="slides">
+
+    <!-- ============ PORTADA ============ -->
+    <section class="cover">
+      <span class="kicker">Estructuras de Datos y Algoritmos · Bloque 1</span>
+      <h1>Insertion Sort<br>y Merge Sort</h1>
+      <div class="cover-meta">
+        Sesión 8 · Semana 4<br>
+        Salvador Hinojosa
+      </div>
+    </section>
+
+    <!-- ============ RETO ANTERIOR ============ -->
+    <section>
+      <span class="kicker">Apertura · Reto anterior (5 min)</span>
+      <h2>¿Cómo les fue con las particiones?</h2>
+      <p>Una pareja pasa a explicar su enfoque de la sesión 7:</p>
+      <ul>
+        <li class="fragment"><strong>LC 75 — Sort Colors.</strong> ¿Cómo mantuvieron las tres zonas (0s, 1s, 2s) con una sola pasada? ¿Qué invariante cumplen sus tres índices?</li>
+        <li class="fragment"><strong>LC 41 — First Missing Positive.</strong> ¿Cómo usaron el propio arreglo como tabla de posiciones sin memoria extra?</li>
+        <li class="fragment">Pregunta para el grupo: ¿por qué en el 75 no basta con contar los 0s, 1s y 2s y reescribir el arreglo? (Sí basta — ¿qué ventaja tiene entonces la versión de una pasada?)</li>
+      </ul>
+    </section>
+
+    <!-- ============ AGENDA ============ -->
+    <section>
+      <span class="kicker">Sesión 8 · Agenda</span>
+      <h2>Qué vamos a ver hoy</h2>
+      <table>
+        <tbody>
+          <tr><td>35 min</td><td>5.3 Insertion Sort: código, análisis, por qué es el mejor elemental</td></tr>
+          <tr><td>10 min</td><td>Presentación: algoritmos de ordenamiento avanzados</td></tr>
+          <tr><td>50 min</td><td>5.4 Merge Sort: divide y vencerás, <code>merge</code>, recurrencia</td></tr>
+          <tr><td>10 min</td><td>La cota inferior Ω(n log n)</td></tr>
+          <tr><td>25 min</td><td>Cierre STL · Reto en parejas</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ============ OBJETIVO ============ -->
+    <section>
+      <span class="kicker">Objetivo de hoy</span>
+      <h2>Al salir de esta sesión podrás…</h2>
+      <ul>
+        <li class="fragment">Codificar Insertion Sort y explicar su mejor caso O(n) sobre datos casi ordenados.</li>
+        <li class="fragment">Codificar <code>merge</code> y Merge Sort completo, con la estrategia <span class="term" data-term="divide-y-venceras">divide y vencerás</span>.</li>
+        <li class="fragment">Resolver la recurrencia T(n) = 2T(n/2) + Θ(n) y concluir Θ(n log n) en todos los casos.</li>
+        <li class="fragment">Explicar por qué ningún ordenamiento por comparación puede bajar de Ω(n log n), vía el <span class="term" data-term="arbol-decision">árbol de decisión</span>.</li>
+      </ul>
+    </section>
+
+    <!-- ============ DIVIDER 5.3 ============ -->
+    <section class="divider">
+      <h2>5.3 Insertion Sort</h2>
+    </section>
+
+    <!-- ============ 5.3 IDEA ============ -->
+    <section>
+      <span class="kicker">5.3 · Insertion Sort</span>
+      <h2>La idea: insertar en una zona ya ordenada</h2>
+      <ul>
+        <li class="fragment">Es la forma en que ordenas cartas en la mano: tomas la siguiente y la deslizas hacia la izquierda hasta su lugar. (Usaremos esa imagen en el pizarrón.)</li>
+        <li class="fragment">Invariante: al inicio de la pasada <code>i</code>, el prefijo <code>a[0..i−1]</code> está ordenado.</li>
+        <li class="fragment">La pasada <code>i</code> toma <code>a[i]</code> y lo inserta en su posición dentro del prefijo, desplazando a la derecha los elementos mayores.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 5.3 SVG ============ -->
+    <section>
+      <span class="kicker">5.3 · Insertion Sort</span>
+      <h2>Sobre datos casi ordenados: el mejor caso en acción</h2>
+      <svg viewBox="0 0 1100 420" style="width:100%; max-height:420px;">
+        <!-- fila 0 -->
+        <g>
+          <rect class="svg-node" x="40" y="30" width="62" height="60" rx="8"/><text class="svg-label" x="71" y="68" text-anchor="middle" style="font-size:24px;">3</text>
+          <rect class="svg-node" x="108" y="30" width="62" height="60" rx="8"/><text class="svg-label" x="139" y="68" text-anchor="middle" style="font-size:24px;">7</text>
+          <rect class="svg-node" x="176" y="30" width="62" height="60" rx="8"/><text class="svg-label" x="207" y="68" text-anchor="middle" style="font-size:24px;">9</text>
+          <rect class="svg-node" x="244" y="30" width="62" height="60" rx="8"/><text class="svg-label" x="275" y="68" text-anchor="middle" style="font-size:24px;">11</text>
+          <rect class="svg-node-hl" x="312" y="30" width="62" height="60" rx="8"/><text class="svg-label" x="343" y="68" text-anchor="middle" style="font-size:24px;">8</text>
+          <rect class="svg-node" x="380" y="30" width="62" height="60" rx="8"/><text class="svg-label" x="411" y="68" text-anchor="middle" style="font-size:24px;">15</text>
+          <text class="svg-label" x="490" y="68" style="font-size:22px;">i=4 · toca insertar x = 8; el prefijo ya está ordenado</text>
+        </g>
+        <!-- paso 1: 11 se desplaza -->
+        <g class="anim-step" data-step="1">
+          <rect class="svg-node" x="40" y="130" width="62" height="60" rx="8"/><text class="svg-label" x="71" y="168" text-anchor="middle" style="font-size:24px;">3</text>
+          <rect class="svg-node" x="108" y="130" width="62" height="60" rx="8"/><text class="svg-label" x="139" y="168" text-anchor="middle" style="font-size:24px;">7</text>
+          <rect class="svg-node" x="176" y="130" width="62" height="60" rx="8"/><text class="svg-label" x="207" y="168" text-anchor="middle" style="font-size:24px;">9</text>
+          <rect class="svg-node" x="244" y="130" width="62" height="60" rx="8" style="opacity:.35"/>
+          <rect class="svg-node-hl" x="312" y="130" width="62" height="60" rx="8"/><text class="svg-label" x="343" y="168" text-anchor="middle" style="font-size:24px;">11</text>
+          <rect class="svg-node" x="380" y="130" width="62" height="60" rx="8"/><text class="svg-label" x="411" y="168" text-anchor="middle" style="font-size:24px;">15</text>
+          <text class="svg-label" x="490" y="168" style="font-size:22px;">11 &gt; 8 → 11 se desplaza a la derecha</text>
+        </g>
+        <!-- paso 2: 9 se desplaza -->
+        <g class="anim-step" data-step="2">
+          <rect class="svg-node" x="40" y="230" width="62" height="60" rx="8"/><text class="svg-label" x="71" y="268" text-anchor="middle" style="font-size:24px;">3</text>
+          <rect class="svg-node" x="108" y="230" width="62" height="60" rx="8"/><text class="svg-label" x="139" y="268" text-anchor="middle" style="font-size:24px;">7</text>
+          <rect class="svg-node" x="176" y="230" width="62" height="60" rx="8" style="opacity:.35"/>
+          <rect class="svg-node-hl" x="244" y="230" width="62" height="60" rx="8"/><text class="svg-label" x="275" y="268" text-anchor="middle" style="font-size:24px;">9</text>
+          <rect class="svg-node" x="312" y="230" width="62" height="60" rx="8"/><text class="svg-label" x="343" y="268" text-anchor="middle" style="font-size:24px;">11</text>
+          <rect class="svg-node" x="380" y="230" width="62" height="60" rx="8"/><text class="svg-label" x="411" y="268" text-anchor="middle" style="font-size:24px;">15</text>
+          <text class="svg-label" x="490" y="268" style="font-size:22px;">9 &gt; 8 → 9 también se desplaza · 7 ≤ 8 → alto</text>
+        </g>
+        <!-- paso 3: 8 cae -->
+        <g class="anim-step" data-step="3">
+          <rect class="svg-node" x="40" y="330" width="62" height="60" rx="8"/><text class="svg-label" x="71" y="368" text-anchor="middle" style="font-size:24px;">3</text>
+          <rect class="svg-node" x="108" y="330" width="62" height="60" rx="8"/><text class="svg-label" x="139" y="368" text-anchor="middle" style="font-size:24px;">7</text>
+          <rect x="176" y="330" width="62" height="60" rx="8" fill="none" stroke="#146c2e" stroke-width="5"/><text class="svg-label" x="207" y="368" text-anchor="middle" style="font-size:24px;">8</text>
+          <rect class="svg-node" x="244" y="330" width="62" height="60" rx="8"/><text class="svg-label" x="275" y="368" text-anchor="middle" style="font-size:24px;">9</text>
+          <rect class="svg-node" x="312" y="330" width="62" height="60" rx="8"/><text class="svg-label" x="343" y="368" text-anchor="middle" style="font-size:24px;">11</text>
+          <rect class="svg-node" x="380" y="330" width="62" height="60" rx="8"/><text class="svg-label" x="411" y="368" text-anchor="middle" style="font-size:24px;">15</text>
+          <text class="svg-label" x="490" y="368" style="font-size:22px;">8 cae en su lugar: solo 2 desplazamientos en toda la pasada</text>
+        </g>
+      </svg>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+    </section>
+
+    <!-- ============ 5.3 CÓDIGO ============ -->
+    <section>
+      <span class="kicker">5.3 · Insertion Sort</span>
+      <h2>Codificación: desplazar, no intercambiar</h2>
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-11|2|3-4|5-8|9">
+void insertionSort(std::vector&lt;int&gt;&amp; a) {
+    for (int i = 1; i &lt; (int)a.size(); ++i) {
+        int x = a[i];          // el elemento a insertar
+        int j = i - 1;
+        while (j &gt;= 0 &amp;&amp; a[j] &gt; x) {
+            a[j + 1] = a[j];   // desplaza una posición a la derecha
+            --j;
+        }
+        a[j + 1] = x;          // x cae en su lugar
+    }
+}
+      </code></pre>
+      <ul>
+        <li class="fragment">Desplazar en vez de <code>swap</code>: una asignación, no tres.</li>
+        <li class="fragment">La comparación <code>a[j] &gt; x</code> es estricta: los iguales no se desplazan y el algoritmo es <span class="term" data-term="estabilidad">estable</span>.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 5.3 ANÁLISIS ============ -->
+    <section>
+      <span class="kicker">5.3 · Insertion Sort</span>
+      <h2>Análisis: el costo son las inversiones</h2>
+      <table>
+        <thead><tr><th>Caso</th><th>Costo</th><th>Por qué</th></tr></thead>
+        <tbody>
+          <tr class="fragment"><td>Mejor (ya ordenado)</td><td>O(n)</td><td>el <code>while</code> nunca entra: una comparación por elemento</td></tr>
+          <tr class="fragment"><td>Peor (inverso)</td><td>O(n²)</td><td>cada elemento cruza todo el prefijo</td></tr>
+          <tr class="fragment"><td>General</td><td>O(n + d)</td><td>d = número de <span class="term" data-term="inversion">inversiones</span> de la entrada</td></tr>
+        </tbody>
+      </table>
+      <ul>
+        <li class="fragment">Con pocas inversiones — datos <em>casi ordenados</em> — el costo es casi lineal. Por eso es el algoritmo elemental que sobrevive en la práctica: <code>std::sort</code> lo usa para rangos pequeños y Timsort (Python) lo usa para tramos.</li>
+        <li class="fragment">Constantes pequeñas, acceso secuencial a memoria, estable y en sitio.</li>
+      </ul>
+    </section>
+
+    <!-- ============ QUIZ 1 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="b">
+        <p class="quiz-question">Un arreglo de n elementos está casi ordenado: cada elemento está a lo más a 2 posiciones de su lugar final. ¿Cuánto cuesta Insertion Sort?</p>
+        <button class="quiz-option" data-opt="a">O(n²): el peor caso no cambia por la forma de la entrada.</button>
+        <button class="quiz-option" data-opt="b">O(n): cada inserción desplaza a lo más 2 elementos, y son n inserciones.</button>
+        <button class="quiz-option" data-opt="c">O(n log n): ningún ordenamiento puede bajar de esa cota.</button>
+        <div class="quiz-explain">
+          <strong>B.</strong> El costo real es O(n + d) con d inversiones; si nadie está a más de 2 posiciones
+          de su lugar, d ≤ 2n y el total es O(n). La opción A confunde el peor caso <em>del algoritmo</em>
+          con el costo <em>de esta entrada</em>. La C malinterpreta la cota Ω(n log n): aplica al peor caso
+          sobre todas las entradas, no prohíbe entradas fáciles baratas.
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ TABLA ELEMENTALES ============ -->
+    <section>
+      <span class="kicker">5.3 · Insertion Sort</span>
+      <h2>Los tres elementales, lado a lado</h2>
+      <table>
+        <thead><tr><th></th><th>Mejor</th><th>Peor</th><th>Movimientos</th><th>Estable</th></tr></thead>
+        <tbody>
+          <tr class="fragment"><td>Bubble (con bandera)</td><td>O(n)</td><td>O(n²)</td><td>hasta n(n−1)/2 swaps</td><td>Sí</td></tr>
+          <tr class="fragment"><td>Selection</td><td>Θ(n²)</td><td>Θ(n²)</td><td>≤ n−1 swaps</td><td>No</td></tr>
+          <tr class="fragment"><td>Insertion</td><td>O(n)</td><td>O(n²)</td><td>d desplazamientos (d = inversiones)</td><td>Sí</td></tr>
+        </tbody>
+      </table>
+      <p class="fragment">Insertion combina lo mejor de los otros dos: sensible al orden como Bubble, con movimientos baratos. La barrera que ninguno de los tres cruza es el O(n²) del peor caso.</p>
+    </section>
+
+    <!-- ============ DIVIDER 5.4 ============ -->
+    <section class="divider">
+      <h2>5.4 Merge Sort</h2>
+    </section>
+
+    <!-- ============ 5.4 ESTRATEGIA ============ -->
+    <section>
+      <span class="kicker">5.4 · Merge Sort</span>
+      <h2>Divide y vencerás aplicado a ordenar</h2>
+      <ul>
+        <li class="fragment"><strong>Dividir:</strong> partir el arreglo en dos mitades. Costo O(1): solo calcular el punto medio.</li>
+        <li class="fragment"><strong>Vencer:</strong> ordenar cada mitad recursivamente. Caso base: 0 o 1 elementos ya están ordenados.</li>
+        <li class="fragment"><strong>Combinar:</strong> fusionar dos mitades ordenadas en una sola secuencia ordenada. Costo Θ(n) — aquí vive todo el trabajo.</li>
+      </ul>
+      <p class="fragment box-key">Es el mismo esquema que analizamos en la sesión 4; hoy lo codificamos completo y verificamos la recurrencia.</p>
+    </section>
+
+    <!-- ============ 5.4 SVG ============ -->
+    <section>
+      <span class="kicker">5.4 · Merge Sort</span>
+      <h2>Dos actos: dividir hacia abajo, fusionar hacia arriba</h2>
+      <svg viewBox="0 0 1100 420" style="width:100%; max-height:420px;">
+        <!-- nivel 0 -->
+        <g>
+          <rect class="svg-node" x="410" y="10" width="61" height="52" rx="8"/><text class="svg-label" x="440" y="44" text-anchor="middle" style="font-size:22px;">38</text>
+          <rect class="svg-node" x="475" y="10" width="61" height="52" rx="8"/><text class="svg-label" x="505" y="44" text-anchor="middle" style="font-size:22px;">27</text>
+          <rect class="svg-node" x="540" y="10" width="61" height="52" rx="8"/><text class="svg-label" x="570" y="44" text-anchor="middle" style="font-size:22px;">43</text>
+          <rect class="svg-node" x="605" y="10" width="61" height="52" rx="8"/><text class="svg-label" x="635" y="44" text-anchor="middle" style="font-size:22px;">3</text>
+        </g>
+        <!-- paso 1: dividir en dos -->
+        <g class="anim-step" data-step="1">
+          <path class="svg-edge" d="M 470 66 L 350 96"/>
+          <path class="svg-edge" d="M 606 66 L 726 96"/>
+          <rect class="svg-node" x="255" y="100" width="61" height="52" rx="8"/><text class="svg-label" x="285" y="134" text-anchor="middle" style="font-size:22px;">38</text>
+          <rect class="svg-node" x="320" y="100" width="61" height="52" rx="8"/><text class="svg-label" x="350" y="134" text-anchor="middle" style="font-size:22px;">27</text>
+          <rect class="svg-node" x="660" y="100" width="61" height="52" rx="8"/><text class="svg-label" x="690" y="134" text-anchor="middle" style="font-size:22px;">43</text>
+          <rect class="svg-node" x="725" y="100" width="61" height="52" rx="8"/><text class="svg-label" x="755" y="134" text-anchor="middle" style="font-size:22px;">3</text>
+          <text class="svg-label" x="900" y="134" style="font-size:20px;">dividir: O(1)</text>
+        </g>
+        <!-- paso 2: dividir en singles -->
+        <g class="anim-step" data-step="2">
+          <rect class="svg-node" x="180" y="190" width="61" height="52" rx="8"/><text class="svg-label" x="210" y="224" text-anchor="middle" style="font-size:22px;">38</text>
+          <rect class="svg-node" x="330" y="190" width="61" height="52" rx="8"/><text class="svg-label" x="360" y="224" text-anchor="middle" style="font-size:22px;">27</text>
+          <rect class="svg-node" x="650" y="190" width="61" height="52" rx="8"/><text class="svg-label" x="680" y="224" text-anchor="middle" style="font-size:22px;">43</text>
+          <rect class="svg-node" x="800" y="190" width="61" height="52" rx="8"/><text class="svg-label" x="830" y="224" text-anchor="middle" style="font-size:22px;">3</text>
+          <text class="svg-label" x="900" y="224" style="font-size:20px;">caso base: 1 elemento</text>
+        </g>
+        <!-- paso 3: merge de pares -->
+        <g class="anim-step" data-step="3">
+          <rect class="svg-node-hl" x="255" y="280" width="61" height="52" rx="8"/><text class="svg-label" x="285" y="314" text-anchor="middle" style="font-size:22px;">27</text>
+          <rect class="svg-node-hl" x="320" y="280" width="61" height="52" rx="8"/><text class="svg-label" x="350" y="314" text-anchor="middle" style="font-size:22px;">38</text>
+          <rect class="svg-node-hl" x="660" y="280" width="61" height="52" rx="8"/><text class="svg-label" x="690" y="314" text-anchor="middle" style="font-size:22px;">3</text>
+          <rect class="svg-node-hl" x="725" y="280" width="61" height="52" rx="8"/><text class="svg-label" x="755" y="314" text-anchor="middle" style="font-size:22px;">43</text>
+          <text class="svg-label" x="900" y="314" style="font-size:20px;">merge: cn por nivel</text>
+        </g>
+        <!-- paso 4: merge final -->
+        <g class="anim-step" data-step="4">
+          <rect class="svg-node-hl" x="410" y="360" width="61" height="52" rx="8"/><text class="svg-label" x="440" y="394" text-anchor="middle" style="font-size:22px;">3</text>
+          <rect class="svg-node-hl" x="475" y="360" width="61" height="52" rx="8"/><text class="svg-label" x="505" y="394" text-anchor="middle" style="font-size:22px;">27</text>
+          <rect class="svg-node-hl" x="540" y="360" width="61" height="52" rx="8"/><text class="svg-label" x="570" y="394" text-anchor="middle" style="font-size:22px;">38</text>
+          <rect class="svg-node-hl" x="605" y="360" width="61" height="52" rx="8"/><text class="svg-label" x="635" y="394" text-anchor="middle" style="font-size:22px;">43</text>
+          <text x="880" y="394" style="font-size:20px; font-weight:700;" fill="#0b57d0">log n niveles × cn = Θ(n log n)</text>
+        </g>
+      </svg>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+    </section>
+
+    <!-- ============ 5.4 FUSIÓN ILUSTRADA ============ -->
+    <section>
+      <span class="kicker">5.4 · Merge Sort</span>
+      <h2>La fusión, elemento por elemento</h2>
+      <svg viewBox="0 0 1100 380" style="width:100%; max-height:360px;">
+        <text class="svg-label" x="80" y="42" style="font-size:22px;">mitad izquierda</text>
+        <text class="svg-label" x="560" y="42" style="font-size:22px;">mitad derecha</text>
+        <text class="svg-label" x="300" y="272" style="font-size:22px;">resultado</text>
+          <rect class="svg-node" x="80" y="55" width="70" height="60" rx="8"/><text class="svg-label" x="115" y="93" text-anchor="middle" style="font-size:24px;">3</text>
+          <rect class="svg-node" x="155" y="55" width="70" height="60" rx="8"/><text class="svg-label" x="190" y="93" text-anchor="middle" style="font-size:24px;">27</text>
+          <rect class="svg-node" x="230" y="55" width="70" height="60" rx="8"/><text class="svg-label" x="265" y="93" text-anchor="middle" style="font-size:24px;">38</text>
+          <rect class="svg-node" x="560" y="55" width="70" height="60" rx="8"/><text class="svg-label" x="595" y="93" text-anchor="middle" style="font-size:24px;">9</text>
+          <rect class="svg-node" x="635" y="55" width="70" height="60" rx="8"/><text class="svg-label" x="670" y="93" text-anchor="middle" style="font-size:24px;">43</text>
+        <rect x="300" y="285" width="70" height="60" rx="8" fill="none" stroke="#d7dbe2" stroke-width="3" stroke-dasharray="7 6"/>
+        <rect x="375" y="285" width="70" height="60" rx="8" fill="none" stroke="#d7dbe2" stroke-width="3" stroke-dasharray="7 6"/>
+        <rect x="450" y="285" width="70" height="60" rx="8" fill="none" stroke="#d7dbe2" stroke-width="3" stroke-dasharray="7 6"/>
+        <rect x="525" y="285" width="70" height="60" rx="8" fill="none" stroke="#d7dbe2" stroke-width="3" stroke-dasharray="7 6"/>
+        <rect x="600" y="285" width="70" height="60" rx="8" fill="none" stroke="#d7dbe2" stroke-width="3" stroke-dasharray="7 6"/>
+        <g class="anim-step" data-step="1">
+          <rect x="80" y="55" width="70" height="60" rx="8" fill="#f4f5f7" opacity="0.62"/>
+          <rect class="svg-node-hl" x="300" y="285" width="70" height="60" rx="8"/><text class="svg-label" x="335" y="323" text-anchor="middle" style="font-size:24px;">3</text>
+        </g>
+        <g class="anim-step" data-step="1" data-step-off="2">
+          <text class="svg-label" x="80" y="200" style="font-size:24px; font-weight:600;">3 ≤ 9 → escribo 3 y avanzo en la izquierda</text>
+        </g>
+        <g class="anim-step" data-step="2">
+          <rect x="560" y="55" width="70" height="60" rx="8" fill="#f4f5f7" opacity="0.62"/>
+          <rect class="svg-node-hl" x="375" y="285" width="70" height="60" rx="8"/><text class="svg-label" x="410" y="323" text-anchor="middle" style="font-size:24px;">9</text>
+        </g>
+        <g class="anim-step" data-step="2" data-step-off="3">
+          <text class="svg-label" x="80" y="200" style="font-size:24px; font-weight:600;">9 &lt; 27 → escribo 9 y avanzo en la derecha</text>
+        </g>
+        <g class="anim-step" data-step="3">
+          <rect x="155" y="55" width="70" height="60" rx="8" fill="#f4f5f7" opacity="0.62"/>
+          <rect class="svg-node-hl" x="450" y="285" width="70" height="60" rx="8"/><text class="svg-label" x="485" y="323" text-anchor="middle" style="font-size:24px;">27</text>
+        </g>
+        <g class="anim-step" data-step="3" data-step-off="4">
+          <text class="svg-label" x="80" y="200" style="font-size:24px; font-weight:600;">27 ≤ 43 → escribo 27</text>
+        </g>
+        <g class="anim-step" data-step="4">
+          <rect x="230" y="55" width="70" height="60" rx="8" fill="#f4f5f7" opacity="0.62"/>
+          <rect class="svg-node-hl" x="525" y="285" width="70" height="60" rx="8"/><text class="svg-label" x="560" y="323" text-anchor="middle" style="font-size:24px;">38</text>
+        </g>
+        <g class="anim-step" data-step="4" data-step-off="5">
+          <text class="svg-label" x="80" y="200" style="font-size:24px; font-weight:600;">38 ≤ 43 → escribo 38</text>
+        </g>
+        <g class="anim-step" data-step="5">
+          <rect x="635" y="55" width="70" height="60" rx="8" fill="#f4f5f7" opacity="0.62"/>
+          <rect class="svg-node-hl" x="600" y="285" width="70" height="60" rx="8"/><text class="svg-label" x="635" y="323" text-anchor="middle" style="font-size:24px;">43</text>
+        </g>
+        <g class="anim-step" data-step="5">
+          <text class="svg-label" x="80" y="200" style="font-size:24px; font-weight:600;">la izquierda se acabó: copio lo que queda de la derecha</text>
+        </g>
+      </svg>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <p class="fragment">Cada elemento se copia una sola vez: fusionar cuesta Θ(n). En los empates gana la izquierda, y eso lo mantiene <span class="term" data-term="estabilidad">estable</span>.</p>
+    </section>
+
+    <!-- ============ 5.4 MERGE ============ -->
+    <section>
+      <span class="kicker">5.4 · Merge Sort</span>
+      <h2><code>merge</code>: el diagrama anterior, en código</h2>
+      <pre data-title="merge.cpp"><code class="language-cpp" data-trim data-line-numbers="1-12|2|4-5|6|7-10">
+void merge(int a[], int aux[], int lo, int mid, int hi) {
+    for (int p = lo; p &lt;= hi; ++p) aux[p] = a[p];   // copia el tramo a trabajar
+
+    int i = lo;          // siguiente sin usar de la mitad izquierda
+    int j = mid + 1;     // siguiente sin usar de la mitad derecha
+    for (int k = lo; k &lt;= hi; ++k) {                // llena a[lo..hi] en orden
+        if      (i &gt; mid)            { a[k] = aux[j]; ++j; }   // izquierda vacía
+        else if (j &gt; hi)             { a[k] = aux[i]; ++i; }   // derecha vacía
+        else if (aux[i] &lt;= aux[j])   { a[k] = aux[i]; ++i; }
+        else                         { a[k] = aux[j]; ++j; }
+    }
+}
+      </code></pre>
+      <ul>
+        <li class="fragment">En <code>aux</code> las dos mitades quedan una junto a la otra: <code>lo..mid</code> y <code>mid+1..hi</code>.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 5.4 ALGORITMO ============ -->
+    <section>
+      <span class="kicker">5.4 · Merge Sort</span>
+      <h2>El algoritmo completo</h2>
+      <pre data-title="mergesort.cpp"><code class="language-cpp" data-trim data-line-numbers="1-7|2|3|4-5|6|9-11">
+void mergeSort(int a[], int aux[], int lo, int hi) {
+    if (lo &gt;= hi) return;              // 0 o 1 elementos: ya está ordenado
+    int mid = lo + (hi - lo) / 2;      // el punto medio seguro de la sesión 6
+    mergeSort(a, aux, lo, mid);        // ordena la mitad izquierda
+    mergeSort(a, aux, mid + 1, hi);    // ordena la mitad derecha
+    merge(a, aux, lo, mid, hi);        // fusiona las dos
+}
+
+int datos[6] = {38, 27, 43, 3, 9, 82};
+int aux[6];                            // el auxiliar se crea una sola vez
+mergeSort(datos, aux, 0, 5);
+      </code></pre>
+      <p class="fragment muted">El auxiliar se reserva una vez y todas las llamadas lo reutilizan, así que la memoria extra es O(n) en total, no por llamada.</p>
+    </section>
+
+    <!-- ============ 5.4 VERSIÓN STL ============ -->
+    <section>
+      <span class="kicker">5.4 · Merge Sort</span>
+      <h2>La versión corta, con la biblioteca estándar</h2>
+      <pre data-title="mergesort_stl.cpp"><code class="language-cpp" data-trim data-line-numbers="1-7|6">
+void mergeSort(std::vector&lt;int&gt;&amp; a, int lo, int hi) {
+    if (lo &gt;= hi) return;
+    int mid = lo + (hi - lo) / 2;
+    mergeSort(a, lo, mid);
+    mergeSort(a, mid + 1, hi);
+    std::inplace_merge(a.begin() + lo, a.begin() + mid + 1, a.begin() + hi + 1);
+}
+      </code></pre>
+      <ul>
+        <li class="fragment"><code>std::inplace_merge</code> recibe inicio, punto medio y fin, y hace la fusión que acabas de escribir a mano.</li>
+        <li class="fragment">Mismo trabajo: Θ(n) por nivel y Θ(n log n) en total. En producción se usa esta; la anterior enseña qué hay debajo.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 5.4 RECURRENCIA ============ -->
+    <section>
+      <span class="kicker">5.4 · Merge Sort</span>
+      <h2>La recurrencia, resuelta</h2>
+      <p style="font-size:1.15em;"><strong>T(n) = 2·T(n/2) + Θ(n)</strong></p>
+      <ul>
+        <li class="fragment">Árbol de <span class="term" data-term="recurrencia">recursión</span>: cada nivel suma Θ(n) (las fusiones de ese nivel cubren el arreglo completo) y hay log₂n + 1 niveles → Θ(n log n).</li>
+        <li class="fragment">Teorema Maestro: a = 2, b = 2, f(n) = Θ(n) = Θ(n^log₂2) → caso 2 → Θ(n log n).</li>
+        <li class="fragment"><strong>En todos los casos:</strong> la división no mira los datos, así que entrada ordenada, inversa o aleatoria cuestan lo mismo. Contrasta con Insertion.</li>
+        <li class="fragment">El precio: O(n) de memoria auxiliar para el <code>merge</code>. Merge Sort clásico no ordena en sitio.</li>
+      </ul>
+    </section>
+
+    <!-- ============ QUIZ 2 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="c">
+        <p class="quiz-question">Merge Sort recibe un arreglo <em>ya ordenado</em>. ¿Cuánto cuesta?</p>
+        <button class="quiz-option" data-opt="a">O(n), como Insertion Sort: aprovecha el orden existente.</button>
+        <button class="quiz-option" data-opt="b">O(log n): solo hace las divisiones, sin fusionar.</button>
+        <button class="quiz-option" data-opt="c">Θ(n log n): divide y fusiona exactamente igual que con cualquier entrada.</button>
+        <div class="quiz-explain">
+          <strong>C.</strong> Merge Sort no inspecciona los datos antes de dividir: hace las mismas llamadas
+          y las mismas fusiones siempre (cada <code>merge</code> hará menos comparaciones, pero copia los
+          n elementos igual). Esa regularidad es su virtud — peor caso garantizado — y su costo: no
+          aprovecha entradas fáciles, que es exactamente lo que Insertion sí hace.
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ COTA INFERIOR ============ -->
+    <section>
+      <span class="kicker">La cota inferior</span>
+      <h2>Ω(n log n): hasta aquí se puede llegar</h2>
+      <p>Argumento del <span class="term" data-term="arbol-decision">árbol de decisión</span>:</p>
+      <ul>
+        <li class="fragment">Cada ejecución es un camino en un árbol binario: cada nodo es una comparación y cada hoja una permutación de la entrada.</li>
+        <li class="fragment">El árbol necesita al menos <strong>n!</strong> hojas — cualquier permutación puede ser la entrada y cada una exige una secuencia distinta de movimientos.</li>
+        <li class="fragment">Un árbol binario con n! hojas tiene altura ≥ log₂(n!) = Θ(n log n) (por la aproximación de Stirling).</li>
+        <li class="fragment">La altura es el peor caso en comparaciones: ningún algoritmo por comparación baja de <strong>Ω(n log n)</strong>. Merge Sort es asintóticamente óptimo.</li>
+      </ul>
+    </section>
+
+    <!-- ============ QUIZ 3 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="b">
+        <p class="quiz-question">Radix Sort ordena enteros en O(n·k). ¿Contradice la cota Ω(n log n) que acabamos de demostrar?</p>
+        <button class="quiz-option" data-opt="a">Sí: la cota estaba mal planteada y Radix Sort es el contraejemplo.</button>
+        <button class="quiz-option" data-opt="b">No: la cota aplica solo a algoritmos que ordenan <em>comparando pares</em>, y Radix Sort no compara — examina dígitos.</button>
+        <button class="quiz-option" data-opt="c">No: O(n·k) es en realidad mayor que O(n log n), así que la cota se respeta.</button>
+        <div class="quiz-explain">
+          <strong>B.</strong> La demostración cuenta hojas de un árbol de <em>comparaciones</em>; un algoritmo
+          que extrae información de otra forma (dígitos, cubetas) no vive en ese árbol y la cota no lo
+          restringe. La opción C no es cierta en general (con k constante, O(n·k) = O(n)). La lección:
+          toda cota inferior tiene un modelo de cómputo en letra chica, y hay que leerla.
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ POR QUÉ IMPORTA HOY ============ -->
+    <section>
+      <span class="kicker kicker-ai">Por qué importa hoy</span>
+      <h2><code>merge</code> corre en producción millones de veces al día</h2>
+      <div class="box-ai" data-label="Dónde vive esto en sistemas de IA">
+        <ul>
+          <li class="fragment">Una base vectorial grande reparte sus datos en <span class="term" data-term="shard">fragmentos</span>, cada uno con su propio índice.</li>
+          <li class="fragment">Ante una consulta, cada fragmento devuelve sus mejores k candidatos <em>ya ordenados</em> por puntaje.</li>
+          <li class="fragment">Alguien tiene que combinar esas listas ordenadas en una sola respuesta: eso es exactamente <code>merge</code> — los mismos dos punteros eligiendo el mejor, generalizados a k listas.</li>
+          <li class="fragment">Cada consulta de un sistema RAG sobre un índice distribuido ejecuta esta fusión. El paso "combinar" de hoy es la operación central de la recuperación a escala.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============ CIERRE STL ============ -->
+    <section>
+      <span class="kicker">Cierre STL</span>
+      <h2>Ordenamiento en la biblioteca estándar</h2>
+      <table>
+        <thead><tr><th>Algoritmo</th><th>Garantía</th><th>Qué hay debajo</th></tr></thead>
+        <tbody>
+          <tr class="fragment"><td><code>std::sort</code></td><td>O(n log n) peor caso</td><td><span class="term" data-term="introsort">introsort</span>: quicksort + heapsort + insertion sort</td></tr>
+          <tr class="fragment"><td><code>std::stable_sort</code></td><td>O(n log n) con memoria; O(n log²n) sin ella</td><td>merge sort adaptativo</td></tr>
+          <tr class="fragment"><td><code>std::merge</code></td><td>Θ(n+m)</td><td>la fusión de hoy, sobre dos rangos ordenados</td></tr>
+          <tr class="fragment"><td><code>std::inplace_merge</code></td><td>O(n) con memoria; O(n log n) sin ella</td><td>fusión dentro del mismo rango</td></tr>
+        </tbody>
+      </table>
+      <p class="fragment">Nota histórica útil: introsort es de David Musser (1997); las implementaciones lo adoptaron para tener el promedio de quicksort <em>sin</em> su peor caso O(n²). El lunes veremos ese peor caso de frente.</p>
+    </section>
+
+    <!-- ============ RETO EN PAREJAS ============ -->
+    <section>
+      <span class="kicker">Reto en parejas · 25 min</span>
+      <h2>Merge sort fuera de su zona de confort</h2>
+      <div class="cols">
+        <div>
+          <h3>LC 148 — Sort List <span class="muted">[Media]</span></h3>
+          <p>Merge sort sobre una lista ligada: sin acceso aleatorio, el punto medio se encuentra con dos punteros (lento/rápido). La fusión de listas no necesita memoria extra.</p>
+        </div>
+        <div>
+          <h3>LC 315 — Count of Smaller Numbers After Self <span class="muted">[Alta]</span></h3>
+          <p>La joya: contar inversiones <em>durante</em> el merge. Cada vez que un elemento de la derecha adelanta a la izquierda, está contando algo.</p>
+        </div>
+      </div>
+      <ul>
+        <li class="fragment"><strong>Roles:</strong> driver teclea, navigator revisa y cuestiona. Cambio de rol a la mitad del tiempo.</li>
+      </ul>
+    </section>
+
+    <!-- ============ PRÓXIMA SESIÓN ============ -->
+    <section class="divider">
+      <h2>Próxima sesión:<br>Quick Sort y quickselect</h2>
+      <p class="muted" style="margin-top:1em;">Recuerda: la Act 1.4 se entrega este domingo 6 de septiembre, 23:59.</p>
+    </section>
+
+    <!-- ============ REFERENCIAS ============ -->
+    <section>
+      <span class="kicker">Sesión 8</span>
+      <h2>Referencias y material para profundizar</h2>
+      <div class="refs cols">
+        <div>
+          <h3>Referencias</h3>
+          <ul>
+            <li><span class="ref-type">Libro</span> Cormen, T. et al. <em>Introduction to Algorithms</em>, 4.ª ed., MIT Press, 2022. Secc. 2.1 y 2.3 (insertion, merge) y 8.1 (cota inferior).</li>
+            <li><span class="ref-type">Libro</span> Weiss, M. A. <em>Data Structures and Algorithm Analysis in C++</em>, 4.ª ed., Pearson, 2014. Cap. 7.</li>
+            <li><span class="ref-type">Libro</span> Knuth, D. <em>The Art of Computer Programming, Vol. 3</em>, 2.ª ed., Addison-Wesley, 1998. § 5.2.4: fusión.</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Para profundizar</h3>
+          <ul>
+            <li><span class="ref-type">Web</span> <a href="https://en.cppreference.com/w/cpp/algorithm/stable_sort">cppreference — std::stable_sort</a> <span class="ref-nota">— la doble garantía (con y sin memoria) del cierre STL.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://visualgo.net/en/sorting">VisuAlgo — Sorting</a> <span class="ref-nota">— merge sort animado, para repasar la fusión a tu ritmo.</span></li>
+            <li><span class="ref-type">Video</span> MIT OpenCourseWare, <a href="https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/">6.006 Introduction to Algorithms</a> <span class="ref-nota">— las clases de sorting cubren merge sort y la cota inferior con otra voz.</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script src="../js/curso-slides.js"></script>
+<script>
+  Reveal.initialize({
+    width: 1280,
+    height: 720,
+    margin: 0.06,
+    hash: true,
+    progress: true,
+    slideNumber: 'c/t',
+    controls: true,
+    transition: 'slide',
+    transitionSpeed: 'fast',
+    plugins: [ RevealHighlight ]
+  }).then(() => {
+    CursoSlides.init({
+      "divide-y-venceras": {
+        titulo: "Divide y vencerás",
+        def: "Estrategia algorítmica en tres pasos: dividir el problema en subproblemas más pequeños, resolverlos recursivamente y combinar sus soluciones. Su costo se analiza con recurrencias de la forma T(n) = a·T(n/b) + f(n)."
+      },
+      estabilidad: {
+        titulo: "Ordenamiento estable",
+        def: "Un algoritmo de ordenamiento es estable si los elementos con clave igual conservan su orden relativo original. En el <code>merge</code>, el <code>&lt;=</code> (en vez de <code>&lt;</code>) es lo que preserva esta propiedad."
+      },
+      inversion: {
+        titulo: "Inversión",
+        def: "Par de posiciones (i, j) con i &lt; j pero a[i] &gt; a[j]. El costo de Insertion Sort es O(n + d) con d inversiones: mide qué tan desordenada está la entrada. El reto LC 315 cuenta inversiones durante el merge."
+      },
+      recurrencia: {
+        titulo: "Ecuación de recurrencia",
+        def: "Ecuación que define el costo de un algoritmo recursivo en términos de sí mismo, p. ej. T(n) = 2T(n/2) + Θ(n). Se resuelve por sustitución, árbol de recursión o Teorema Maestro (sesión 4)."
+      },
+      "arbol-decision": {
+        titulo: "Árbol de decisión",
+        def: "Modelo de un algoritmo de comparación: cada nodo interno es una comparación, cada hoja un resultado posible. Como ordenar n elementos tiene n! resultados, el árbol necesita n! hojas y altura ≥ log₂(n!) = Θ(n log n): esa es la cota inferior."
+      },
+      introsort: {
+        titulo: "Introsort",
+        def: "Algoritmo híbrido (Musser, 1997) usado por <code>std::sort</code>: empieza con quicksort, cambia a heapsort si la recursión se hace demasiado profunda (evitando el peor caso O(n²)) y usa insertion sort para rangos pequeños."
+      },
+      shard: {
+        titulo: "Shard (fragmento)",
+        def: "Partición horizontal de un índice o base de datos: cada shard contiene una porción de los datos y atiende consultas en paralelo. Las respuestas parciales de los shards se combinan — típicamente fusionando listas ordenadas."
+      }
+    });
+  });
+</script>
+</body>
+</html>
