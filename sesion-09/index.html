@@ -80,32 +80,51 @@
       <p class="fragment box-key">Todo el análisis de hoy cuelga de una pregunta: ¿qué tan balanceadas quedan las dos zonas?</p>
     </section>
 
-    <!-- ============ 5.5 LOMUTO CÓDIGO ============ -->
+    <!-- ============ 5.5 QUÉ ES PARTICIONAR ============ -->
     <section>
       <span class="kicker">5.5 · Quick Sort</span>
-      <h2>Partición de Lomuto</h2>
-      <pre data-title="quicksort.hpp"><code class="language-cpp" data-trim data-line-numbers="1-12|2|3|4-9|10-11">
-int particionLomuto(std::vector&lt;int&gt;&amp; a, int lo, int hi) {
-    int p = a[hi];                  // pivote: el último elemento
-    int i = lo;                     // frontera de la zona de menores
-    for (int j = lo; j &lt; hi; ++j) {
-        if (a[j] &lt; p) {
-            std::swap(a[i], a[j]);  // a[j] entra a la zona de menores
-            ++i;
-        }
-    }
-    std::swap(a[i], a[hi]);         // el pivote cae en su posición final
-    return i;
-}
-      </code></pre>
-      <p class="fragment muted">Invariante del ciclo: <code>a[lo..i−1] &lt; p</code> y <code>a[i..j−1] ≥ p</code>. Una pasada, a lo más n−1 intercambios.</p>
+      <h2>Qué es el <span class="term" data-term="pivote">pivote</span> y qué significa particionar</h2>
+      <svg viewBox="0 0 1100 260" style="width:100%; max-height:255px;">
+        <g class="anim-step" data-step="1">
+          <rect class="svg-node" x="90" y="30" width="74" height="56" rx="8"/><text class="svg-label" x="127" y="67" text-anchor="middle" style="font-size:24px;">3</text>
+          <rect class="svg-node" x="172" y="30" width="74" height="56" rx="8"/><text class="svg-label" x="209" y="67" text-anchor="middle" style="font-size:24px;">8</text>
+          <rect class="svg-node" x="254" y="30" width="74" height="56" rx="8"/><text class="svg-label" x="291" y="67" text-anchor="middle" style="font-size:24px;">2</text>
+          <rect class="svg-node" x="336" y="30" width="74" height="56" rx="8"/><text class="svg-label" x="373" y="67" text-anchor="middle" style="font-size:24px;">5</text>
+          <rect class="svg-node" x="418" y="30" width="74" height="56" rx="8"/><text class="svg-label" x="455" y="67" text-anchor="middle" style="font-size:24px;">7</text>
+          <rect fill="#e8f0fe" stroke="#0b57d0" stroke-width="5" x="500" y="30" width="74" height="56" rx="8"/><text class="svg-label" x="537" y="67" text-anchor="middle" style="font-size:24px;">4</text>
+          <text x="537" y="18" text-anchor="middle" fill="#0b57d0" style="font-size:21px; font-weight:700;">pivote</text>
+          <text class="svg-label" x="612" y="66" style="font-size:22px;">elige un elemento cualquiera</text>
+        </g>
+        <g class="anim-step" data-step="2">
+          <path d="M 210 100 L 210 138" stroke="#16181d" stroke-width="4"/>
+          <path d="M 200 126 L 210 142 L 220 126 Z" fill="#16181d"/>
+          <text class="svg-label" x="230" y="130" style="font-size:22px;">particionar</text>
+          <rect fill="#e8f0fe" stroke="#0b57d0" stroke-width="3" x="90" y="152" width="74" height="56" rx="8"/><text class="svg-label" x="127" y="189" text-anchor="middle" style="font-size:24px;">2</text>
+          <rect fill="#e8f0fe" stroke="#0b57d0" stroke-width="3" x="172" y="152" width="74" height="56" rx="8"/><text class="svg-label" x="209" y="189" text-anchor="middle" style="font-size:24px;">3</text>
+          <rect fill="#e6f4ea" stroke="#146c2e" stroke-width="5" x="254" y="152" width="74" height="56" rx="8"/><text class="svg-label" x="291" y="189" text-anchor="middle" style="font-size:24px;">4</text>
+          <rect fill="#f4f5f7" stroke="#4b5260" stroke-width="3" x="336" y="152" width="74" height="56" rx="8"/><text class="svg-label" x="373" y="189" text-anchor="middle" style="font-size:24px;">7</text>
+          <rect fill="#f4f5f7" stroke="#4b5260" stroke-width="3" x="418" y="152" width="74" height="56" rx="8"/><text class="svg-label" x="455" y="189" text-anchor="middle" style="font-size:24px;">5</text>
+          <rect fill="#f4f5f7" stroke="#4b5260" stroke-width="3" x="500" y="152" width="74" height="56" rx="8"/><text class="svg-label" x="537" y="189" text-anchor="middle" style="font-size:24px;">8</text>
+          <text x="168" y="238" text-anchor="middle" fill="#0b57d0" style="font-size:21px; font-weight:600;">menores</text>
+          <text x="291" y="238" text-anchor="middle" fill="#146c2e" style="font-size:21px; font-weight:600;">pivote</text>
+          <text x="455" y="238" text-anchor="middle" fill="#4b5260" style="font-size:21px; font-weight:600;">mayores o iguales</text>
+        </g>
+      </svg>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <ul>
+        <li class="fragment">Dentro de cada zona el orden da igual: cualquier acomodo así es válido.</li>
+        <li class="fragment">El pivote queda en su lugar definitivo y las recursiones ya no lo tocan.</li>
+        <li class="fragment">Con dos arreglos extra esto es fácil. El reto es hacerlo <strong>dentro del mismo arreglo y en una pasada</strong>: eso son Lomuto y Hoare.</li>
+      </ul>
     </section>
 
     <!-- ============ 5.5 SVG LOMUTO ============ -->
     <section>
       <span class="kicker">5.5 · Quick Sort</span>
       <h2>Lomuto paso a paso: pivote p = 4</h2>
-      <svg viewBox="0 0 1100 420" style="width:100%; max-height:420px;">
+      <p><code>j</code> recorre, <code>i</code> marca la frontera de los menores.</p>
+      <svg viewBox="0 0 1100 420" style="width:100%; max-height:352px;">
         <g>
           <rect class="svg-node" x="40" y="16" width="62" height="52" rx="8"/><text class="svg-label" x="71" y="51" text-anchor="middle" style="font-size:23px;">3</text>
           <rect class="svg-node" x="108" y="16" width="62" height="52" rx="8"/><text class="svg-label" x="139" y="51" text-anchor="middle" style="font-size:23px;">8</text>
@@ -166,6 +185,28 @@ int particionLomuto(std::vector&lt;int&gt;&amp; a, int lo, int hi) {
       <span class="fragment"></span>
       <span class="fragment"></span>
       <span class="fragment"></span>
+      <p class="muted">Esquema de Nico Lomuto, difundido por Bentley en <em>Programming Pearls</em>.</p>
+    </section>
+
+    <!-- ============ 5.5 LOMUTO CÓDIGO ============ -->
+    <section>
+      <span class="kicker">5.5 · Quick Sort</span>
+      <h2>Partición de Lomuto</h2>
+      <pre data-title="quicksort.hpp"><code class="language-cpp" data-trim data-line-numbers="1-12|2|3|4-9|10-11">
+int particionLomuto(std::vector&lt;int&gt;&amp; a, int lo, int hi) {
+    int p = a[hi];                  // pivote: el último elemento
+    int i = lo;                     // frontera de la zona de menores
+    for (int j = lo; j &lt; hi; ++j) {
+        if (a[j] &lt; p) {
+            std::swap(a[i], a[j]);  // a[j] entra a la zona de menores
+            ++i;
+        }
+    }
+    std::swap(a[i], a[hi]);         // el pivote cae en su posición final
+    return i;
+}
+      </code></pre>
+      <p class="fragment muted">Invariante del ciclo: <code>a[lo..i−1] &lt; p</code> y <code>a[i..j−1] ≥ p</code>. Una pasada, a lo más n−1 intercambios.</p>
     </section>
 
     <!-- ============ 5.5 QUICKSORT ============ -->
@@ -186,33 +227,12 @@ void quickSort(std::vector&lt;int&gt;&amp; a, int lo, int hi) {
       </ul>
     </section>
 
-    <!-- ============ 5.5 HOARE ============ -->
-    <section>
-      <span class="kicker">5.5 · Quick Sort</span>
-      <h2>La partición original: Hoare</h2>
-      <pre><code class="language-cpp" data-trim data-line-numbers="1-10|2-3|5-6|7-8">
-int particionHoare(std::vector&lt;int&gt;&amp; a, int lo, int hi) {
-    int p = a[lo + (hi - lo) / 2];      // pivote: elemento central
-    int i = lo - 1, j = hi + 1;
-    while (true) {
-        do { ++i; } while (a[i] &lt; p);   // avanza desde la izquierda
-        do { --j; } while (a[j] &gt; p);   // retrocede desde la derecha
-        if (i &gt;= j) return j;           // los índices se cruzaron
-        std::swap(a[i], a[j]);
-    }
-}
-      </code></pre>
-      <ul>
-        <li class="fragment">Dos índices avanzan desde los extremos e intercambian pares mal colocados: en promedio, tres veces <em>menos</em> intercambios que Lomuto.</li>
-        <li class="fragment">Devuelve una frontera <code>j</code> con <code>[lo..j]</code> y <code>[j+1..hi]</code> particionados; el pivote <em>no</em> queda en su posición final.</li>
-      </ul>
-    </section>
-
     <!-- ============ HOARE PASO A PASO ============ -->
     <section>
       <span class="kicker">5.5 · Quick Sort</span>
       <h2>Hoare paso a paso: pivote p = 5</h2>
-      <svg viewBox="0 0 1100 420" style="width:100%; max-height:405px;">
+      <p><code>i</code> avanza desde la izquierda, <code>j</code> retrocede desde la derecha.</p>
+      <svg viewBox="0 0 1100 420" style="width:100%; max-height:376px;">
         <g>
           <rect class="svg-node" x="40" y="16" width="62" height="52" rx="8"/><text class="svg-label" x="71" y="51" text-anchor="middle" style="font-size:23px;">7</text>
           <rect class="svg-node" x="108" y="16" width="62" height="52" rx="8"/><text class="svg-label" x="139" y="51" text-anchor="middle" style="font-size:23px;">8</text>
@@ -279,7 +299,69 @@ int particionHoare(std::vector&lt;int&gt;&amp; a, int lo, int hi) {
       <span class="fragment"></span>
       <span class="fragment"></span>
       <span class="fragment"></span>
-      <p class="fragment muted">El 5 quedó dentro de la zona izquierda, sin posición final; por eso Hoare recursa sobre <code>[lo..j]</code> y <code>[j+1..hi]</code>.</p>
+      <p class="fragment muted">El 5 quedó dentro de la zona izquierda, sin posición final. Es la partición original de Hoare, <em>Algorithm 63/64</em>, CACM 4(7), 1961.</p>
+    </section>
+
+    <!-- ============ 5.5 HOARE ============ -->
+    <section>
+      <span class="kicker">5.5 · Quick Sort</span>
+      <h2>La partición original: Hoare</h2>
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-10|2-3|5-6|7-8">
+int particionHoare(std::vector&lt;int&gt;&amp; a, int lo, int hi) {
+    int p = a[lo + (hi - lo) / 2];      // pivote: elemento central
+    int i = lo - 1, j = hi + 1;
+    while (true) {
+        do { ++i; } while (a[i] &lt; p);   // avanza desde la izquierda
+        do { --j; } while (a[j] &gt; p);   // retrocede desde la derecha
+        if (i &gt;= j) return j;           // los índices se cruzaron
+        std::swap(a[i], a[j]);
+    }
+}
+      </code></pre>
+      <ul>
+        <li class="fragment">Dos índices avanzan desde los extremos e intercambian pares mal colocados: en promedio, tres veces <em>menos</em> intercambios que Lomuto.</li>
+        <li class="fragment">Devuelve una frontera <code>j</code> con <code>[lo..j]</code> y <code>[j+1..hi]</code> particionados; el pivote <em>no</em> queda en su posición final.</li>
+      </ul>
+    </section>
+
+    <!-- ============ INDICES: PIVOTE VS FRONTERA ============ -->
+    <section>
+      <span class="kicker">5.5 · Quick Sort</span>
+      <h2>Lo que devuelve cada una no es lo mismo</h2>
+      <svg viewBox="0 0 1100 400" style="width:100%; max-height:372px;">
+        <g class="anim-step" data-step="1">
+          <text class="svg-label" x="70" y="30" style="font-size:23px; font-weight:700;">Después de Lomuto</text>
+          <rect fill="#e8f0fe" stroke="#0b57d0" stroke-width="3" x="70" y="44" width="74" height="56" rx="8"/><text class="svg-label" x="107" y="81" text-anchor="middle" style="font-size:24px;">3</text>
+          <rect fill="#e8f0fe" stroke="#0b57d0" stroke-width="3" x="150" y="44" width="74" height="56" rx="8"/><text class="svg-label" x="187" y="81" text-anchor="middle" style="font-size:24px;">2</text>
+          <rect fill="#e6f4ea" stroke="#146c2e" stroke-width="5" x="230" y="44" width="74" height="56" rx="8"/><text class="svg-label" x="267" y="81" text-anchor="middle" style="font-size:24px;">4</text>
+          <rect class="svg-node" x="310" y="44" width="74" height="56" rx="8"/><text class="svg-label" x="347" y="81" text-anchor="middle" style="font-size:24px;">5</text>
+          <rect class="svg-node" x="390" y="44" width="74" height="56" rx="8"/><text class="svg-label" x="427" y="81" text-anchor="middle" style="font-size:24px;">7</text>
+          <rect class="svg-node" x="470" y="44" width="74" height="56" rx="8"/><text class="svg-label" x="507" y="81" text-anchor="middle" style="font-size:24px;">8</text>
+          <text x="267" y="128" text-anchor="middle" fill="#146c2e" style="font-size:21px; font-weight:700;">p = 2 · ya está en su lugar</text>
+          <path d="M 70 142 L 70 152 L 224 152 L 224 142" fill="none" stroke="#0b57d0" stroke-width="3"/>
+          <text x="147" y="174" text-anchor="middle" fill="#0b57d0" style="font-size:21px; font-weight:600;">recursa (lo, p−1)</text>
+          <path d="M 310 142 L 310 152 L 544 152 L 544 142" fill="none" stroke="#0b57d0" stroke-width="3"/>
+          <text x="427" y="174" text-anchor="middle" fill="#0b57d0" style="font-size:21px; font-weight:600;">recursa (p+1, hi)</text>
+        </g>
+        <g class="anim-step" data-step="2">
+          <text class="svg-label" x="70" y="218" style="font-size:23px; font-weight:700;">Después de Hoare</text>
+          <rect fill="#e8f0fe" stroke="#0b57d0" stroke-width="3" x="70" y="232" width="74" height="56" rx="8"/><text class="svg-label" x="107" y="269" text-anchor="middle" style="font-size:24px;">1</text>
+          <rect fill="#e8f0fe" stroke="#0b57d0" stroke-width="3" x="150" y="232" width="74" height="56" rx="8"/><text class="svg-label" x="187" y="269" text-anchor="middle" style="font-size:24px;">2</text>
+          <rect fill="#e8f0fe" stroke="#0b57d0" stroke-width="3" x="230" y="232" width="74" height="56" rx="8"/><text class="svg-label" x="267" y="269" text-anchor="middle" style="font-size:24px;">5</text>
+          <rect fill="#fce8e6" stroke="#b3261e" stroke-width="3" x="310" y="232" width="74" height="56" rx="8"/><text class="svg-label" x="347" y="269" text-anchor="middle" style="font-size:24px;">8</text>
+          <rect fill="#fce8e6" stroke="#b3261e" stroke-width="3" x="390" y="232" width="74" height="56" rx="8"/><text class="svg-label" x="427" y="269" text-anchor="middle" style="font-size:24px;">7</text>
+          <rect fill="#fce8e6" stroke="#b3261e" stroke-width="3" x="470" y="232" width="74" height="56" rx="8"/><text class="svg-label" x="507" y="269" text-anchor="middle" style="font-size:24px;">6</text>
+          <line x1="307" y1="224" x2="307" y2="296" stroke="#16181d" stroke-width="4" stroke-dasharray="8 6"/>
+          <text x="70" y="316" fill="#16181d" style="font-size:21px; font-weight:700;">frontera j = 2 · el pivote (5) sigue suelto</text>
+          <path d="M 70 330 L 70 340 L 304 340 L 304 330" fill="none" stroke="#0b57d0" stroke-width="3"/>
+          <text x="187" y="362" text-anchor="middle" fill="#0b57d0" style="font-size:21px; font-weight:600;">recursa (lo, j)</text>
+          <path d="M 310 330 L 310 340 L 544 340 L 544 330" fill="none" stroke="#b3261e" stroke-width="3"/>
+          <text x="427" y="362" text-anchor="middle" fill="#b3261e" style="font-size:21px; font-weight:600;">recursa (j+1, hi)</text>
+        </g>
+      </svg>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <p class="fragment">Cambiar de partición obliga a cambiar los rangos de la recursión: con Lomuto y <code>(lo, p)</code> el pivote vuelve a entrar y con <code>{1,2,3}</code> se cicla; con Hoare y <code>(j+1, hi)</code> saltándose <code>j</code>, <code>{2,3,1}</code> sale como <code>{2,1,3}</code>.</p>
     </section>
 
     <!-- ============ LOMUTO VS HOARE ============ -->
@@ -554,7 +636,9 @@ int quickselect(std::vector&lt;int&gt;&amp; a, int lo, int hi, int k) {
           <ul>
             <li><span class="ref-type">Libro</span> Cormen, T. et al. <em>Introduction to Algorithms</em>, 4.ª ed., MIT Press, 2022. Caps. 7 (quicksort) y 9 (estadísticos de orden).</li>
             <li><span class="ref-type">Libro</span> Sedgewick, R. y Wayne, K. <em>Algorithms</em>, 4.ª ed., Addison-Wesley, 2011. Secc. 2.3.</li>
+            <li><span class="ref-type">Paper</span> Hoare, C. A. R. "Algorithm 63: Partition; Algorithm 64: Quicksort", <em>Communications of the ACM</em> 4(7), 1961, pp. 321–322.</li>
             <li><span class="ref-type">Paper</span> Hoare, C. A. R. "Quicksort", <em>The Computer Journal</em> 5(1), 1962.</li>
+            <li><span class="ref-type">Libro</span> Bentley, J. <em>Programming Pearls</em>, 2.ª ed., Addison-Wesley, 1999. Col. 11: ahí se difundió el esquema de Nico Lomuto.</li>
           </ul>
         </div>
         <div>
