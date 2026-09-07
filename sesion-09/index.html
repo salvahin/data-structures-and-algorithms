@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sesión 9 — Quick Sort y selección por partición</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+  <link rel="stylesheet" href="../css/theme-curso.css">
+</head>
+<body>
+<div class="reveal">
+  <div class="slides">
+
+    <!-- ============ PORTADA ============ -->
+    <section class="cover">
+      <span class="kicker">Estructuras de Datos y Algoritmos · Bloque 1</span>
+      <h1>Quick Sort y selección<br>por partición</h1>
+      <div class="cover-meta">
+        Sesión 9 · Semana 5<br>
+        Salvador Hinojosa
+      </div>
+    </section>
+
+    <!-- ============ RETO ANTERIOR ============ -->
+    <section>
+      <span class="kicker">Apertura · Reto anterior (5 min)</span>
+      <h2>¿Cómo les fue con el merge fuera del arreglo?</h2>
+      <p>Una pareja pasa a explicar su enfoque de la sesión 8:</p>
+      <ul>
+        <li class="fragment"><strong>LC 148 — Sort List.</strong> ¿Cómo encontraron el punto medio de la lista sin acceso aleatorio? ¿Qué cambió en el <code>merge</code>?</li>
+        <li class="fragment"><strong>LC 315 — Count of Smaller Numbers After Self.</strong> ¿En qué momento exacto del merge se cuentan las inversiones?</li>
+        <li class="fragment">Pregunta para el grupo: en el 148, ¿por qué la versión con punteros lento/rápido encuentra el medio en una sola pasada?</li>
+      </ul>
+    </section>
+
+    <!-- ============ AGENDA ============ -->
+    <section>
+      <span class="kicker">Sesión 9 · Agenda</span>
+      <h2>Qué vamos a ver hoy</h2>
+      <table>
+        <tbody>
+          <tr><td>55 min</td><td>5.5 Quick Sort: particiones de Lomuto y Hoare, análisis, pivotes</td></tr>
+          <tr><td>45 min</td><td>Práctica de laboratorio: comparativa de los cinco algoritmos</td></tr>
+          <tr><td>20 min</td><td>Cierre STL y cierre de sesión</td></tr>
+        </tbody>
+      </table>
+      <p class="muted">Al final del deck hay material extra de autoestudio —quickselect y un reto opcional— que no se cubre en clase.</p>
+    </section>
+
+    <!-- ============ OBJETIVO ============ -->
+    <section>
+      <span class="kicker">Objetivo de hoy</span>
+      <h2>Al salir de esta sesión podrás…</h2>
+      <ul>
+        <li class="fragment">Codificar Quick Sort con <span class="term" data-term="particion">partición</span> de Lomuto y explicar la variante de Hoare.</li>
+        <li class="fragment">Analizar cómo la elección del <span class="term" data-term="pivote">pivote</span> decide entre O(n log n) y O(n²), y qué estrategias lo protegen.</li>
+        <li class="fragment">Elegir una estrategia de pivote y justificar su ventaja y su riesgo.</li>
+        <li class="fragment">Comparar empíricamente los cinco algoritmos de ordenamiento del bloque.</li>
+      </ul>
+    </section>
+
+    <!-- ============ DIVIDER 5.5 ============ -->
+    <section class="divider">
+      <h2>5.5 Quick Sort</h2>
+    </section>
+
+    <!-- ============ 5.5 IDEA ============ -->
+    <section>
+      <span class="kicker">5.5 · Quick Sort</span>
+      <h2>Divide y vencerás, con el trabajo antes de dividir</h2>
+      <ul>
+        <li class="fragment"><strong>Particionar:</strong> elegir un pivote y reacomodar el arreglo: menores a la izquierda, mayores a la derecha. El pivote queda en su posición final. Costo Θ(n).</li>
+        <li class="fragment"><strong>Recursar:</strong> ordenar las dos zonas por separado. No hay paso de combinación: al terminar las recursiones, el arreglo está ordenado.</li>
+        <li class="fragment">Comparación con Merge Sort: allá el trabajo está en <em>combinar</em> después de la recursión; acá está en <em>particionar</em> antes. Ambos hacen Θ(n) por nivel.</li>
+      </ul>
+      <p class="fragment box-key">Todo el análisis de hoy cuelga de una pregunta: ¿qué tan balanceadas quedan las dos zonas?</p>
+    </section>
+
+    <!-- ============ 5.5 LOMUTO CÓDIGO ============ -->
+    <section>
+      <span class="kicker">5.5 · Quick Sort</span>
+      <h2>Partición de Lomuto</h2>
+      <pre data-title="quicksort.hpp"><code class="language-cpp" data-trim data-line-numbers="1-12|2|3|4-9|10-11">
+int particionLomuto(std::vector&lt;int&gt;&amp; a, int lo, int hi) {
+    int p = a[hi];                  // pivote: el último elemento
+    int i = lo;                     // frontera de la zona de menores
+    for (int j = lo; j &lt; hi; ++j) {
+        if (a[j] &lt; p) {
+            std::swap(a[i], a[j]);  // a[j] entra a la zona de menores
+            ++i;
+        }
+    }
+    std::swap(a[i], a[hi]);         // el pivote cae en su posición final
+    return i;
+}
+      </code></pre>
+      <p class="fragment muted">Invariante del ciclo: <code>a[lo..i−1] &lt; p</code> y <code>a[i..j−1] ≥ p</code>. Una pasada, a lo más n−1 intercambios.</p>
+    </section>
+
+    <!-- ============ 5.5 SVG LOMUTO ============ -->
+    <section>
+      <span class="kicker">5.5 · Quick Sort</span>
+      <h2>Lomuto paso a paso: pivote p = 4</h2>
+      <svg viewBox="0 0 1100 420" style="width:100%; max-height:420px;">
+        <g>
+          <rect class="svg-node" x="40" y="16" width="62" height="52" rx="8"/><text class="svg-label" x="71" y="51" text-anchor="middle" style="font-size:23px;">3</text>
+          <rect class="svg-node" x="108" y="16" width="62" height="52" rx="8"/><text class="svg-label" x="139" y="51" text-anchor="middle" style="font-size:23px;">8</text>
+          <rect class="svg-node" x="176" y="16" width="62" height="52" rx="8"/><text class="svg-label" x="207" y="51" text-anchor="middle" style="font-size:23px;">2</text>
+          <rect class="svg-node" x="244" y="16" width="62" height="52" rx="8"/><text class="svg-label" x="275" y="51" text-anchor="middle" style="font-size:23px;">5</text>
+          <rect class="svg-node" x="312" y="16" width="62" height="52" rx="8"/><text class="svg-label" x="343" y="51" text-anchor="middle" style="font-size:23px;">7</text>
+          <rect fill="none" stroke="#0b57d0" stroke-width="5" x="380" y="16" width="62" height="52" rx="8"/><text class="svg-label" x="411" y="51" text-anchor="middle" style="font-size:23px;">4</text>
+          <text class="svg-label" x="490" y="51" style="font-size:21px;">inicial · pivote = a[hi] = 4 · i = 0</text>
+        </g>
+        <g class="anim-step" data-step="1">
+          <rect class="svg-node-hl" x="40" y="82" width="62" height="52" rx="8"/><text class="svg-label" x="71" y="117" text-anchor="middle" style="font-size:23px;">3</text>
+          <rect class="svg-node" x="108" y="82" width="62" height="52" rx="8"/><text class="svg-label" x="139" y="117" text-anchor="middle" style="font-size:23px;">8</text>
+          <rect class="svg-node" x="176" y="82" width="62" height="52" rx="8"/><text class="svg-label" x="207" y="117" text-anchor="middle" style="font-size:23px;">2</text>
+          <rect class="svg-node" x="244" y="82" width="62" height="52" rx="8"/><text class="svg-label" x="275" y="117" text-anchor="middle" style="font-size:23px;">5</text>
+          <rect class="svg-node" x="312" y="82" width="62" height="52" rx="8"/><text class="svg-label" x="343" y="117" text-anchor="middle" style="font-size:23px;">7</text>
+          <rect class="svg-node" x="380" y="82" width="62" height="52" rx="8"/><text class="svg-label" x="411" y="117" text-anchor="middle" style="font-size:23px;">4</text>
+          <text class="svg-label" x="490" y="117" style="font-size:21px;">j=0 · 3 &lt; 4 → ya está en la zona de menores · i = 1</text>
+        </g>
+        <g class="anim-step" data-step="2">
+          <rect class="svg-node" x="40" y="148" width="62" height="52" rx="8"/><text class="svg-label" x="71" y="183" text-anchor="middle" style="font-size:23px;">3</text>
+          <rect class="svg-node" style="opacity:.5" x="108" y="148" width="62" height="52" rx="8"/><text class="svg-label" x="139" y="183" text-anchor="middle" style="font-size:23px;">8</text>
+          <rect class="svg-node" x="176" y="148" width="62" height="52" rx="8"/><text class="svg-label" x="207" y="183" text-anchor="middle" style="font-size:23px;">2</text>
+          <rect class="svg-node" x="244" y="148" width="62" height="52" rx="8"/><text class="svg-label" x="275" y="183" text-anchor="middle" style="font-size:23px;">5</text>
+          <rect class="svg-node" x="312" y="148" width="62" height="52" rx="8"/><text class="svg-label" x="343" y="183" text-anchor="middle" style="font-size:23px;">7</text>
+          <rect class="svg-node" x="380" y="148" width="62" height="52" rx="8"/><text class="svg-label" x="411" y="183" text-anchor="middle" style="font-size:23px;">4</text>
+          <text class="svg-label" x="490" y="183" style="font-size:21px;">j=1 · 8 ≥ 4 → j avanza, i se queda en 1</text>
+        </g>
+        <g class="anim-step" data-step="3">
+          <rect class="svg-node" x="40" y="214" width="62" height="52" rx="8"/><text class="svg-label" x="71" y="249" text-anchor="middle" style="font-size:23px;">3</text>
+          <rect class="svg-node-hl" x="108" y="214" width="62" height="52" rx="8"/><text class="svg-label" x="139" y="249" text-anchor="middle" style="font-size:23px;">2</text>
+          <rect class="svg-node-hl" x="176" y="214" width="62" height="52" rx="8"/><text class="svg-label" x="207" y="249" text-anchor="middle" style="font-size:23px;">8</text>
+          <rect class="svg-node" x="244" y="214" width="62" height="52" rx="8"/><text class="svg-label" x="275" y="249" text-anchor="middle" style="font-size:23px;">5</text>
+          <rect class="svg-node" x="312" y="214" width="62" height="52" rx="8"/><text class="svg-label" x="343" y="249" text-anchor="middle" style="font-size:23px;">7</text>
+          <rect class="svg-node" x="380" y="214" width="62" height="52" rx="8"/><text class="svg-label" x="411" y="249" text-anchor="middle" style="font-size:23px;">4</text>
+          <text class="svg-label" x="490" y="249" style="font-size:21px;">j=2 · 2 &lt; 4 → swap con la frontera (el 8) · i = 2</text>
+        </g>
+        <g class="anim-step" data-step="4">
+          <rect class="svg-node" x="40" y="280" width="62" height="52" rx="8"/><text class="svg-label" x="71" y="315" text-anchor="middle" style="font-size:23px;">3</text>
+          <rect class="svg-node" x="108" y="280" width="62" height="52" rx="8"/><text class="svg-label" x="139" y="315" text-anchor="middle" style="font-size:23px;">2</text>
+          <rect class="svg-node" x="176" y="280" width="62" height="52" rx="8"/><text class="svg-label" x="207" y="315" text-anchor="middle" style="font-size:23px;">8</text>
+          <rect class="svg-node" style="opacity:.5" x="244" y="280" width="62" height="52" rx="8"/><text class="svg-label" x="275" y="315" text-anchor="middle" style="font-size:23px;">5</text>
+          <rect class="svg-node" style="opacity:.5" x="312" y="280" width="62" height="52" rx="8"/><text class="svg-label" x="343" y="315" text-anchor="middle" style="font-size:23px;">7</text>
+          <rect class="svg-node" x="380" y="280" width="62" height="52" rx="8"/><text class="svg-label" x="411" y="315" text-anchor="middle" style="font-size:23px;">4</text>
+          <text class="svg-label" x="490" y="315" style="font-size:21px;">j=3 y j=4 · 5 y 7 ≥ 4 → solo avanza j</text>
+        </g>
+        <g class="anim-step" data-step="5">
+          <rect class="svg-node" x="40" y="346" width="62" height="52" rx="8"/><text class="svg-label" x="71" y="381" text-anchor="middle" style="font-size:23px;">3</text>
+          <rect class="svg-node" x="108" y="346" width="62" height="52" rx="8"/><text class="svg-label" x="139" y="381" text-anchor="middle" style="font-size:23px;">2</text>
+          <rect fill="none" stroke="#146c2e" stroke-width="5" x="176" y="346" width="62" height="52" rx="8"/><text class="svg-label" x="207" y="381" text-anchor="middle" style="font-size:23px;">4</text>
+          <rect class="svg-node" x="244" y="346" width="62" height="52" rx="8"/><text class="svg-label" x="275" y="381" text-anchor="middle" style="font-size:23px;">5</text>
+          <rect class="svg-node" x="312" y="346" width="62" height="52" rx="8"/><text class="svg-label" x="343" y="381" text-anchor="middle" style="font-size:23px;">7</text>
+          <rect class="svg-node" x="380" y="346" width="62" height="52" rx="8"/><text class="svg-label" x="411" y="381" text-anchor="middle" style="font-size:23px;">8</text>
+          <text class="svg-label" x="490" y="381" style="font-size:21px;">swap(a[i], a[hi]) · el 4 llega a su lugar final: índice 2</text>
+        </g>
+      </svg>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+    </section>
+
+    <!-- ============ 5.5 QUICKSORT ============ -->
+    <section>
+      <span class="kicker">5.5 · Quick Sort</span>
+      <h2>El algoritmo completo</h2>
+      <pre data-title="quicksort.hpp"><code class="language-cpp" data-trim data-line-numbers="1-6|3|4-5">
+void quickSort(std::vector&lt;int&gt;&amp; a, int lo, int hi) {
+    if (lo &gt;= hi) return;
+    int p = particionLomuto(a, lo, hi);
+    quickSort(a, lo, p - 1);    // menores que el pivote
+    quickSort(a, p + 1, hi);    // mayores o iguales
+}
+      </code></pre>
+      <ul>
+        <li class="fragment">El pivote no entra en ninguna recursión: ya está en su lugar. Cada llamada reduce el problema en al menos un elemento — por eso termina.</li>
+        <li class="fragment">Ordena en sitio (O(log n) de pila en el buen caso) y <strong>no</strong> es estable: los swaps de la partición saltan por encima de elementos iguales.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 5.5 HOARE ============ -->
+    <section>
+      <span class="kicker">5.5 · Quick Sort</span>
+      <h2>La partición original: Hoare</h2>
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-10|2-3|5-6|7-8">
+int particionHoare(std::vector&lt;int&gt;&amp; a, int lo, int hi) {
+    int p = a[lo + (hi - lo) / 2];      // pivote: elemento central
+    int i = lo - 1, j = hi + 1;
+    while (true) {
+        do { ++i; } while (a[i] &lt; p);   // avanza desde la izquierda
+        do { --j; } while (a[j] &gt; p);   // retrocede desde la derecha
+        if (i &gt;= j) return j;           // los índices se cruzaron
+        std::swap(a[i], a[j]);
+    }
+}
+      </code></pre>
+      <ul>
+        <li class="fragment">Dos índices avanzan desde los extremos e intercambian pares mal colocados: en promedio, tres veces <em>menos</em> intercambios que Lomuto.</li>
+        <li class="fragment">Devuelve una frontera <code>j</code> con <code>[lo..j]</code> y <code>[j+1..hi]</code> particionados; el pivote <em>no</em> queda en su posición final.</li>
+      </ul>
+    </section>
+
+    <!-- ============ HOARE PASO A PASO ============ -->
+    <section>
+      <span class="kicker">5.5 · Quick Sort</span>
+      <h2>Hoare paso a paso: pivote p = 5</h2>
+      <svg viewBox="0 0 1100 420" style="width:100%; max-height:405px;">
+        <g>
+          <rect class="svg-node" x="40" y="16" width="62" height="52" rx="8"/><text class="svg-label" x="71" y="51" text-anchor="middle" style="font-size:23px;">7</text>
+          <rect class="svg-node" x="108" y="16" width="62" height="52" rx="8"/><text class="svg-label" x="139" y="51" text-anchor="middle" style="font-size:23px;">8</text>
+          <rect fill="none" stroke="#0b57d0" stroke-width="5" x="176" y="16" width="62" height="52" rx="8"/><text class="svg-label" x="207" y="51" text-anchor="middle" style="font-size:23px;">5</text>
+          <rect class="svg-node" x="244" y="16" width="62" height="52" rx="8"/><text class="svg-label" x="275" y="51" text-anchor="middle" style="font-size:23px;">2</text>
+          <rect class="svg-node" x="312" y="16" width="62" height="52" rx="8"/><text class="svg-label" x="343" y="51" text-anchor="middle" style="font-size:23px;">1</text>
+          <rect class="svg-node" x="380" y="16" width="62" height="52" rx="8"/><text class="svg-label" x="411" y="51" text-anchor="middle" style="font-size:23px;">6</text>
+          <text class="svg-label" x="490" y="51" style="font-size:21px;">inicial · pivote = a[mid] = 5 · i y j empiezan fuera</text>
+        </g>
+        <g class="anim-step" data-step="1">
+          <rect fill="#e8f0fe" stroke="#0b57d0" stroke-width="4" x="40" y="82" width="62" height="52" rx="8"/><text class="svg-label" x="71" y="117" text-anchor="middle" style="font-size:23px;">7</text>
+          <text x="47" y="99" fill="#0b57d0" style="font-size:16px; font-weight:700;">i</text>
+          <rect class="svg-node" x="108" y="82" width="62" height="52" rx="8"/><text class="svg-label" x="139" y="117" text-anchor="middle" style="font-size:23px;">8</text>
+          <rect class="svg-node" x="176" y="82" width="62" height="52" rx="8"/><text class="svg-label" x="207" y="117" text-anchor="middle" style="font-size:23px;">5</text>
+          <rect class="svg-node" x="244" y="82" width="62" height="52" rx="8"/><text class="svg-label" x="275" y="117" text-anchor="middle" style="font-size:23px;">2</text>
+          <rect fill="#fce8e6" stroke="#b3261e" stroke-width="4" x="312" y="82" width="62" height="52" rx="8"/><text class="svg-label" x="343" y="117" text-anchor="middle" style="font-size:23px;">1</text>
+          <text x="360" y="99" fill="#b3261e" style="font-size:16px; font-weight:700;">j</text>
+          <rect class="svg-node" x="380" y="82" width="62" height="52" rx="8"/><text class="svg-label" x="411" y="117" text-anchor="middle" style="font-size:23px;">6</text>
+          <text class="svg-label" x="490" y="117" style="font-size:21px;">i se detiene en 7 · j se detiene en 1</text>
+        </g>
+        <g class="anim-step" data-step="2">
+          <rect class="svg-node-hl" x="40" y="148" width="62" height="52" rx="8"/><text class="svg-label" x="71" y="183" text-anchor="middle" style="font-size:23px;">1</text>
+          <rect class="svg-node" x="108" y="148" width="62" height="52" rx="8"/><text class="svg-label" x="139" y="183" text-anchor="middle" style="font-size:23px;">8</text>
+          <rect class="svg-node" x="176" y="148" width="62" height="52" rx="8"/><text class="svg-label" x="207" y="183" text-anchor="middle" style="font-size:23px;">5</text>
+          <rect class="svg-node" x="244" y="148" width="62" height="52" rx="8"/><text class="svg-label" x="275" y="183" text-anchor="middle" style="font-size:23px;">2</text>
+          <rect class="svg-node-hl" x="312" y="148" width="62" height="52" rx="8"/><text class="svg-label" x="343" y="183" text-anchor="middle" style="font-size:23px;">7</text>
+          <rect class="svg-node" x="380" y="148" width="62" height="52" rx="8"/><text class="svg-label" x="411" y="183" text-anchor="middle" style="font-size:23px;">6</text>
+          <text class="svg-label" x="490" y="183" style="font-size:21px;">swap → el 1 a la izquierda, el 7 a la derecha</text>
+        </g>
+        <g class="anim-step" data-step="3">
+          <rect class="svg-node" x="40" y="214" width="62" height="52" rx="8"/><text class="svg-label" x="71" y="249" text-anchor="middle" style="font-size:23px;">1</text>
+          <rect fill="#e8f0fe" stroke="#0b57d0" stroke-width="4" x="108" y="214" width="62" height="52" rx="8"/><text class="svg-label" x="139" y="249" text-anchor="middle" style="font-size:23px;">8</text>
+          <text x="115" y="231" fill="#0b57d0" style="font-size:16px; font-weight:700;">i</text>
+          <rect class="svg-node" x="176" y="214" width="62" height="52" rx="8"/><text class="svg-label" x="207" y="249" text-anchor="middle" style="font-size:23px;">5</text>
+          <rect fill="#fce8e6" stroke="#b3261e" stroke-width="4" x="244" y="214" width="62" height="52" rx="8"/><text class="svg-label" x="275" y="249" text-anchor="middle" style="font-size:23px;">2</text>
+          <text x="292" y="231" fill="#b3261e" style="font-size:16px; font-weight:700;">j</text>
+          <rect class="svg-node" x="312" y="214" width="62" height="52" rx="8"/><text class="svg-label" x="343" y="249" text-anchor="middle" style="font-size:23px;">7</text>
+          <rect class="svg-node" x="380" y="214" width="62" height="52" rx="8"/><text class="svg-label" x="411" y="249" text-anchor="middle" style="font-size:23px;">6</text>
+          <text class="svg-label" x="490" y="249" style="font-size:21px;">i se detiene en 8 · j se detiene en 2</text>
+        </g>
+        <g class="anim-step" data-step="4">
+          <rect class="svg-node" x="40" y="280" width="62" height="52" rx="8"/><text class="svg-label" x="71" y="315" text-anchor="middle" style="font-size:23px;">1</text>
+          <rect class="svg-node-hl" x="108" y="280" width="62" height="52" rx="8"/><text class="svg-label" x="139" y="315" text-anchor="middle" style="font-size:23px;">2</text>
+          <rect class="svg-node" x="176" y="280" width="62" height="52" rx="8"/><text class="svg-label" x="207" y="315" text-anchor="middle" style="font-size:23px;">5</text>
+          <rect class="svg-node-hl" x="244" y="280" width="62" height="52" rx="8"/><text class="svg-label" x="275" y="315" text-anchor="middle" style="font-size:23px;">8</text>
+          <rect class="svg-node" x="312" y="280" width="62" height="52" rx="8"/><text class="svg-label" x="343" y="315" text-anchor="middle" style="font-size:23px;">7</text>
+          <rect class="svg-node" x="380" y="280" width="62" height="52" rx="8"/><text class="svg-label" x="411" y="315" text-anchor="middle" style="font-size:23px;">6</text>
+          <text class="svg-label" x="490" y="315" style="font-size:21px;">swap → el 2 a la izquierda, el 8 a la derecha</text>
+        </g>
+        <g class="anim-step" data-step="5">
+          <rect class="svg-node" x="40" y="346" width="62" height="52" rx="8"/><text class="svg-label" x="71" y="381" text-anchor="middle" style="font-size:23px;">1</text>
+          <rect class="svg-node" x="108" y="346" width="62" height="52" rx="8"/><text class="svg-label" x="139" y="381" text-anchor="middle" style="font-size:23px;">2</text>
+          <rect fill="#e6f4ea" stroke="#146c2e" stroke-width="5" x="176" y="346" width="62" height="52" rx="8"/><text class="svg-label" x="207" y="381" text-anchor="middle" style="font-size:23px;">5</text>
+          <text x="183" y="363" fill="#0b57d0" style="font-size:16px; font-weight:700;">i</text>
+          <text x="224" y="363" fill="#b3261e" style="font-size:16px; font-weight:700;">j</text>
+          <rect class="svg-node" x="244" y="346" width="62" height="52" rx="8"/><text class="svg-label" x="275" y="381" text-anchor="middle" style="font-size:23px;">8</text>
+          <rect class="svg-node" x="312" y="346" width="62" height="52" rx="8"/><text class="svg-label" x="343" y="381" text-anchor="middle" style="font-size:23px;">7</text>
+          <rect class="svg-node" x="380" y="346" width="62" height="52" rx="8"/><text class="svg-label" x="411" y="381" text-anchor="middle" style="font-size:23px;">6</text>
+          <text class="svg-label" x="490" y="381" style="font-size:21px;">i y j se encuentran en el 5 → devuelve j = 2</text>
+        </g>
+      </svg>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <p class="fragment muted">El 5 quedó dentro de la zona izquierda, sin posición final; por eso Hoare recursa sobre <code>[lo..j]</code> y <code>[j+1..hi]</code>.</p>
+    </section>
+
+    <!-- ============ LOMUTO VS HOARE ============ -->
+    <section>
+      <span class="kicker">5.5 · Quick Sort</span>
+      <h2>Lomuto y Hoare: qué gana cada una</h2>
+      <table>
+        <thead><tr><th></th><th>Lomuto</th><th>Hoare</th></tr></thead>
+        <tbody>
+          <tr class="fragment"><td>Pivote</td><td>el último, <code>a[hi]</code></td><td>el central, <code>a[mid]</code></td></tr>
+          <tr class="fragment"><td>Qué devuelve</td><td>la posición <em>final</em> del pivote</td><td>una frontera <code>j</code>; el pivote no queda colocado</td></tr>
+          <tr class="fragment"><td>Recursión</td><td><code>(lo, p−1)</code> y <code>(p+1, hi)</code></td><td><code>(lo, j)</code> y <code>(j+1, hi)</code></td></tr>
+          <tr class="fragment"><td>Intercambios</td><td>13 700</td><td>5 100 — <strong>2.7 veces menos</strong></td></tr>
+          <tr class="fragment"><td>Comparaciones</td><td>24 700</td><td>31 700 — un 28 % más</td></tr>
+          <tr class="fragment"><td>Todo repetido</td><td>profundidad 1998: se degrada a O(n²)</td><td>profundidad 10 ≈ log n</td></tr>
+        </tbody>
+      </table>
+      <p class="fragment muted">Cifras medidas sobre 200 arreglos aleatorios de 2000 elementos, y un arreglo de 2000 valores idénticos.</p>
+    </section>
+
+    <!-- ============ QUIZ 1 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="b">
+        <p class="quiz-question">Tras ejecutar la partición de Lomuto, ¿qué es lo único que se garantiza?</p>
+        <button class="quiz-option" data-opt="a">Las dos zonas resultantes quedan ordenadas entre sí y por dentro.</button>
+        <button class="quiz-option" data-opt="b">El pivote está en su posición final; a su izquierda hay solo menores y a su derecha solo mayores o iguales.</button>
+        <button class="quiz-option" data-opt="c">El pivote termina siendo la mediana, con zonas de igual tamaño.</button>
+        <div class="quiz-explain">
+          <strong>B.</strong> La partición coloca <em>un</em> elemento (el pivote) en su lugar definitivo y
+          separa el resto en dos zonas, cada una internamente desordenada — ordenarlas es trabajo de las
+          recursiones (A). Y el tamaño de las zonas depende del valor del pivote (C): que quede cerca de
+          la mediana es justo lo que las estrategias de pivote intentan conseguir, no algo garantizado.
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 5.5 ANÁLISIS ============ -->
+    <section>
+      <span class="kicker">5.5 · Quick Sort</span>
+      <h2>El análisis depende del pivote</h2>
+      <table>
+        <thead><tr><th>Escenario</th><th>Recurrencia</th><th>Resultado</th></tr></thead>
+        <tbody>
+          <tr class="fragment"><td>Mejor: pivote parte a la mitad</td><td>T(n) = 2T(n/2) + Θ(n)</td><td>Θ(n log n)</td></tr>
+          <tr class="fragment"><td>Peor: pivote es el mínimo o el máximo</td><td>T(n) = T(n−1) + Θ(n)</td><td>Θ(n²)</td></tr>
+          <tr class="fragment"><td>Promedio (pivote aleatorio)</td><td>—</td><td>O(n log n), constante ≈ 1.39·n log₂n</td></tr>
+        </tbody>
+      </table>
+      <ul>
+        <li class="fragment">Incluso una partición 90/10 <em>fija</em> da O(n log n): no hace falta el balance perfecto, solo evitar el extremo.</li>
+        <li class="fragment">El problema es caer en el extremo <em>sistemáticamente</em> — y la versión ingenua lo hace con una entrada muy común.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 5.5 PEOR CASO SVG ============ -->
+    <section>
+      <span class="kicker">5.5 · Quick Sort</span>
+      <h2>El peor caso con la entrada más común</h2>
+      <p class="muted" style="font-size:.8em;">Pivote ingenuo = primer elemento, sobre una entrada <strong>ya ordenada</strong> [1,2,3,…,n]:</p>
+      <svg viewBox="0 0 1100 420" style="width:100%; max-height:420px;">
+        <!-- izquierda: árbol degenerado -->
+        <g class="anim-step" data-step="1">
+          <rect class="svg-node" x="60" y="40" width="150" height="52" rx="10"/><text class="svg-label" x="135" y="74" text-anchor="middle" style="font-size:21px;">n elementos</text>
+          <path class="svg-edge" d="M 150 92 L 190 128"/>
+          <rect class="svg-node" x="120" y="130" width="150" height="52" rx="10"/><text class="svg-label" x="195" y="164" text-anchor="middle" style="font-size:21px;">n − 1</text>
+          <path class="svg-edge" d="M 210 182 L 250 218"/>
+          <rect class="svg-node" x="180" y="220" width="150" height="52" rx="10"/><text class="svg-label" x="255" y="254" text-anchor="middle" style="font-size:21px;">n − 2</text>
+          <text class="svg-label" x="300" y="310" style="font-size:26px;">⋮</text>
+          <rect class="svg-node" x="260" y="330" width="150" height="52" rx="10"/><text class="svg-label" x="335" y="364" text-anchor="middle" style="font-size:21px;">1</text>
+          <text x="60" y="415" style="font-size:21px; font-weight:700;" fill="#b3261e">cada pivote separa 0 | n−1 → profundidad n → Θ(n²)</text>
+        </g>
+        <!-- derecha: árbol balanceado -->
+        <g class="anim-step" data-step="2">
+          <rect class="svg-node" x="720" y="40" width="130" height="50" rx="10"/><text class="svg-label" x="785" y="72" text-anchor="middle" style="font-size:21px;">n</text>
+          <path class="svg-edge" d="M 750 90 L 690 128"/>
+          <path class="svg-edge" d="M 820 90 L 880 128"/>
+          <rect class="svg-node" x="590" y="130" width="130" height="50" rx="10"/><text class="svg-label" x="655" y="162" text-anchor="middle" style="font-size:21px;">n/2</text>
+          <rect class="svg-node" x="850" y="130" width="130" height="50" rx="10"/><text class="svg-label" x="915" y="162" text-anchor="middle" style="font-size:21px;">n/2</text>
+          <path class="svg-edge" d="M 630 180 L 600 218"/>
+          <path class="svg-edge" d="M 690 180 L 720 218"/>
+          <path class="svg-edge" d="M 890 180 L 860 218"/>
+          <path class="svg-edge" d="M 950 180 L 980 218"/>
+          <rect class="svg-node" x="540" y="220" width="110" height="50" rx="10"/><text class="svg-label" x="595" y="252" text-anchor="middle" style="font-size:21px;">n/4</text>
+          <rect class="svg-node" x="670" y="220" width="110" height="50" rx="10"/><text class="svg-label" x="725" y="252" text-anchor="middle" style="font-size:21px;">n/4</text>
+          <rect class="svg-node" x="800" y="220" width="110" height="50" rx="10"/><text class="svg-label" x="855" y="252" text-anchor="middle" style="font-size:21px;">n/4</text>
+          <rect class="svg-node" x="930" y="220" width="110" height="50" rx="10"/><text class="svg-label" x="985" y="252" text-anchor="middle" style="font-size:21px;">n/4</text>
+          <text class="svg-label" x="785" y="310" text-anchor="middle" style="font-size:26px;">⋮</text>
+          <text x="560" y="415" style="font-size:21px; font-weight:700;" fill="#146c2e">mediana de tres → profundidad ≈ log n → Θ(n log n)</text>
+        </g>
+        <!-- comparación -->
+        <g class="anim-step" data-step="3">
+          <text x="440" y="40" style="font-size:22px; font-weight:700;" fill="#0b57d0">mismo código, misma entrada:</text>
+          <text x="440" y="72" style="font-size:22px; font-weight:700;" fill="#0b57d0">solo cambió el pivote</text>
+        </g>
+      </svg>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+    </section>
+
+    <!-- ============ 5.5 PIVOTE COMPARATIVA ============ -->
+    <section>
+      <span class="kicker">5.5 · Quick Sort</span>
+      <h2>Estrategias de pivote: qué gana y qué arriesga cada una</h2>
+      <table>
+        <thead><tr><th>Estrategia</th><th>Lo que gana</th><th>Lo que arriesga</th></tr></thead>
+        <tbody>
+          <tr class="fragment"><td>Último o primero</td><td>Cero costo extra; es la del código de hoy</td><td>O(n²) con datos ordenados o casi ordenados, que son los más comunes</td></tr>
+          <tr class="fragment"><td>Elemento central</td><td>Igual de barata y sobrevive a los ordenados</td><td>Sigue siendo fácil construir la entrada que la hunde</td></tr>
+          <tr class="fragment"><td><span class="term" data-term="mediana-de-tres">Mediana de tres</span></td><td>Particiones más parejas en promedio; inmune a ordenados e inversos</td><td>Tres comparaciones por llamada, y existe el "median-of-3 killer"</td></tr>
+          <tr class="fragment"><td>Aleatorio</td><td>Ninguna entrada fija es mala: O(n log n) esperado, demostrable</td><td>Cuesta generar el número y dos corridas no se comportan igual</td></tr>
+          <tr class="fragment"><td>Vigilar profundidad (<span class="term" data-term="introselect">introsort</span>)</td><td>Garantiza O(n log n) también en el peor caso</td><td>Más código y hay que elegir el umbral</td></tr>
+        </tbody>
+      </table>
+      <p class="fragment">Las primeras cuatro apuestan a que el pivote salga bueno; la última deja de apostar y pone una red por debajo. Por eso <code>std::sort</code> combina aleatoriedad o mediana de tres <em>con</em> el cambio a heapsort.</p>
+    </section>
+
+    <!-- ============ QUIZ 2 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="a">
+        <p class="quiz-question">Quick Sort con pivote = primer elemento recibe un arreglo <em>ya ordenado</em>. ¿Qué complejidad tiene?</p>
+        <button class="quiz-option" data-opt="a">Θ(n²): cada partición separa 0 elementos de un lado y n−1 del otro.</button>
+        <button class="quiz-option" data-opt="b">O(n): el arreglo ya está ordenado y no hay nada que hacer.</button>
+        <button class="quiz-option" data-opt="c">O(n log n): quick sort tiene esa complejidad por diseño, con cualquier entrada.</button>
+        <div class="quiz-explain">
+          <strong>A.</strong> Con la entrada ordenada, el primer elemento siempre es el mínimo: la partición
+          queda totalmente desbalanceada y la recurrencia es T(n) = T(n−1) + Θ(n) = Θ(n²). La opción B
+          confunde con Insertion o Bubble optimizado — quick sort no detecta el orden. La C confunde el
+          caso <em>promedio</em> con una garantía: el peor caso existe, y ocurre justo con datos comunes.
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ POR QUÉ IMPORTA HOY ============ -->
+    <section>
+      <span class="kicker kicker-ai">Por qué importa hoy</span>
+      <h2><span class="term" data-term="top-k">Top-k</span>: la operación central de la recuperación</h2>
+      <div class="box-ai" data-label="Dónde vive esto en sistemas de IA">
+        <ul>
+          <li class="fragment">Un sistema de recuperación tiene un millón de documentos con puntaje de similitud y debe devolver los 5 mejores.</li>
+          <li class="fragment">Ordenar el millón completo cuesta O(n log n) — y tira a la basura el orden de 999 995 elementos que nadie pidió.</li>
+          <li class="fragment">Quickselect —el material extra del final— coloca los k mejores en tiempo O(n) promedio. Para flujos continuos, la alternativa es un heap de tamaño k (lo veremos en el bloque de árboles).</li>
+          <li class="fragment">Cada vez que un chatbot con RAG recupera contexto, hay una selección por partición o un heap ejecutándose detrás.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============ PRÁCTICA LAB ============ -->
+    <section>
+      <span class="kicker">Práctica de laboratorio · 45 min</span>
+      <h2>Los cinco algoritmos, a la báscula</h2>
+      <p>Comparativa empírica, no evaluable. En parejas:</p>
+      <ul>
+        <li class="fragment"><strong>Algoritmos:</strong> bubble (con bandera), selection, insertion, merge y quick (mediana de tres).</li>
+        <li class="fragment"><strong>Entradas:</strong> ordenada, inversa y aleatoria; n = 10³, 10⁴ y 10⁵.</li>
+        <li class="fragment"><strong>Medición:</strong> <code>steady_clock</code>, binario compilado con <code>-O2</code>, mediana de 3 corridas.</li>
+        <li class="fragment"><strong>Antes de correr:</strong> predigan cada celda de la tabla con la teoría del bloque.</li>
+      </ul>
+      <p class="fragment muted">Esta tabla es exactamente el tipo de evidencia empírica que la Act 1.5 pide el jueves para justificar la elección de algoritmo.</p>
+    </section>
+
+    <!-- ============ CIERRE STL ============ -->
+    <section>
+      <span class="kicker">Cierre STL</span>
+      <h2>Selección en la biblioteca estándar</h2>
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-4|6-7">
+// los k mejores al frente, sin orden interno garantizado: O(n) promedio
+std::nth_element(v.begin(), v.begin() + k, v.end(),
+                 [](auto&amp; a, auto&amp; b){ return a.score &gt; b.score; });
+// v[0..k) son los k mejores; v[k] es el k-ésimo
+
+// los k mejores, además ordenados entre sí: O(n log k)
+std::partial_sort(v.begin(), v.begin() + k, v.end());
+      </code></pre>
+      <ul>
+        <li class="fragment"><code>std::nth_element</code> es la versión de biblioteca de ese material extra: selección por partición: <span class="term" data-term="introselect">introselect</span> en la práctica, con respaldo por heapselect.</li>
+        <li class="fragment"><code>std::partition</code> y <code>std::stable_partition</code> exponen la partición como algoritmo independiente.</li>
+        <li class="fragment">Para los k mejores, <code>std::sort</code> hace trabajo de más.</li>
+      </ul>
+    </section>
+
+    <!-- ============ DIVIDER MATERIAL EXTRA ============ -->
+    <section class="divider">
+      <h2>Material extra · autoestudio</h2>
+      <p class="muted">Quickselect: encontrar el k-ésimo menor sin ordenar. No se cubre en clase; lo necesitas para el reto en parejas y para la Act 1.5.</p>
+    </section>
+
+    <!-- ============ QS IDEA ============ -->
+    <section>
+      <span class="kicker">Quickselect</span>
+      <h2>El k-ésimo menor, con la mitad del trabajo</h2>
+      <ul>
+        <li class="fragment">Problema: encontrar el k-ésimo menor de un arreglo desordenado (la mediana es k = n/2).</li>
+        <li class="fragment">Tras una partición, el pivote queda en el índice <code>p</code>. Si <code>p == k</code>, terminamos. Si <code>k &lt; p</code>, el k-ésimo está a la izquierda; si <code>k &gt; p</code>, a la derecha.</li>
+        <li class="fragment">La diferencia con Quick Sort: se recursa en <strong>una sola</strong> zona. La otra no contiene la respuesta y no se toca jamás.</li>
+      </ul>
+      <p class="fragment">Cada paso descarta una fracción del arreglo, igual que la búsqueda binaria descartaba mitades — pero aquí sin necesidad de orden previo, pagando Θ(n) por partición.</p>
+    </section>
+
+    <!-- ============ QS CÓDIGO ============ -->
+    <section>
+      <span class="kicker">Quickselect</span>
+      <h2>Codificación y análisis</h2>
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-7|3|4|5-6">
+int quickselect(std::vector&lt;int&gt;&amp; a, int lo, int hi, int k) {
+    if (lo == hi) return a[lo];
+    int p = particionLomuto(a, lo, hi);
+    if      (k == p) return a[k];
+    else if (k &lt; p)  return quickselect(a, lo, p - 1, k);
+    else             return quickselect(a, p + 1, hi, k);
+}
+      </code></pre>
+      <ul>
+        <li class="fragment">Costo esperado con particiones razonables: n + n/2 + n/4 + … ≤ 2n → <strong>O(n) promedio</strong>.</li>
+        <li class="fragment">Peor caso Θ(n²), heredado de la partición desbalanceada; con pivote aleatorio es improbable.</li>
+        <li class="fragment">Ordenar todo cuesta O(n log n); quickselect responde en O(n).</li>
+      </ul>
+    </section>
+
+    <!-- ============ QUIZ 3 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="c">
+        <p class="quiz-question">¿Por qué quickselect es O(n) promedio mientras Quick Sort es O(n log n)?</p>
+        <button class="quiz-option" data-opt="a">Porque quickselect usa una partición más eficiente que la de Quick Sort.</button>
+        <button class="quiz-option" data-opt="b">Porque quickselect solo funciona sobre arreglos previamente ordenados.</button>
+        <button class="quiz-option" data-opt="c">Porque recursa en una sola zona: el trabajo es n + n/2 + n/4 + … ≈ 2n, en vez de Θ(n) en cada uno de los log n niveles.</button>
+        <div class="quiz-explain">
+          <strong>C.</strong> Ambos usan la misma partición (A); la diferencia es cuántas ramas siguen vivas.
+          Quick Sort procesa las dos zonas (todos los niveles cuestan n en total); quickselect descarta una
+          zona completa en cada paso y la serie geométrica converge a 2n. La opción B lo confunde con
+          búsqueda binaria: quickselect trabaja precisamente sobre datos desordenados.
+        </div>
+      </div>
+    </section>
+
+<!-- ============ RETO EN PAREJAS ============ -->
+    <section>
+      <span class="kicker">Material extra · opcional</span>
+      <h2>Reto opcional en parejas</h2>
+      <div class="cols">
+        <div>
+          <h3>LC 215 — Kth Largest Element <span class="muted">[Media]</span></h3>
+          <p>Quickselect directo: el k-ésimo mayor sin ordenar el arreglo. Cuidado con la conversión entre "k-ésimo mayor" e índice de partición.</p>
+        </div>
+        <div>
+          <h3>LC 4 — Median of Two Sorted Arrays <span class="muted">[Alta]</span></h3>
+          <p>Selección por partición llevada a O(log(m+n)) sobre dos arreglos ordenados. Es duro, y es el siguiente escalón para quien ya domine el 215.</p>
+        </div>
+      </div>
+      <ul>
+        <li class="fragment">Los dos usan quickselect, que es el material extra de estas slides. Si lo trabajan, en parejas con roles: driver teclea y navigator revisa.</li>
+        <li class="fragment">No hay entrega ni registro. Es práctica para quien quiera llevar la sesión más lejos.</li>
+      </ul>
+    </section>
+
+    <!-- ============ PRÓXIMA SESIÓN ============ -->
+    <section class="divider">
+      <h2>Próxima sesión:<br>Act 1.5, actividad integral</h2>
+      <p class="muted" style="margin-top:1em;">Jueves, en laboratorio <strong>sin internet</strong>. Evidencia de competencia del bloque 1 (8 pts).<br>Preparen apuntes en papel y repasen las Act 1.1 a 1.4 y los retos.</p>
+    </section>
+
+        <!-- ============ REFERENCIAS ============ -->
+    <section>
+      <span class="kicker">Sesión 9</span>
+      <h2>Referencias y material para profundizar</h2>
+      <div class="refs cols">
+        <div>
+          <h3>Referencias</h3>
+          <ul>
+            <li><span class="ref-type">Libro</span> Cormen, T. et al. <em>Introduction to Algorithms</em>, 4.ª ed., MIT Press, 2022. Caps. 7 (quicksort) y 9 (estadísticos de orden).</li>
+            <li><span class="ref-type">Libro</span> Sedgewick, R. y Wayne, K. <em>Algorithms</em>, 4.ª ed., Addison-Wesley, 2011. Secc. 2.3.</li>
+            <li><span class="ref-type">Paper</span> Hoare, C. A. R. "Quicksort", <em>The Computer Journal</em> 5(1), 1962.</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Para profundizar</h3>
+          <ul>
+            <li><span class="ref-type">Web</span> <a href="https://en.cppreference.com/w/cpp/algorithm/nth_element">cppreference — std::nth_element</a> <span class="ref-nota">— el contrato exacto de la selección por partición de la STL.</span></li>
+            <li><span class="ref-type">Paper</span> <a href="https://doi.org/10.1093/comjnl/5.1.10">Hoare, "Quicksort" (DOI)</a> <span class="ref-nota">— el paper original de 1962: cuatro páginas legibles.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://visualgo.net/en/sorting">VisuAlgo — Sorting</a> <span class="ref-nota">— quick sort animado con distintas entradas, para repasar el efecto del pivote.</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script src="../js/curso-slides.js"></script>
+<script>
+  Reveal.initialize({
+    width: 1280,
+    height: 720,
+    margin: 0.06,
+    hash: true,
+    progress: true,
+    slideNumber: 'c/t',
+    controls: true,
+    transition: 'slide',
+    transitionSpeed: 'fast',
+    plugins: [ RevealHighlight ]
+  }).then(() => {
+    CursoSlides.init({
+      pivote: {
+        titulo: "Pivote",
+        def: "Elemento de referencia de la partición: los menores quedan a su izquierda y los mayores a su derecha. Su valor determina el balance de las dos zonas y, con ello, si quick sort corre en Θ(n log n) o degenera a Θ(n²)."
+      },
+      particion: {
+        titulo: "Partición",
+        def: "Reacomodo del arreglo alrededor de un pivote en una sola pasada Θ(n). Lomuto usa una frontera que avanza; Hoare usa dos índices desde los extremos. Es la operación base de quick sort, quickselect y <code>std::nth_element</code>."
+      },
+      "mediana-de-tres": {
+        titulo: "Mediana de tres",
+        def: "Estrategia de pivote: tomar la mediana de los elementos en las posiciones primera, central y última. Neutraliza las entradas ordenadas e inversas con costo O(1), aunque existen entradas adversas construidas a propósito."
+      },
+      introselect: {
+        titulo: "Introselect",
+        def: "Versión industrial de quickselect (Musser): corre selección por partición y, si la recursión excede un límite de profundidad, cambia a un método con peor caso garantizado. Es lo que implementa <code>std::nth_element</code>."
+      },
+      "top-k": {
+        titulo: "Top-k",
+        def: "Operación de devolver los k elementos con mejor puntaje de una colección de n, con k ≪ n. Se resuelve con selección por partición (O(n) promedio) o con un heap de tamaño k (O(n log k)), no ordenando la colección completa."
+      }
+    });
+  });
+</script>
+</body>
+</html>
