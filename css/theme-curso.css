@@ -488,11 +488,233 @@
   right: 20px; bottom: 14px;
 }
 
+/* ============================================================
+   SIMULADOR DE PARTICIÓN (Lomuto / Hoare)
+   Lo construye CursoSlides.initParticion a partir de
+   <div class="sim-particion" data-alg="…" data-array="…">.
+   Un paso del simulador = un fragment del slide.
+   ============================================================ */
+
+.reveal .sim-particion {
+  --sim-cols: 8;
+  display: flex;
+  flex-direction: column;
+  gap: 0.20em;
+  font-size: 1em;
+}
+
+/* ---------- La cinta de casillas ---------- */
+.reveal .sim-cinta,
+.reveal .sim-zonas {
+  display: grid;
+  grid-template-columns: repeat(var(--sim-cols), 1fr);
+  gap: 0 0.22em;
+  width: 100%;
+  max-width: 26em;
+}
+
+.reveal .sim-col { display: flex; flex-direction: column; align-items: stretch; }
+
+/* fila de punteros, encima de las casillas */
+.reveal .sim-ptr {
+  height: 1.05em;
+  display: flex; justify-content: center; align-items: flex-end; gap: 0.24em;
+  font-family: var(--font-mono);
+  font-size: 0.58em;
+  font-weight: 700;
+  line-height: 1;
+}
+.reveal .sim-ptr span {
+  opacity: 0;
+  transform: translateY(-0.28em);
+  transition: opacity .18s ease, transform .18s ease;
+  padding: 0.14em 0.34em;
+  border-radius: 0.3em;
+  color: #fff;
+}
+.reveal .sim-ptr .pi { background: var(--c-accent); }
+.reveal .sim-ptr .pj { background: var(--c-err); }
+.reveal .sim-col.has-i .sim-ptr .pi,
+.reveal .sim-col.has-j .sim-ptr .pj { opacity: 1; transform: none; }
+
+/* la casilla */
+.reveal .sim-celda {
+  height: 1.72em;
+  display: flex; align-items: center; justify-content: center;
+  border: 3px solid var(--c-ink);
+  border-radius: 8px;
+  background: var(--c-bg);
+  font-family: var(--font-mono);
+  font-size: 0.82em;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  transition: background .18s ease, border-color .18s ease, transform .18s ease;
+}
+.reveal .sim-col.ghost .sim-celda {
+  border-style: dashed;
+  border-color: var(--c-line);
+  background: transparent;
+}
+
+/* estados de casilla */
+.reveal .sim-col.mk-i  .sim-celda { border-color: var(--c-accent); background: var(--c-accent-bg); }
+.reveal .sim-col.mk-j  .sim-celda { border-color: var(--c-err);    background: var(--c-err-bg); }
+.reveal .sim-col.mk-sw .sim-celda { border-color: var(--c-ok);     background: var(--c-ok-bg); transform: translateY(-0.12em); }
+.reveal .sim-col.mk-p  .sim-celda { border-color: var(--c-accent); border-style: dashed; border-width: 4px; }
+.reveal .sim-col.mk-f  .sim-celda { border-color: var(--c-ok);     background: var(--c-ok-bg); }
+
+/* número de índice, debajo */
+.reveal .sim-idx {
+  height: 1em;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 0.52em;
+  color: var(--c-ink-soft);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.5;
+}
+.reveal .sim-col.ghost .sim-idx { opacity: .55; }
+
+/* ---------- Llaves de las zonas finales ---------- */
+.reveal .sim-zonas { height: 0.92em; }
+.reveal .sim-zona {
+  border-top: 4px solid var(--c-ok);
+  border-radius: 0;
+  margin-top: 0.1em;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 0.52em;
+  font-weight: 700;
+  color: var(--c-ok);
+  line-height: 1.7;
+  opacity: 0;
+  transition: opacity .25s ease;
+}
+.reveal .sim-zona.on { opacity: 1; }
+.reveal .sim-zona.piv { border-top-color: var(--c-accent); color: var(--c-accent); }
+
+/* ---------- Barra de estado + controles ---------- */
+.reveal .sim-barra {
+  display: flex; align-items: center; gap: 0.34em;
+  flex-wrap: nowrap;
+  min-height: 1.35em;
+}
+.reveal .sim-chip {
+  font-family: var(--font-mono);
+  font-size: 0.56em;
+  font-weight: 700;
+  padding: 0.24em 0.55em;
+  border-radius: 0.36em;
+  background: var(--c-code-bg);
+  color: var(--c-ink);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.reveal .sim-chip.ci { background: var(--c-accent-bg); color: var(--c-accent); }
+.reveal .sim-chip.cj { background: var(--c-err-bg);    color: var(--c-err); }
+.reveal .sim-test {
+  font-family: var(--font-mono);
+  font-size: 0.56em;
+  color: var(--c-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.reveal .sim-ctrl { display: flex; align-items: center; gap: 0.2em; flex: 0 0 auto; }
+.reveal .sim-ctrl button {
+  font-family: var(--font-sans);
+  font-size: 0.55em;
+  font-weight: 700;
+  line-height: 1;
+  padding: 0.34em 0.6em;
+  border: 2px solid var(--c-line);
+  border-radius: 0.4em;
+  background: var(--c-bg);
+  color: var(--c-ink);
+  cursor: pointer;
+}
+.reveal .sim-ctrl button:hover:not(:disabled) { border-color: var(--c-accent); color: var(--c-accent); }
+.reveal .sim-ctrl button:disabled { opacity: .35; cursor: default; }
+.reveal .sim-ctrl button:focus-visible { outline: 3px solid var(--c-accent); outline-offset: 2px; }
+.reveal .sim-cont {
+  font-family: var(--font-mono);
+  font-size: 0.52em;
+  color: var(--c-ink-soft);
+  font-variant-numeric: tabular-nums;
+  padding: 0 0.24em;
+  white-space: nowrap;
+}
+
+/* ---------- Parte baja: código | explicación del paso ---------- */
+.reveal .sim-abajo {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55em;
+  width: 100%;
+}
+
+.reveal .sim-dice {
+  margin: 0;
+  flex: 1 1 0;
+  min-width: 11em;
+  font-size: 0.66em;
+  line-height: 1.34;
+  min-height: 5.4em;       /* alto fijo: el layout no salta entre pasos */
+}
+.reveal .sim-dice b { color: var(--c-accent); font-weight: 700; }
+.reveal .sim-dice code {
+  font-size: 0.92em;
+  background: var(--c-code-bg);
+  padding: 0.05em 0.24em;
+  border-radius: 4px;
+}
+
+/* ---------- Panel de código con la línea activa ---------- */
+.reveal .sim-codigo {
+  flex: 0 0 auto;
+  width: auto;             /* gana a .reveal pre { width: 100% } del tema */
+  max-width: 52%;
+  margin: 0;
+  background: var(--c-code-panel);
+  border-radius: 12px;
+  padding: 0.42em 0;
+  font-family: var(--font-mono);
+  font-size: 0.72em;       /* mínimo proyectable: ~24px en el lienzo de 1280 */
+  line-height: 1.42;
+  overflow-x: auto;
+  color: #e8eaf0;
+}
+.reveal .sim-linea {
+  padding: 0 0.9em;
+  white-space: pre;
+  border-left: 4px solid transparent;
+  transition: background .18s ease;
+}
+.reveal .sim-linea.on { background: rgba(130,171,245,.20); border-left-color: #82abf5; }
+.reveal .sim-codigo .kw  { color: #ff7b72; }
+.reveal .sim-codigo .num { color: #79c0ff; }
+.reveal .sim-codigo .fn  { color: #d2a8ff; }
+.reveal .sim-codigo .cm  { color: #8b949e; }
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal .sim-celda,
+  .reveal .sim-ptr span,
+  .reveal .sim-zona,
+  .reveal .sim-linea { transition: none; }
+}
+
 /* ---------- Móvil ---------- */
 @media (max-width: 760px) {
   .reveal .cols { flex-direction: column; gap: 0.4em; }
   .glossary-card { font-size: 18px; padding: 20px; }
   .reveal pre { font-size: 0.7em; }
+  .reveal .sim-barra { flex-wrap: wrap; }
+  .reveal .sim-test { flex-basis: 100%; order: 3; }
+  .reveal .sim-abajo { flex-direction: column; gap: 0.35em; }
+  .reveal .sim-codigo { width: 100%; }
+  .reveal .sim-dice { min-height: 0; }
 }
 
 /* ---------- Impresión / PDF ---------- */
@@ -500,4 +722,5 @@
   .reveal .quiz-explain { display: block; }
   .reveal .solucion-body { display: block; }
   .reveal .solucion-toggle { display: none; }
+  .reveal .sim-ctrl { display: none; }
 }

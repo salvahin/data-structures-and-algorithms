@@ -122,70 +122,8 @@
     <!-- ============ 5.5 SVG LOMUTO ============ -->
     <section>
       <span class="kicker">5.5 · Quick Sort</span>
-      <h2>Lomuto paso a paso: pivote p = 4</h2>
-      <p><code>j</code> recorre, <code>i</code> marca la frontera de los menores.</p>
-      <svg viewBox="0 0 1100 420" style="width:100%; max-height:352px;">
-        <g>
-          <rect class="svg-node" x="40" y="16" width="62" height="52" rx="8"/><text class="svg-label" x="71" y="51" text-anchor="middle" style="font-size:23px;">3</text>
-          <rect class="svg-node" x="108" y="16" width="62" height="52" rx="8"/><text class="svg-label" x="139" y="51" text-anchor="middle" style="font-size:23px;">8</text>
-          <rect class="svg-node" x="176" y="16" width="62" height="52" rx="8"/><text class="svg-label" x="207" y="51" text-anchor="middle" style="font-size:23px;">2</text>
-          <rect class="svg-node" x="244" y="16" width="62" height="52" rx="8"/><text class="svg-label" x="275" y="51" text-anchor="middle" style="font-size:23px;">5</text>
-          <rect class="svg-node" x="312" y="16" width="62" height="52" rx="8"/><text class="svg-label" x="343" y="51" text-anchor="middle" style="font-size:23px;">7</text>
-          <rect fill="none" stroke="#0b57d0" stroke-width="5" x="380" y="16" width="62" height="52" rx="8"/><text class="svg-label" x="411" y="51" text-anchor="middle" style="font-size:23px;">4</text>
-          <text class="svg-label" x="490" y="51" style="font-size:21px;">inicial · pivote = a[hi] = 4 · i = 0</text>
-        </g>
-        <g class="anim-step" data-step="1">
-          <rect class="svg-node-hl" x="40" y="82" width="62" height="52" rx="8"/><text class="svg-label" x="71" y="117" text-anchor="middle" style="font-size:23px;">3</text>
-          <rect class="svg-node" x="108" y="82" width="62" height="52" rx="8"/><text class="svg-label" x="139" y="117" text-anchor="middle" style="font-size:23px;">8</text>
-          <rect class="svg-node" x="176" y="82" width="62" height="52" rx="8"/><text class="svg-label" x="207" y="117" text-anchor="middle" style="font-size:23px;">2</text>
-          <rect class="svg-node" x="244" y="82" width="62" height="52" rx="8"/><text class="svg-label" x="275" y="117" text-anchor="middle" style="font-size:23px;">5</text>
-          <rect class="svg-node" x="312" y="82" width="62" height="52" rx="8"/><text class="svg-label" x="343" y="117" text-anchor="middle" style="font-size:23px;">7</text>
-          <rect class="svg-node" x="380" y="82" width="62" height="52" rx="8"/><text class="svg-label" x="411" y="117" text-anchor="middle" style="font-size:23px;">4</text>
-          <text class="svg-label" x="490" y="117" style="font-size:21px;">j=0 · 3 &lt; 4 → ya está en la zona de menores · i = 1</text>
-        </g>
-        <g class="anim-step" data-step="2">
-          <rect class="svg-node" x="40" y="148" width="62" height="52" rx="8"/><text class="svg-label" x="71" y="183" text-anchor="middle" style="font-size:23px;">3</text>
-          <rect class="svg-node" style="opacity:.5" x="108" y="148" width="62" height="52" rx="8"/><text class="svg-label" x="139" y="183" text-anchor="middle" style="font-size:23px;">8</text>
-          <rect class="svg-node" x="176" y="148" width="62" height="52" rx="8"/><text class="svg-label" x="207" y="183" text-anchor="middle" style="font-size:23px;">2</text>
-          <rect class="svg-node" x="244" y="148" width="62" height="52" rx="8"/><text class="svg-label" x="275" y="183" text-anchor="middle" style="font-size:23px;">5</text>
-          <rect class="svg-node" x="312" y="148" width="62" height="52" rx="8"/><text class="svg-label" x="343" y="183" text-anchor="middle" style="font-size:23px;">7</text>
-          <rect class="svg-node" x="380" y="148" width="62" height="52" rx="8"/><text class="svg-label" x="411" y="183" text-anchor="middle" style="font-size:23px;">4</text>
-          <text class="svg-label" x="490" y="183" style="font-size:21px;">j=1 · 8 ≥ 4 → j avanza, i se queda en 1</text>
-        </g>
-        <g class="anim-step" data-step="3">
-          <rect class="svg-node" x="40" y="214" width="62" height="52" rx="8"/><text class="svg-label" x="71" y="249" text-anchor="middle" style="font-size:23px;">3</text>
-          <rect class="svg-node-hl" x="108" y="214" width="62" height="52" rx="8"/><text class="svg-label" x="139" y="249" text-anchor="middle" style="font-size:23px;">2</text>
-          <rect class="svg-node-hl" x="176" y="214" width="62" height="52" rx="8"/><text class="svg-label" x="207" y="249" text-anchor="middle" style="font-size:23px;">8</text>
-          <rect class="svg-node" x="244" y="214" width="62" height="52" rx="8"/><text class="svg-label" x="275" y="249" text-anchor="middle" style="font-size:23px;">5</text>
-          <rect class="svg-node" x="312" y="214" width="62" height="52" rx="8"/><text class="svg-label" x="343" y="249" text-anchor="middle" style="font-size:23px;">7</text>
-          <rect class="svg-node" x="380" y="214" width="62" height="52" rx="8"/><text class="svg-label" x="411" y="249" text-anchor="middle" style="font-size:23px;">4</text>
-          <text class="svg-label" x="490" y="249" style="font-size:21px;">j=2 · 2 &lt; 4 → swap con la frontera (el 8) · i = 2</text>
-        </g>
-        <g class="anim-step" data-step="4">
-          <rect class="svg-node" x="40" y="280" width="62" height="52" rx="8"/><text class="svg-label" x="71" y="315" text-anchor="middle" style="font-size:23px;">3</text>
-          <rect class="svg-node" x="108" y="280" width="62" height="52" rx="8"/><text class="svg-label" x="139" y="315" text-anchor="middle" style="font-size:23px;">2</text>
-          <rect class="svg-node" x="176" y="280" width="62" height="52" rx="8"/><text class="svg-label" x="207" y="315" text-anchor="middle" style="font-size:23px;">8</text>
-          <rect class="svg-node" style="opacity:.5" x="244" y="280" width="62" height="52" rx="8"/><text class="svg-label" x="275" y="315" text-anchor="middle" style="font-size:23px;">5</text>
-          <rect class="svg-node" style="opacity:.5" x="312" y="280" width="62" height="52" rx="8"/><text class="svg-label" x="343" y="315" text-anchor="middle" style="font-size:23px;">7</text>
-          <rect class="svg-node" x="380" y="280" width="62" height="52" rx="8"/><text class="svg-label" x="411" y="315" text-anchor="middle" style="font-size:23px;">4</text>
-          <text class="svg-label" x="490" y="315" style="font-size:21px;">j=3 y j=4 · 5 y 7 ≥ 4 → solo avanza j</text>
-        </g>
-        <g class="anim-step" data-step="5">
-          <rect class="svg-node" x="40" y="346" width="62" height="52" rx="8"/><text class="svg-label" x="71" y="381" text-anchor="middle" style="font-size:23px;">3</text>
-          <rect class="svg-node" x="108" y="346" width="62" height="52" rx="8"/><text class="svg-label" x="139" y="381" text-anchor="middle" style="font-size:23px;">2</text>
-          <rect fill="none" stroke="#146c2e" stroke-width="5" x="176" y="346" width="62" height="52" rx="8"/><text class="svg-label" x="207" y="381" text-anchor="middle" style="font-size:23px;">4</text>
-          <rect class="svg-node" x="244" y="346" width="62" height="52" rx="8"/><text class="svg-label" x="275" y="381" text-anchor="middle" style="font-size:23px;">5</text>
-          <rect class="svg-node" x="312" y="346" width="62" height="52" rx="8"/><text class="svg-label" x="343" y="381" text-anchor="middle" style="font-size:23px;">7</text>
-          <rect class="svg-node" x="380" y="346" width="62" height="52" rx="8"/><text class="svg-label" x="411" y="381" text-anchor="middle" style="font-size:23px;">8</text>
-          <text class="svg-label" x="490" y="381" style="font-size:21px;">swap(a[i], a[hi]) · el 4 llega a su lugar final: índice 2</text>
-        </g>
-      </svg>
-      <span class="fragment"></span>
-      <span class="fragment"></span>
-      <span class="fragment"></span>
-      <span class="fragment"></span>
-      <span class="fragment"></span>
-      <p class="muted">Esquema de Nico Lomuto, difundido por Bentley en <em>Programming Pearls</em>.</p>
+      <h2>Lomuto paso a paso</h2>
+      <div class="sim-particion" data-alg="lomuto" data-array="3,8,2,5,7,4"></div>
     </section>
 
     <!-- ============ 5.5 LOMUTO CÓDIGO ============ -->
@@ -230,76 +168,9 @@ void quickSort(std::vector&lt;int&gt;&amp; a, int lo, int hi) {
     <!-- ============ HOARE PASO A PASO ============ -->
     <section>
       <span class="kicker">5.5 · Quick Sort</span>
-      <h2>Hoare paso a paso: pivote p = 5</h2>
-      <p><code>i</code> avanza desde la izquierda, <code>j</code> retrocede desde la derecha.</p>
-      <svg viewBox="0 0 1100 420" style="width:100%; max-height:376px;">
-        <g>
-          <rect class="svg-node" x="40" y="16" width="62" height="52" rx="8"/><text class="svg-label" x="71" y="51" text-anchor="middle" style="font-size:23px;">7</text>
-          <rect class="svg-node" x="108" y="16" width="62" height="52" rx="8"/><text class="svg-label" x="139" y="51" text-anchor="middle" style="font-size:23px;">8</text>
-          <rect fill="none" stroke="#0b57d0" stroke-width="5" x="176" y="16" width="62" height="52" rx="8"/><text class="svg-label" x="207" y="51" text-anchor="middle" style="font-size:23px;">5</text>
-          <rect class="svg-node" x="244" y="16" width="62" height="52" rx="8"/><text class="svg-label" x="275" y="51" text-anchor="middle" style="font-size:23px;">2</text>
-          <rect class="svg-node" x="312" y="16" width="62" height="52" rx="8"/><text class="svg-label" x="343" y="51" text-anchor="middle" style="font-size:23px;">1</text>
-          <rect class="svg-node" x="380" y="16" width="62" height="52" rx="8"/><text class="svg-label" x="411" y="51" text-anchor="middle" style="font-size:23px;">6</text>
-          <text class="svg-label" x="490" y="51" style="font-size:21px;">inicial · pivote = a[mid] = 5 · i y j empiezan fuera</text>
-        </g>
-        <g class="anim-step" data-step="1">
-          <rect fill="#e8f0fe" stroke="#0b57d0" stroke-width="4" x="40" y="82" width="62" height="52" rx="8"/><text class="svg-label" x="71" y="117" text-anchor="middle" style="font-size:23px;">7</text>
-          <text x="47" y="99" fill="#0b57d0" style="font-size:16px; font-weight:700;">i</text>
-          <rect class="svg-node" x="108" y="82" width="62" height="52" rx="8"/><text class="svg-label" x="139" y="117" text-anchor="middle" style="font-size:23px;">8</text>
-          <rect class="svg-node" x="176" y="82" width="62" height="52" rx="8"/><text class="svg-label" x="207" y="117" text-anchor="middle" style="font-size:23px;">5</text>
-          <rect class="svg-node" x="244" y="82" width="62" height="52" rx="8"/><text class="svg-label" x="275" y="117" text-anchor="middle" style="font-size:23px;">2</text>
-          <rect fill="#fce8e6" stroke="#b3261e" stroke-width="4" x="312" y="82" width="62" height="52" rx="8"/><text class="svg-label" x="343" y="117" text-anchor="middle" style="font-size:23px;">1</text>
-          <text x="360" y="99" fill="#b3261e" style="font-size:16px; font-weight:700;">j</text>
-          <rect class="svg-node" x="380" y="82" width="62" height="52" rx="8"/><text class="svg-label" x="411" y="117" text-anchor="middle" style="font-size:23px;">6</text>
-          <text class="svg-label" x="490" y="117" style="font-size:21px;">i se detiene en 7 · j se detiene en 1</text>
-        </g>
-        <g class="anim-step" data-step="2">
-          <rect class="svg-node-hl" x="40" y="148" width="62" height="52" rx="8"/><text class="svg-label" x="71" y="183" text-anchor="middle" style="font-size:23px;">1</text>
-          <rect class="svg-node" x="108" y="148" width="62" height="52" rx="8"/><text class="svg-label" x="139" y="183" text-anchor="middle" style="font-size:23px;">8</text>
-          <rect class="svg-node" x="176" y="148" width="62" height="52" rx="8"/><text class="svg-label" x="207" y="183" text-anchor="middle" style="font-size:23px;">5</text>
-          <rect class="svg-node" x="244" y="148" width="62" height="52" rx="8"/><text class="svg-label" x="275" y="183" text-anchor="middle" style="font-size:23px;">2</text>
-          <rect class="svg-node-hl" x="312" y="148" width="62" height="52" rx="8"/><text class="svg-label" x="343" y="183" text-anchor="middle" style="font-size:23px;">7</text>
-          <rect class="svg-node" x="380" y="148" width="62" height="52" rx="8"/><text class="svg-label" x="411" y="183" text-anchor="middle" style="font-size:23px;">6</text>
-          <text class="svg-label" x="490" y="183" style="font-size:21px;">swap → el 1 a la izquierda, el 7 a la derecha</text>
-        </g>
-        <g class="anim-step" data-step="3">
-          <rect class="svg-node" x="40" y="214" width="62" height="52" rx="8"/><text class="svg-label" x="71" y="249" text-anchor="middle" style="font-size:23px;">1</text>
-          <rect fill="#e8f0fe" stroke="#0b57d0" stroke-width="4" x="108" y="214" width="62" height="52" rx="8"/><text class="svg-label" x="139" y="249" text-anchor="middle" style="font-size:23px;">8</text>
-          <text x="115" y="231" fill="#0b57d0" style="font-size:16px; font-weight:700;">i</text>
-          <rect class="svg-node" x="176" y="214" width="62" height="52" rx="8"/><text class="svg-label" x="207" y="249" text-anchor="middle" style="font-size:23px;">5</text>
-          <rect fill="#fce8e6" stroke="#b3261e" stroke-width="4" x="244" y="214" width="62" height="52" rx="8"/><text class="svg-label" x="275" y="249" text-anchor="middle" style="font-size:23px;">2</text>
-          <text x="292" y="231" fill="#b3261e" style="font-size:16px; font-weight:700;">j</text>
-          <rect class="svg-node" x="312" y="214" width="62" height="52" rx="8"/><text class="svg-label" x="343" y="249" text-anchor="middle" style="font-size:23px;">7</text>
-          <rect class="svg-node" x="380" y="214" width="62" height="52" rx="8"/><text class="svg-label" x="411" y="249" text-anchor="middle" style="font-size:23px;">6</text>
-          <text class="svg-label" x="490" y="249" style="font-size:21px;">i se detiene en 8 · j se detiene en 2</text>
-        </g>
-        <g class="anim-step" data-step="4">
-          <rect class="svg-node" x="40" y="280" width="62" height="52" rx="8"/><text class="svg-label" x="71" y="315" text-anchor="middle" style="font-size:23px;">1</text>
-          <rect class="svg-node-hl" x="108" y="280" width="62" height="52" rx="8"/><text class="svg-label" x="139" y="315" text-anchor="middle" style="font-size:23px;">2</text>
-          <rect class="svg-node" x="176" y="280" width="62" height="52" rx="8"/><text class="svg-label" x="207" y="315" text-anchor="middle" style="font-size:23px;">5</text>
-          <rect class="svg-node-hl" x="244" y="280" width="62" height="52" rx="8"/><text class="svg-label" x="275" y="315" text-anchor="middle" style="font-size:23px;">8</text>
-          <rect class="svg-node" x="312" y="280" width="62" height="52" rx="8"/><text class="svg-label" x="343" y="315" text-anchor="middle" style="font-size:23px;">7</text>
-          <rect class="svg-node" x="380" y="280" width="62" height="52" rx="8"/><text class="svg-label" x="411" y="315" text-anchor="middle" style="font-size:23px;">6</text>
-          <text class="svg-label" x="490" y="315" style="font-size:21px;">swap → el 2 a la izquierda, el 8 a la derecha</text>
-        </g>
-        <g class="anim-step" data-step="5">
-          <rect class="svg-node" x="40" y="346" width="62" height="52" rx="8"/><text class="svg-label" x="71" y="381" text-anchor="middle" style="font-size:23px;">1</text>
-          <rect class="svg-node" x="108" y="346" width="62" height="52" rx="8"/><text class="svg-label" x="139" y="381" text-anchor="middle" style="font-size:23px;">2</text>
-          <rect fill="#e6f4ea" stroke="#146c2e" stroke-width="5" x="176" y="346" width="62" height="52" rx="8"/><text class="svg-label" x="207" y="381" text-anchor="middle" style="font-size:23px;">5</text>
-          <text x="183" y="363" fill="#0b57d0" style="font-size:16px; font-weight:700;">i</text>
-          <text x="224" y="363" fill="#b3261e" style="font-size:16px; font-weight:700;">j</text>
-          <rect class="svg-node" x="244" y="346" width="62" height="52" rx="8"/><text class="svg-label" x="275" y="381" text-anchor="middle" style="font-size:23px;">8</text>
-          <rect class="svg-node" x="312" y="346" width="62" height="52" rx="8"/><text class="svg-label" x="343" y="381" text-anchor="middle" style="font-size:23px;">7</text>
-          <rect class="svg-node" x="380" y="346" width="62" height="52" rx="8"/><text class="svg-label" x="411" y="381" text-anchor="middle" style="font-size:23px;">6</text>
-          <text class="svg-label" x="490" y="381" style="font-size:21px;">i y j se encuentran en el 5 → devuelve j = 2</text>
-        </g>
-      </svg>
-      <span class="fragment"></span>
-      <span class="fragment"></span>
-      <span class="fragment"></span>
-      <span class="fragment"></span>
-      <span class="fragment"></span>
-      <p class="fragment muted">El 5 quedó dentro de la zona izquierda, sin posición final. Es la partición original de Hoare, <em>Algorithm 63/64</em>, CACM 4(7), 1961.</p>
+      <h2>Hoare paso a paso</h2>
+      <div class="sim-particion" data-alg="hoare" data-array="7,8,5,2,1,6"></div>
+      <p class="muted" style="font-size:.52em; margin:.15em 0 0;">Partición original de Hoare, <em>Algorithm 63/64</em>, CACM 4(7), 1961.</p>
     </section>
 
     <!-- ============ 5.5 HOARE ============ -->
