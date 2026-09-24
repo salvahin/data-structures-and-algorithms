@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+  <script>try{if(localStorage.getItem("curso-tema")==="dark"&&!/print-pdf/i.test(location.search))document.documentElement.dataset.theme="dark"}catch(e){}</script>
   <link rel="stylesheet" href="../css/theme-curso.css">
 </head>
 <body>
@@ -118,7 +119,7 @@ d.empty();        // ¿ninguno?
       <h2>Qué ocurre cuando ya no cabe</h2>
       <svg viewBox="0 25 1100 305">
         <g class="anim-step" data-step="0" data-step-off="4">
-          <text class="svg-label" x="60" y="45" style="font-size:22px;fill:#4b5260">bloque actual · capacity 4 · size 4</text>
+          <text class="svg-label" x="60" y="45" style="font-size:22px;fill:var(--c-ink-soft)">bloque actual · capacity 4 · size 4</text>
           <rect class="svg-node" x="60"  y="60" width="80" height="70" rx="8"/>
           <rect class="svg-node" x="140" y="60" width="80" height="70" rx="8"/>
           <rect class="svg-node" x="220" y="60" width="80" height="70" rx="8"/>
@@ -132,7 +133,7 @@ d.empty();        // ¿ninguno?
           <text class="svg-label" x="430" y="105" style="font-size:22px">v.push_back(50); no cabe</text>
         </g>
         <g class="anim-step" data-step="2">
-          <text class="svg-label" x="60" y="235" style="font-size:22px;fill:#4b5260">bloque nuevo · capacity 8</text>
+          <text class="svg-label" x="60" y="235" style="font-size:22px;fill:var(--c-ink-soft)">bloque nuevo · capacity 8</text>
           <rect class="svg-node" x="60"  y="250" width="80" height="70" rx="8"/>
           <rect class="svg-node" x="140" y="250" width="80" height="70" rx="8"/>
           <rect class="svg-node" x="220" y="250" width="80" height="70" rx="8"/>
@@ -158,7 +159,7 @@ d.empty();        // ¿ninguno?
         <g class="anim-step" data-step="4">
           <rect class="svg-node-hl" x="380" y="250" width="80" height="70" rx="8"/>
           <text class="svg-label" x="420" y="295" text-anchor="middle">50</text>
-          <text class="svg-label" x="60" y="105" style="font-size:22px;fill:#4b5260">el bloque viejo se libera</text>
+          <text class="svg-label" x="60" y="105" style="font-size:22px;fill:var(--c-ink-soft)">el bloque viejo se libera</text>
         </g>
       </svg>
       <span class="fragment"></span>
@@ -411,6 +412,7 @@ git push
           </ul>
         </div>
       </div>
+      <p class="refs-ia">Nota: estas diapositivas fueron generadas usando inteligencia artificial, específicamente Claude (Anthropic).</p>
     </section>
 
   </div>

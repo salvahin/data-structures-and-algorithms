@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+  <script>try{if(localStorage.getItem("curso-tema")==="dark"&&!/print-pdf/i.test(location.search))document.documentElement.dataset.theme="dark"}catch(e){}</script>
   <link rel="stylesheet" href="../css/theme-curso.css">
 </head>
 <body>
@@ -23,33 +24,6 @@
         Sesión 8 · Semana 4<br>
         Salvador Hinojosa
       </div>
-    </section>
-
-    <!-- ============ RETO ANTERIOR ============ -->
-    <section>
-      <span class="kicker">Apertura · Reto anterior (5 min)</span>
-      <h2>¿Cómo les fue con las particiones?</h2>
-      <p>Una pareja pasa a explicar su enfoque de la sesión 7:</p>
-      <ul>
-        <li class="fragment"><strong>LC 75 — Sort Colors.</strong> ¿Cómo mantuvieron las tres zonas (0s, 1s, 2s) con una sola pasada? ¿Qué invariante cumplen sus tres índices?</li>
-        <li class="fragment"><strong>LC 41 — First Missing Positive.</strong> ¿Cómo usaron el propio arreglo como tabla de posiciones sin memoria extra?</li>
-        <li class="fragment">Pregunta para el grupo: ¿por qué en el 75 no basta con contar los 0s, 1s y 2s y reescribir el arreglo? (Sí basta — ¿qué ventaja tiene entonces la versión de una pasada?)</li>
-      </ul>
-    </section>
-
-    <!-- ============ AGENDA ============ -->
-    <section>
-      <span class="kicker">Sesión 8 · Agenda</span>
-      <h2>Qué vamos a ver hoy</h2>
-      <table>
-        <tbody>
-          <tr><td>35 min</td><td>5.3 Insertion Sort: código, análisis, por qué es el mejor elemental</td></tr>
-          <tr><td>10 min</td><td>Presentación: algoritmos de ordenamiento avanzados</td></tr>
-          <tr><td>50 min</td><td>5.4 Merge Sort: divide y vencerás, <code>merge</code>, recurrencia</td></tr>
-          <tr><td>10 min</td><td>La cota inferior Ω(n log n)</td></tr>
-          <tr><td>25 min</td><td>Cierre STL · Reto en parejas</td></tr>
-        </tbody>
-      </table>
     </section>
 
     <!-- ============ OBJETIVO ============ -->
@@ -119,7 +93,7 @@
         <g class="anim-step" data-step="3">
           <rect class="svg-node" x="40" y="330" width="62" height="60" rx="8"/><text class="svg-label" x="71" y="368" text-anchor="middle" style="font-size:24px;">3</text>
           <rect class="svg-node" x="108" y="330" width="62" height="60" rx="8"/><text class="svg-label" x="139" y="368" text-anchor="middle" style="font-size:24px;">7</text>
-          <rect x="176" y="330" width="62" height="60" rx="8" fill="none" stroke="#146c2e" stroke-width="5"/><text class="svg-label" x="207" y="368" text-anchor="middle" style="font-size:24px;">8</text>
+          <rect x="176" y="330" width="62" height="60" rx="8" fill="none" stroke-width="5" class="s-ok"/><text class="svg-label" x="207" y="368" text-anchor="middle" style="font-size:24px;">8</text>
           <rect class="svg-node" x="244" y="330" width="62" height="60" rx="8"/><text class="svg-label" x="275" y="368" text-anchor="middle" style="font-size:24px;">9</text>
           <rect class="svg-node" x="312" y="330" width="62" height="60" rx="8"/><text class="svg-label" x="343" y="368" text-anchor="middle" style="font-size:24px;">11</text>
           <rect class="svg-node" x="380" y="330" width="62" height="60" rx="8"/><text class="svg-label" x="411" y="368" text-anchor="middle" style="font-size:24px;">15</text>
@@ -266,7 +240,7 @@ void insertionSort(std::vector&lt;int&gt;&amp; a) {
           <rect class="svg-node-hl" x="475" y="360" width="61" height="52" rx="8"/><text class="svg-label" x="505" y="394" text-anchor="middle" style="font-size:22px;">27</text>
           <rect class="svg-node-hl" x="540" y="360" width="61" height="52" rx="8"/><text class="svg-label" x="570" y="394" text-anchor="middle" style="font-size:22px;">38</text>
           <rect class="svg-node-hl" x="605" y="360" width="61" height="52" rx="8"/><text class="svg-label" x="635" y="394" text-anchor="middle" style="font-size:22px;">43</text>
-          <text x="880" y="394" style="font-size:20px; font-weight:700;" fill="#0b57d0">log n niveles × cn = Θ(n log n)</text>
+          <text x="880" y="394" style="font-size:20px; font-weight:700;" class="f-accent">log n niveles × cn = Θ(n log n)</text>
         </g>
       </svg>
       <span class="fragment"></span>
@@ -288,41 +262,41 @@ void insertionSort(std::vector&lt;int&gt;&amp; a) {
           <rect class="svg-node" x="230" y="55" width="70" height="60" rx="8"/><text class="svg-label" x="265" y="93" text-anchor="middle" style="font-size:24px;">38</text>
           <rect class="svg-node" x="560" y="55" width="70" height="60" rx="8"/><text class="svg-label" x="595" y="93" text-anchor="middle" style="font-size:24px;">9</text>
           <rect class="svg-node" x="635" y="55" width="70" height="60" rx="8"/><text class="svg-label" x="670" y="93" text-anchor="middle" style="font-size:24px;">43</text>
-        <rect x="300" y="285" width="70" height="60" rx="8" fill="none" stroke="#d7dbe2" stroke-width="3" stroke-dasharray="7 6"/>
-        <rect x="375" y="285" width="70" height="60" rx="8" fill="none" stroke="#d7dbe2" stroke-width="3" stroke-dasharray="7 6"/>
-        <rect x="450" y="285" width="70" height="60" rx="8" fill="none" stroke="#d7dbe2" stroke-width="3" stroke-dasharray="7 6"/>
-        <rect x="525" y="285" width="70" height="60" rx="8" fill="none" stroke="#d7dbe2" stroke-width="3" stroke-dasharray="7 6"/>
-        <rect x="600" y="285" width="70" height="60" rx="8" fill="none" stroke="#d7dbe2" stroke-width="3" stroke-dasharray="7 6"/>
+        <rect x="300" y="285" width="70" height="60" rx="8" fill="none" stroke-width="3" stroke-dasharray="7 6" class="s-line"/>
+        <rect x="375" y="285" width="70" height="60" rx="8" fill="none" stroke-width="3" stroke-dasharray="7 6" class="s-line"/>
+        <rect x="450" y="285" width="70" height="60" rx="8" fill="none" stroke-width="3" stroke-dasharray="7 6" class="s-line"/>
+        <rect x="525" y="285" width="70" height="60" rx="8" fill="none" stroke-width="3" stroke-dasharray="7 6" class="s-line"/>
+        <rect x="600" y="285" width="70" height="60" rx="8" fill="none" stroke-width="3" stroke-dasharray="7 6" class="s-line"/>
         <g class="anim-step" data-step="1">
-          <rect x="80" y="55" width="70" height="60" rx="8" fill="#f4f5f7" opacity="0.62"/>
+          <rect x="80" y="55" width="70" height="60" rx="8" opacity="0.62" class="f-code-bg"/>
           <rect class="svg-node-hl" x="300" y="285" width="70" height="60" rx="8"/><text class="svg-label" x="335" y="323" text-anchor="middle" style="font-size:24px;">3</text>
         </g>
         <g class="anim-step" data-step="1" data-step-off="2">
           <text class="svg-label" x="80" y="200" style="font-size:24px; font-weight:600;">3 ≤ 9 → escribo 3 y avanzo en la izquierda</text>
         </g>
         <g class="anim-step" data-step="2">
-          <rect x="560" y="55" width="70" height="60" rx="8" fill="#f4f5f7" opacity="0.62"/>
+          <rect x="560" y="55" width="70" height="60" rx="8" opacity="0.62" class="f-code-bg"/>
           <rect class="svg-node-hl" x="375" y="285" width="70" height="60" rx="8"/><text class="svg-label" x="410" y="323" text-anchor="middle" style="font-size:24px;">9</text>
         </g>
         <g class="anim-step" data-step="2" data-step-off="3">
           <text class="svg-label" x="80" y="200" style="font-size:24px; font-weight:600;">9 &lt; 27 → escribo 9 y avanzo en la derecha</text>
         </g>
         <g class="anim-step" data-step="3">
-          <rect x="155" y="55" width="70" height="60" rx="8" fill="#f4f5f7" opacity="0.62"/>
+          <rect x="155" y="55" width="70" height="60" rx="8" opacity="0.62" class="f-code-bg"/>
           <rect class="svg-node-hl" x="450" y="285" width="70" height="60" rx="8"/><text class="svg-label" x="485" y="323" text-anchor="middle" style="font-size:24px;">27</text>
         </g>
         <g class="anim-step" data-step="3" data-step-off="4">
           <text class="svg-label" x="80" y="200" style="font-size:24px; font-weight:600;">27 ≤ 43 → escribo 27</text>
         </g>
         <g class="anim-step" data-step="4">
-          <rect x="230" y="55" width="70" height="60" rx="8" fill="#f4f5f7" opacity="0.62"/>
+          <rect x="230" y="55" width="70" height="60" rx="8" opacity="0.62" class="f-code-bg"/>
           <rect class="svg-node-hl" x="525" y="285" width="70" height="60" rx="8"/><text class="svg-label" x="560" y="323" text-anchor="middle" style="font-size:24px;">38</text>
         </g>
         <g class="anim-step" data-step="4" data-step-off="5">
           <text class="svg-label" x="80" y="200" style="font-size:24px; font-weight:600;">38 ≤ 43 → escribo 38</text>
         </g>
         <g class="anim-step" data-step="5">
-          <rect x="635" y="55" width="70" height="60" rx="8" fill="#f4f5f7" opacity="0.62"/>
+          <rect x="635" y="55" width="70" height="60" rx="8" opacity="0.62" class="f-code-bg"/>
           <rect class="svg-node-hl" x="600" y="285" width="70" height="60" rx="8"/><text class="svg-label" x="635" y="323" text-anchor="middle" style="font-size:24px;">43</text>
         </g>
         <g class="anim-step" data-step="5">
@@ -459,39 +433,9 @@ void mergeSort(std::vector&lt;int&gt;&amp; a, int lo, int hi) {
       </div>
     </section>
 
-    <!-- ============ POR QUÉ IMPORTA HOY ============ -->
-    <section>
-      <span class="kicker kicker-ai">Por qué importa hoy</span>
-      <h2><code>merge</code> corre en producción millones de veces al día</h2>
-      <div class="box-ai" data-label="Dónde vive esto en sistemas de IA">
-        <ul>
-          <li class="fragment">Una base vectorial grande reparte sus datos en <span class="term" data-term="shard">fragmentos</span>, cada uno con su propio índice.</li>
-          <li class="fragment">Ante una consulta, cada fragmento devuelve sus mejores k candidatos <em>ya ordenados</em> por puntaje.</li>
-          <li class="fragment">Alguien tiene que combinar esas listas ordenadas en una sola respuesta: eso es exactamente <code>merge</code> — los mismos dos punteros eligiendo el mejor, generalizados a k listas.</li>
-          <li class="fragment">Cada consulta de un sistema RAG sobre un índice distribuido ejecuta esta fusión. El paso "combinar" de hoy es la operación central de la recuperación a escala.</li>
-        </ul>
-      </div>
-    </section>
-
-    <!-- ============ CIERRE STL ============ -->
-    <section>
-      <span class="kicker">Cierre STL</span>
-      <h2>Ordenamiento en la biblioteca estándar</h2>
-      <table>
-        <thead><tr><th>Algoritmo</th><th>Garantía</th><th>Qué hay debajo</th></tr></thead>
-        <tbody>
-          <tr class="fragment"><td><code>std::sort</code></td><td>O(n log n) peor caso</td><td><span class="term" data-term="introsort">introsort</span>: quicksort + heapsort + insertion sort</td></tr>
-          <tr class="fragment"><td><code>std::stable_sort</code></td><td>O(n log n) con memoria; O(n log²n) sin ella</td><td>merge sort adaptativo</td></tr>
-          <tr class="fragment"><td><code>std::merge</code></td><td>Θ(n+m)</td><td>la fusión de hoy, sobre dos rangos ordenados</td></tr>
-          <tr class="fragment"><td><code>std::inplace_merge</code></td><td>O(n) con memoria; O(n log n) sin ella</td><td>fusión dentro del mismo rango</td></tr>
-        </tbody>
-      </table>
-      <p class="fragment">Nota histórica útil: introsort es de David Musser (1997); las implementaciones lo adoptaron para tener el promedio de quicksort <em>sin</em> su peor caso O(n²). El lunes veremos ese peor caso de frente.</p>
-    </section>
-
     <!-- ============ RETO EN PAREJAS ============ -->
     <section>
-      <span class="kicker">Reto en parejas · 25 min</span>
+      <span class="kicker">Reto en parejas</span>
       <h2>Merge sort fuera de su zona de confort</h2>
       <div class="cols">
         <div>
@@ -512,6 +456,42 @@ void mergeSort(std::vector&lt;int&gt;&amp; a, int lo, int hi) {
     <section class="divider">
       <h2>Próxima sesión:<br>Quick Sort y quickselect</h2>
       <p class="muted" style="margin-top:1em;">Recuerda: la Act 1.4 se entrega este domingo 6 de septiembre, 23:59.</p>
+    </section>
+
+    <!-- ============ DIVIDER MATERIAL EXTRA ============ -->
+    <section class="divider">
+      <h2>Material extra · autoestudio</h2>
+      <p class="muted">No se cubre en clase: la STL del tema y su conexión con sistemas de IA.</p>
+    </section>
+
+    <!-- ============ POR QUÉ IMPORTA HOY ============ -->
+    <section>
+      <span class="kicker kicker-ai">Por qué importa hoy</span>
+      <h2><code>merge</code> corre en producción millones de veces al día</h2>
+      <div class="box-ai" data-label="Dónde vive esto en sistemas de IA">
+        <ul>
+          <li class="fragment">Una base vectorial grande reparte sus datos en <span class="term" data-term="shard">fragmentos</span>, cada uno con su propio índice.</li>
+          <li class="fragment">Ante una consulta, cada fragmento devuelve sus mejores k candidatos <em>ya ordenados</em> por puntaje.</li>
+          <li class="fragment">Alguien tiene que combinar esas listas ordenadas en una sola respuesta: eso es exactamente <code>merge</code> — los mismos dos punteros eligiendo el mejor, generalizados a k listas.</li>
+          <li class="fragment">Cada consulta de un sistema RAG sobre un índice distribuido ejecuta esta fusión. El paso "combinar" de hoy es la operación central de la recuperación a escala.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============ CIERRE STL ============ -->
+    <section>
+      <span class="kicker">STL</span>
+      <h2>Ordenamiento en la biblioteca estándar</h2>
+      <table>
+        <thead><tr><th>Algoritmo</th><th>Garantía</th><th>Qué hay debajo</th></tr></thead>
+        <tbody>
+          <tr class="fragment"><td><code>std::sort</code></td><td>O(n log n) peor caso</td><td><span class="term" data-term="introsort">introsort</span>: quicksort + heapsort + insertion sort</td></tr>
+          <tr class="fragment"><td><code>std::stable_sort</code></td><td>O(n log n) con memoria; O(n log²n) sin ella</td><td>merge sort adaptativo</td></tr>
+          <tr class="fragment"><td><code>std::merge</code></td><td>Θ(n+m)</td><td>la fusión de hoy, sobre dos rangos ordenados</td></tr>
+          <tr class="fragment"><td><code>std::inplace_merge</code></td><td>O(n) con memoria; O(n log n) sin ella</td><td>fusión dentro del mismo rango</td></tr>
+        </tbody>
+      </table>
+      <p class="fragment">Nota histórica útil: introsort es de David Musser (1997); las implementaciones lo adoptaron para tener el promedio de quicksort <em>sin</em> su peor caso O(n²). El lunes veremos ese peor caso de frente.</p>
     </section>
 
     <!-- ============ REFERENCIAS ============ -->
@@ -536,6 +516,7 @@ void mergeSort(std::vector&lt;int&gt;&amp; a, int lo, int hi) {
           </ul>
         </div>
       </div>
+      <p class="refs-ia">Nota: estas diapositivas fueron generadas usando inteligencia artificial, específicamente Claude (Anthropic).</p>
     </section>
 
   </div>

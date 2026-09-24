@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+  <script>try{if(localStorage.getItem("curso-tema")==="dark"&&!/print-pdf/i.test(location.search))document.documentElement.dataset.theme="dark"}catch(e){}</script>
   <link rel="stylesheet" href="../css/theme-curso.css">
 </head>
 <body>
@@ -69,24 +70,24 @@ Aborted (core dumped)
         <g class="anim-step" data-step="1">
           <rect class="svg-node" x="20" y="30" width="420" height="240" rx="10"/>
           <text class="svg-label" x="230" y="68" text-anchor="middle">Pila</text>
-          <text class="svg-label" x="230" y="98" text-anchor="middle" style="font-size:20px;fill:#4b5260">se libera sola al salir del ámbito</text>
+          <text class="svg-label" x="230" y="98" text-anchor="middle" style="font-size:20px;fill:var(--c-ink-soft)">se libera sola al salir del ámbito</text>
           <rect class="svg-node-hl" x="70" y="150" width="320" height="90" rx="8"/>
           <text class="svg-label" x="230" y="185" text-anchor="middle">int* p</text>
-          <text class="svg-label" x="230" y="218" text-anchor="middle" style="font-size:20px;fill:#4b5260">guarda una dirección</text>
+          <text class="svg-label" x="230" y="218" text-anchor="middle" style="font-size:20px;fill:var(--c-ink-soft)">guarda una dirección</text>
         </g>
         <g class="anim-step" data-step="2">
           <rect class="svg-node" x="660" y="30" width="440" height="240" rx="10"/>
           <text class="svg-label" x="880" y="68" text-anchor="middle">Montículo</text>
-          <text class="svg-label" x="880" y="98" text-anchor="middle" style="font-size:20px;fill:#4b5260">lo liberas tú, cuando tú decidas</text>
+          <text class="svg-label" x="880" y="98" text-anchor="middle" style="font-size:20px;fill:var(--c-ink-soft)">lo liberas tú, cuando tú decidas</text>
           <path class="svg-edge" d="M390 195 H 700"/>
-          <polygon points="718,195 698,185 698,205" style="fill:#16181d"/>
+          <polygon points="718,195 698,185 698,205" style="fill:var(--c-ink)"/>
           <rect class="svg-node-hl" x="720" y="150" width="320" height="90" rx="8"/>
           <text class="svg-label" x="880" y="203" text-anchor="middle">42</text>
         </g>
         <g class="anim-step" data-step="3">
-          <path class="svg-edge" d="M730 158 L1030 232" style="stroke:#b3261e"/>
-          <path class="svg-edge" d="M1030 158 L730 232" style="stroke:#b3261e"/>
-          <text class="svg-label" x="880" y="298" text-anchor="middle" style="fill:#b3261e">delete p;</text>
+          <path class="svg-edge" d="M730 158 L1030 232" style="stroke:var(--c-err)"/>
+          <path class="svg-edge" d="M1030 158 L730 232" style="stroke:var(--c-err)"/>
+          <text class="svg-label" x="880" y="298" text-anchor="middle" style="fill:var(--c-err)">delete p;</text>
         </g>
       </svg>
       <span class="fragment"></span>
@@ -172,7 +173,7 @@ public:
           <rect class="svg-node-hl" x="40" y="40" width="260" height="80" rx="8"/>
           <text class="svg-label" x="170" y="88" text-anchor="middle">a.datos</text>
           <path class="svg-edge" d="M300 80 H 620"/>
-          <polygon points="638,80 618,70 618,90" style="fill:#16181d"/>
+          <polygon points="638,80 618,70 618,90" style="fill:var(--c-ink)"/>
           <rect class="svg-node" x="640" y="40" width="420" height="80" rx="8"/>
           <text class="svg-label" x="850" y="88" text-anchor="middle">[ 10 | ? | ? ]  en 0xb5f848ab0eb0</text>
         </g>
@@ -180,13 +181,13 @@ public:
           <rect class="svg-node-hl" x="40" y="200" width="260" height="80" rx="8"/>
           <text class="svg-label" x="170" y="248" text-anchor="middle">b.datos</text>
           <path class="svg-edge" d="M300 240 H 560 V 120"/>
-          <polygon points="560,102 550,122 570,122" style="fill:#16181d"/>
+          <polygon points="560,102 550,122 570,122" style="fill:var(--c-ink)"/>
         </g>
         <g class="anim-step" data-step="3">
-          <text class="svg-label" x="850" y="170" text-anchor="middle" style="fill:#b3261e">~b libera el bloque</text>
+          <text class="svg-label" x="850" y="170" text-anchor="middle" style="fill:var(--c-err)">~b libera el bloque</text>
         </g>
         <g class="anim-step" data-step="4">
-          <text class="svg-label" x="850" y="305" text-anchor="middle" style="fill:#b3261e">~a lo libera otra vez: doble delete</text>
+          <text class="svg-label" x="850" y="305" text-anchor="middle" style="fill:var(--c-err)">~a lo libera otra vez: doble delete</text>
         </g>
       </svg>
       <span class="fragment"></span>
@@ -205,7 +206,7 @@ public:
           <rect class="svg-node-hl" x="40" y="40" width="260" height="80" rx="8"/>
           <text class="svg-label" x="170" y="88" text-anchor="middle">a.datos</text>
           <path class="svg-edge" d="M300 80 H 620"/>
-          <polygon points="638,80 618,70 618,90" style="fill:#16181d"/>
+          <polygon points="638,80 618,70 618,90" style="fill:var(--c-ink)"/>
           <rect class="svg-node" x="640" y="40" width="420" height="80" rx="8"/>
           <text class="svg-label" x="850" y="88" text-anchor="middle">[ 10 | ? | ? ]</text>
         </g>
@@ -213,7 +214,7 @@ public:
           <rect class="svg-node-hl" x="40" y="200" width="260" height="80" rx="8"/>
           <text class="svg-label" x="170" y="248" text-anchor="middle">b.datos</text>
           <path class="svg-edge" d="M300 240 H 620"/>
-          <polygon points="638,240 618,230 618,250" style="fill:#16181d"/>
+          <polygon points="638,240 618,230 618,250" style="fill:var(--c-ink)"/>
           <rect class="svg-node" x="640" y="200" width="420" height="80" rx="8"/>
           <text class="svg-label" x="850" y="248" text-anchor="middle">[ 10 | ? | ? ]  otra dirección</text>
         </g>
@@ -471,6 +472,7 @@ git push
           </ul>
         </div>
       </div>
+      <p class="refs-ia">Nota: estas diapositivas fueron generadas usando inteligencia artificial, específicamente Claude (Anthropic).</p>
     </section>
 
   </div>

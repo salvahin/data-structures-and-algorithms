@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+  <script>try{if(localStorage.getItem("curso-tema")==="dark"&&!/print-pdf/i.test(location.search))document.documentElement.dataset.theme="dark"}catch(e){}</script>
   <link rel="stylesheet" href="../css/theme-curso.css">
 </head>
 <body>
@@ -23,22 +24,6 @@
         Sesión 4 · Semana 2<br>
         Salvador Hinojosa
       </div>
-    </section>
-
-    <!-- ============ AGENDA ============ -->
-    <section>
-      <span class="kicker">Sesión 4 · Agenda</span>
-      <h2>Qué vamos a ver hoy</h2>
-      <table>
-        <tbody>
-          <tr><td>20 min</td><td>3.2.1 Plantear la <span class="term" data-term="recurrencia">ecuación de recurrencia</span></td></tr>
-          <tr><td>30 min</td><td>3.2.2 Resolverla: sustitución, <span class="term" data-term="arbol-recursion">árbol de recursión</span>, <span class="term" data-term="teorema-maestro">Teorema Maestro</span></td></tr>
-          <tr><td>20 min</td><td>Ejercicios: búsqueda binaria, merge sort, Hanói, Fibonacci</td></tr>
-          <tr><td>15 min</td><td><span class="term" data-term="memoizacion">Memoización</span>: de exponencial a lineal</td></tr>
-          <tr><td>10 min</td><td>Cierre STL</td></tr>
-          <tr><td>25 min</td><td>Reto en parejas: divide y vencerás + memoización</td></tr>
-        </tbody>
-      </table>
     </section>
 
     <!-- ============ OBJETIVO ============ -->
@@ -154,7 +139,7 @@ int buscar(const vector&lt;int&gt;&amp; v, int lo, int hi, int x) {
         <g class="anim-step" data-step="1">
           <rect class="svg-node" x="330" y="52" width="380" height="52" rx="10"/>
           <text class="svg-label" x="520" y="85" text-anchor="middle" style="font-size:23px;">cn</text>
-          <text x="1000" y="85" fill="#0b57d0" style="font-size:23px; font-weight:600;">cn</text>
+          <text x="1000" y="85" style="font-size:23px; font-weight:600;" class="f-accent">cn</text>
         </g>
 
         <g class="anim-step" data-step="2">
@@ -164,7 +149,7 @@ int buscar(const vector&lt;int&gt;&amp; v, int lo, int hi, int x) {
           <text class="svg-label" x="330" y="164" text-anchor="middle" style="font-size:22px;">cn/2</text>
           <rect class="svg-node" x="620" y="132" width="180" height="50" rx="10"/>
           <text class="svg-label" x="710" y="164" text-anchor="middle" style="font-size:22px;">cn/2</text>
-          <text x="1000" y="164" fill="#0b57d0" style="font-size:23px; font-weight:600;">cn</text>
+          <text x="1000" y="164" style="font-size:23px; font-weight:600;" class="f-accent">cn</text>
         </g>
 
         <g class="anim-step" data-step="3">
@@ -180,21 +165,21 @@ int buscar(const vector&lt;int&gt;&amp; v, int lo, int hi, int x) {
           <text class="svg-label" x="615" y="240" text-anchor="middle" style="font-size:20px;">cn/4</text>
           <rect class="svg-node" x="762" y="210" width="86" height="46" rx="8"/>
           <text class="svg-label" x="805" y="240" text-anchor="middle" style="font-size:20px;">cn/4</text>
-          <text x="1000" y="240" fill="#0b57d0" style="font-size:23px; font-weight:600;">cn</text>
+          <text x="1000" y="240" style="font-size:23px; font-weight:600;" class="f-accent">cn</text>
         </g>
 
         <g class="anim-step" data-step="4">
           <text class="svg-label" x="520" y="292" text-anchor="middle" style="font-size:26px;">⋮</text>
           <rect class="svg-node" x="150" y="308" width="740" height="44" rx="8"/>
           <text class="svg-label" x="520" y="337" text-anchor="middle" style="font-size:20px;">n hojas T(1) de costo c</text>
-          <text x="1000" y="337" fill="#0b57d0" style="font-size:23px; font-weight:600;">cn</text>
+          <text x="1000" y="337" style="font-size:23px; font-weight:600;" class="f-accent">cn</text>
           <text class="svg-label" x="60" y="200" style="font-size:22px; font-weight:600;">log<tspan dy="6" style="font-size:16px;">2</tspan><tspan dy="-6"> n</tspan></text>
           <text class="svg-label" x="60" y="228" style="font-size:22px; font-weight:600;">niveles</text>
         </g>
 
         <g class="anim-step" data-step="5">
-          <rect x="220" y="374" width="600" height="42" rx="8" fill="none" stroke="#0b57d0" stroke-width="3"/>
-          <text x="520" y="402" text-anchor="middle" fill="#0b57d0" style="font-size:23px; font-weight:700;">total: cn por nivel × log<tspan dy="6" style="font-size:17px;">2</tspan><tspan dy="-6"> n niveles → Θ(n log n)</tspan></text>
+          <rect x="220" y="374" width="600" height="42" rx="8" fill="none" stroke-width="3" class="s-accent"/>
+          <text x="520" y="402" text-anchor="middle" style="font-size:23px; font-weight:700;" class="f-accent">total: cn por nivel × log<tspan dy="6" style="font-size:17px;">2</tspan><tspan dy="-6"> n niveles → Θ(n log n)</tspan></text>
         </g>
       </svg>
       <span class="fragment"></span>
@@ -254,24 +239,24 @@ int buscar(const vector&lt;int&gt;&amp; v, int lo, int hi, int x) {
       <h2>Dónde se concentra el costo</h2>
       <svg viewBox="0 0 1100 210" style="width:100%; max-height:210px;">
         <g class="anim-step" data-step="1">
-          <polygon points="140,85 260,85 290,125 110,125" fill="#0b57d0" opacity="0.75"/>
-          <polygon points="200,25 110,125 290,125" fill="none" stroke="#16181d" stroke-width="3"/>
-          <text x="200" y="160" text-anchor="middle" fill="#16181d" style="font-size:23px; font-weight:700;">Caso 1</text>
-          <text x="200" y="188" text-anchor="middle" fill="#4b5260" style="font-size:21px;">manda el último nivel</text>
+          <polygon points="140,85 260,85 290,125 110,125" opacity="0.75" class="f-accent"/>
+          <polygon points="200,25 110,125 290,125" fill="none" stroke-width="3" class="s-ink"/>
+          <text x="200" y="160" text-anchor="middle" style="font-size:23px; font-weight:700;" class="f-ink">Caso 1</text>
+          <text x="200" y="188" text-anchor="middle" style="font-size:21px;" class="f-ink-soft">manda el último nivel</text>
         </g>
         <g class="anim-step" data-step="2">
-          <polygon points="550,25 460,125 640,125" fill="#0b57d0" opacity="0.35"/>
-          <polygon points="550,25 460,125 640,125" fill="none" stroke="#16181d" stroke-width="3"/>
-          <line x1="490" y1="92" x2="610" y2="92" stroke="#ffffff" stroke-width="2"/>
-          <line x1="520" y1="58" x2="580" y2="58" stroke="#ffffff" stroke-width="2"/>
-          <text x="550" y="160" text-anchor="middle" fill="#16181d" style="font-size:23px; font-weight:700;">Caso 2</text>
-          <text x="550" y="188" text-anchor="middle" fill="#4b5260" style="font-size:21px;">todos aportan lo mismo</text>
+          <polygon points="550,25 460,125 640,125" opacity="0.35" class="f-accent"/>
+          <polygon points="550,25 460,125 640,125" fill="none" stroke-width="3" class="s-ink"/>
+          <line x1="490" y1="92" x2="610" y2="92" stroke-width="2" class="s-bg"/>
+          <line x1="520" y1="58" x2="580" y2="58" stroke-width="2" class="s-bg"/>
+          <text x="550" y="160" text-anchor="middle" style="font-size:23px; font-weight:700;" class="f-ink">Caso 2</text>
+          <text x="550" y="188" text-anchor="middle" style="font-size:21px;" class="f-ink-soft">todos aportan lo mismo</text>
         </g>
         <g class="anim-step" data-step="3">
-          <polygon points="900,25 870,58 930,58" fill="#0b57d0" opacity="0.75"/>
-          <polygon points="900,25 810,125 990,125" fill="none" stroke="#16181d" stroke-width="3"/>
-          <text x="900" y="160" text-anchor="middle" fill="#16181d" style="font-size:23px; font-weight:700;">Caso 3</text>
-          <text x="900" y="188" text-anchor="middle" fill="#4b5260" style="font-size:21px;">manda la raíz</text>
+          <polygon points="900,25 870,58 930,58" opacity="0.75" class="f-accent"/>
+          <polygon points="900,25 810,125 990,125" fill="none" stroke-width="3" class="s-ink"/>
+          <text x="900" y="160" text-anchor="middle" style="font-size:23px; font-weight:700;" class="f-ink">Caso 3</text>
+          <text x="900" y="188" text-anchor="middle" style="font-size:21px;" class="f-ink-soft">manda la raíz</text>
         </g>
       </svg>
       <span class="fragment"></span>
@@ -359,116 +344,116 @@ int buscar(const vector&lt;int&gt;&amp; v, int lo, int hi, int x) {
       <h2>Los siete movimientos con tres discos</h2>
       <svg viewBox="0 0 1100 430" style="width:100%; max-height:390px;">
         <g class="anim-step" data-step="1">
-          <rect x="18" y="34" width="248" height="168" rx="10" fill="none" stroke="#e8eaef" stroke-width="2"/>
-          <rect x="34" y="152" width="216" height="7" fill="#16181d"/>
-          <rect x="67" y="94" width="6" height="58" fill="#16181d"/>
-          <text x="70" y="176" text-anchor="middle" fill="#4b5260" style="font-size:15px;">A</text>
-          <rect x="33" y="135" width="74" height="15" rx="4" fill="#0b57d0"/>
-          <rect x="43" y="117" width="54" height="15" rx="4" fill="#e8f0fe" stroke="#0b57d0" stroke-width="2.5"/>
-          <rect x="53" y="99" width="34" height="15" rx="4" fill="#e8f0fe" stroke="#0b57d0" stroke-width="2.5"/>
-          <rect x="139" y="94" width="6" height="58" fill="#16181d"/>
-          <text x="142" y="176" text-anchor="middle" fill="#4b5260" style="font-size:15px;">B</text>
-          <rect x="211" y="94" width="6" height="58" fill="#16181d"/>
-          <text x="214" y="176" text-anchor="middle" fill="#4b5260" style="font-size:15px;">C</text>
-          <text x="34" y="56" fill="#4b5260" style="font-size:19px; font-weight:700;">inicio</text>
+          <rect x="18" y="34" width="248" height="168" rx="10" fill="none" stroke-width="2" class="s-surface-3"/>
+          <rect x="34" y="152" width="216" height="7" class="f-ink"/>
+          <rect x="67" y="94" width="6" height="58" class="f-ink"/>
+          <text x="70" y="176" text-anchor="middle" style="font-size:15px;" class="f-ink-soft">A</text>
+          <rect x="33" y="135" width="74" height="15" rx="4" class="f-accent"/>
+          <rect x="43" y="117" width="54" height="15" rx="4" stroke-width="2.5" class="f-accent-bg s-accent"/>
+          <rect x="53" y="99" width="34" height="15" rx="4" stroke-width="2.5" class="f-accent-bg s-accent"/>
+          <rect x="139" y="94" width="6" height="58" class="f-ink"/>
+          <text x="142" y="176" text-anchor="middle" style="font-size:15px;" class="f-ink-soft">B</text>
+          <rect x="211" y="94" width="6" height="58" class="f-ink"/>
+          <text x="214" y="176" text-anchor="middle" style="font-size:15px;" class="f-ink-soft">C</text>
+          <text x="34" y="56" style="font-size:19px; font-weight:700;" class="f-ink-soft">inicio</text>
         </g>
         <g class="anim-step" data-step="2">
-          <rect x="290" y="34" width="248" height="168" rx="10" fill="none" stroke="#e8eaef" stroke-width="2"/>
-          <rect x="306" y="152" width="216" height="7" fill="#16181d"/>
-          <rect x="339" y="94" width="6" height="58" fill="#16181d"/>
-          <text x="342" y="176" text-anchor="middle" fill="#4b5260" style="font-size:15px;">A</text>
-          <rect x="305" y="135" width="74" height="15" rx="4" fill="#0b57d0"/>
-          <rect x="315" y="117" width="54" height="15" rx="4" fill="#e8f0fe" stroke="#0b57d0" stroke-width="2.5"/>
-          <rect x="411" y="94" width="6" height="58" fill="#16181d"/>
-          <text x="414" y="176" text-anchor="middle" fill="#4b5260" style="font-size:15px;">B</text>
-          <rect x="483" y="94" width="6" height="58" fill="#16181d"/>
-          <text x="486" y="176" text-anchor="middle" fill="#4b5260" style="font-size:15px;">C</text>
-          <rect x="469" y="135" width="34" height="15" rx="4" fill="#e8f0fe" stroke="#0b57d0" stroke-width="2.5"/>
-          <text x="306" y="56" fill="#0b57d0" style="font-size:19px; font-weight:700;">1. A → C</text>
+          <rect x="290" y="34" width="248" height="168" rx="10" fill="none" stroke-width="2" class="s-surface-3"/>
+          <rect x="306" y="152" width="216" height="7" class="f-ink"/>
+          <rect x="339" y="94" width="6" height="58" class="f-ink"/>
+          <text x="342" y="176" text-anchor="middle" style="font-size:15px;" class="f-ink-soft">A</text>
+          <rect x="305" y="135" width="74" height="15" rx="4" class="f-accent"/>
+          <rect x="315" y="117" width="54" height="15" rx="4" stroke-width="2.5" class="f-accent-bg s-accent"/>
+          <rect x="411" y="94" width="6" height="58" class="f-ink"/>
+          <text x="414" y="176" text-anchor="middle" style="font-size:15px;" class="f-ink-soft">B</text>
+          <rect x="483" y="94" width="6" height="58" class="f-ink"/>
+          <text x="486" y="176" text-anchor="middle" style="font-size:15px;" class="f-ink-soft">C</text>
+          <rect x="469" y="135" width="34" height="15" rx="4" stroke-width="2.5" class="f-accent-bg s-accent"/>
+          <text x="306" y="56" style="font-size:19px; font-weight:700;" class="f-accent">1. A → C</text>
         </g>
         <g class="anim-step" data-step="3">
-          <rect x="562" y="34" width="248" height="168" rx="10" fill="none" stroke="#e8eaef" stroke-width="2"/>
-          <rect x="578" y="152" width="216" height="7" fill="#16181d"/>
-          <rect x="611" y="94" width="6" height="58" fill="#16181d"/>
-          <text x="614" y="176" text-anchor="middle" fill="#4b5260" style="font-size:15px;">A</text>
-          <rect x="577" y="135" width="74" height="15" rx="4" fill="#0b57d0"/>
-          <rect x="683" y="94" width="6" height="58" fill="#16181d"/>
-          <text x="686" y="176" text-anchor="middle" fill="#4b5260" style="font-size:15px;">B</text>
-          <rect x="659" y="135" width="54" height="15" rx="4" fill="#e8f0fe" stroke="#0b57d0" stroke-width="2.5"/>
-          <rect x="755" y="94" width="6" height="58" fill="#16181d"/>
-          <text x="758" y="176" text-anchor="middle" fill="#4b5260" style="font-size:15px;">C</text>
-          <rect x="741" y="135" width="34" height="15" rx="4" fill="#e8f0fe" stroke="#0b57d0" stroke-width="2.5"/>
-          <text x="578" y="56" fill="#0b57d0" style="font-size:19px; font-weight:700;">2. A → B</text>
+          <rect x="562" y="34" width="248" height="168" rx="10" fill="none" stroke-width="2" class="s-surface-3"/>
+          <rect x="578" y="152" width="216" height="7" class="f-ink"/>
+          <rect x="611" y="94" width="6" height="58" class="f-ink"/>
+          <text x="614" y="176" text-anchor="middle" style="font-size:15px;" class="f-ink-soft">A</text>
+          <rect x="577" y="135" width="74" height="15" rx="4" class="f-accent"/>
+          <rect x="683" y="94" width="6" height="58" class="f-ink"/>
+          <text x="686" y="176" text-anchor="middle" style="font-size:15px;" class="f-ink-soft">B</text>
+          <rect x="659" y="135" width="54" height="15" rx="4" stroke-width="2.5" class="f-accent-bg s-accent"/>
+          <rect x="755" y="94" width="6" height="58" class="f-ink"/>
+          <text x="758" y="176" text-anchor="middle" style="font-size:15px;" class="f-ink-soft">C</text>
+          <rect x="741" y="135" width="34" height="15" rx="4" stroke-width="2.5" class="f-accent-bg s-accent"/>
+          <text x="578" y="56" style="font-size:19px; font-weight:700;" class="f-accent">2. A → B</text>
         </g>
         <g class="anim-step" data-step="4">
-          <rect x="834" y="34" width="248" height="168" rx="10" fill="none" stroke="#e8eaef" stroke-width="2"/>
-          <rect x="850" y="152" width="216" height="7" fill="#16181d"/>
-          <rect x="883" y="94" width="6" height="58" fill="#16181d"/>
-          <text x="886" y="176" text-anchor="middle" fill="#4b5260" style="font-size:15px;">A</text>
-          <rect x="849" y="135" width="74" height="15" rx="4" fill="#0b57d0"/>
-          <rect x="955" y="94" width="6" height="58" fill="#16181d"/>
-          <text x="958" y="176" text-anchor="middle" fill="#4b5260" style="font-size:15px;">B</text>
-          <rect x="931" y="135" width="54" height="15" rx="4" fill="#e8f0fe" stroke="#0b57d0" stroke-width="2.5"/>
-          <rect x="941" y="117" width="34" height="15" rx="4" fill="#e8f0fe" stroke="#0b57d0" stroke-width="2.5"/>
-          <rect x="1027" y="94" width="6" height="58" fill="#16181d"/>
-          <text x="1030" y="176" text-anchor="middle" fill="#4b5260" style="font-size:15px;">C</text>
-          <text x="850" y="56" fill="#0b57d0" style="font-size:19px; font-weight:700;">3. C → B</text>
+          <rect x="834" y="34" width="248" height="168" rx="10" fill="none" stroke-width="2" class="s-surface-3"/>
+          <rect x="850" y="152" width="216" height="7" class="f-ink"/>
+          <rect x="883" y="94" width="6" height="58" class="f-ink"/>
+          <text x="886" y="176" text-anchor="middle" style="font-size:15px;" class="f-ink-soft">A</text>
+          <rect x="849" y="135" width="74" height="15" rx="4" class="f-accent"/>
+          <rect x="955" y="94" width="6" height="58" class="f-ink"/>
+          <text x="958" y="176" text-anchor="middle" style="font-size:15px;" class="f-ink-soft">B</text>
+          <rect x="931" y="135" width="54" height="15" rx="4" stroke-width="2.5" class="f-accent-bg s-accent"/>
+          <rect x="941" y="117" width="34" height="15" rx="4" stroke-width="2.5" class="f-accent-bg s-accent"/>
+          <rect x="1027" y="94" width="6" height="58" class="f-ink"/>
+          <text x="1030" y="176" text-anchor="middle" style="font-size:15px;" class="f-ink-soft">C</text>
+          <text x="850" y="56" style="font-size:19px; font-weight:700;" class="f-accent">3. C → B</text>
         </g>
         <g class="anim-step" data-step="5">
-          <rect x="18" y="246" width="248" height="168" rx="10" fill="none" stroke="#e8eaef" stroke-width="2"/>
-          <rect x="34" y="364" width="216" height="7" fill="#16181d"/>
-          <rect x="67" y="306" width="6" height="58" fill="#16181d"/>
-          <text x="70" y="388" text-anchor="middle" fill="#4b5260" style="font-size:15px;">A</text>
-          <rect x="139" y="306" width="6" height="58" fill="#16181d"/>
-          <text x="142" y="388" text-anchor="middle" fill="#4b5260" style="font-size:15px;">B</text>
-          <rect x="115" y="347" width="54" height="15" rx="4" fill="#e8f0fe" stroke="#0b57d0" stroke-width="2.5"/>
-          <rect x="125" y="329" width="34" height="15" rx="4" fill="#e8f0fe" stroke="#0b57d0" stroke-width="2.5"/>
-          <rect x="211" y="306" width="6" height="58" fill="#16181d"/>
-          <text x="214" y="388" text-anchor="middle" fill="#4b5260" style="font-size:15px;">C</text>
-          <rect x="177" y="347" width="74" height="15" rx="4" fill="#0b57d0"/>
-          <text x="34" y="268" fill="#b3261e" style="font-size:19px; font-weight:700;">4. A → C</text>
+          <rect x="18" y="246" width="248" height="168" rx="10" fill="none" stroke-width="2" class="s-surface-3"/>
+          <rect x="34" y="364" width="216" height="7" class="f-ink"/>
+          <rect x="67" y="306" width="6" height="58" class="f-ink"/>
+          <text x="70" y="388" text-anchor="middle" style="font-size:15px;" class="f-ink-soft">A</text>
+          <rect x="139" y="306" width="6" height="58" class="f-ink"/>
+          <text x="142" y="388" text-anchor="middle" style="font-size:15px;" class="f-ink-soft">B</text>
+          <rect x="115" y="347" width="54" height="15" rx="4" stroke-width="2.5" class="f-accent-bg s-accent"/>
+          <rect x="125" y="329" width="34" height="15" rx="4" stroke-width="2.5" class="f-accent-bg s-accent"/>
+          <rect x="211" y="306" width="6" height="58" class="f-ink"/>
+          <text x="214" y="388" text-anchor="middle" style="font-size:15px;" class="f-ink-soft">C</text>
+          <rect x="177" y="347" width="74" height="15" rx="4" class="f-accent"/>
+          <text x="34" y="268" style="font-size:19px; font-weight:700;" class="f-err">4. A → C</text>
         </g>
         <g class="anim-step" data-step="6">
-          <rect x="290" y="246" width="248" height="168" rx="10" fill="none" stroke="#e8eaef" stroke-width="2"/>
-          <rect x="306" y="364" width="216" height="7" fill="#16181d"/>
-          <rect x="339" y="306" width="6" height="58" fill="#16181d"/>
-          <text x="342" y="388" text-anchor="middle" fill="#4b5260" style="font-size:15px;">A</text>
-          <rect x="325" y="347" width="34" height="15" rx="4" fill="#e8f0fe" stroke="#0b57d0" stroke-width="2.5"/>
-          <rect x="411" y="306" width="6" height="58" fill="#16181d"/>
-          <text x="414" y="388" text-anchor="middle" fill="#4b5260" style="font-size:15px;">B</text>
-          <rect x="387" y="347" width="54" height="15" rx="4" fill="#e8f0fe" stroke="#0b57d0" stroke-width="2.5"/>
-          <rect x="483" y="306" width="6" height="58" fill="#16181d"/>
-          <text x="486" y="388" text-anchor="middle" fill="#4b5260" style="font-size:15px;">C</text>
-          <rect x="449" y="347" width="74" height="15" rx="4" fill="#0b57d0"/>
-          <text x="306" y="268" fill="#0b57d0" style="font-size:19px; font-weight:700;">5. B → A</text>
+          <rect x="290" y="246" width="248" height="168" rx="10" fill="none" stroke-width="2" class="s-surface-3"/>
+          <rect x="306" y="364" width="216" height="7" class="f-ink"/>
+          <rect x="339" y="306" width="6" height="58" class="f-ink"/>
+          <text x="342" y="388" text-anchor="middle" style="font-size:15px;" class="f-ink-soft">A</text>
+          <rect x="325" y="347" width="34" height="15" rx="4" stroke-width="2.5" class="f-accent-bg s-accent"/>
+          <rect x="411" y="306" width="6" height="58" class="f-ink"/>
+          <text x="414" y="388" text-anchor="middle" style="font-size:15px;" class="f-ink-soft">B</text>
+          <rect x="387" y="347" width="54" height="15" rx="4" stroke-width="2.5" class="f-accent-bg s-accent"/>
+          <rect x="483" y="306" width="6" height="58" class="f-ink"/>
+          <text x="486" y="388" text-anchor="middle" style="font-size:15px;" class="f-ink-soft">C</text>
+          <rect x="449" y="347" width="74" height="15" rx="4" class="f-accent"/>
+          <text x="306" y="268" style="font-size:19px; font-weight:700;" class="f-accent">5. B → A</text>
         </g>
         <g class="anim-step" data-step="7">
-          <rect x="562" y="246" width="248" height="168" rx="10" fill="none" stroke="#e8eaef" stroke-width="2"/>
-          <rect x="578" y="364" width="216" height="7" fill="#16181d"/>
-          <rect x="611" y="306" width="6" height="58" fill="#16181d"/>
-          <text x="614" y="388" text-anchor="middle" fill="#4b5260" style="font-size:15px;">A</text>
-          <rect x="597" y="347" width="34" height="15" rx="4" fill="#e8f0fe" stroke="#0b57d0" stroke-width="2.5"/>
-          <rect x="683" y="306" width="6" height="58" fill="#16181d"/>
-          <text x="686" y="388" text-anchor="middle" fill="#4b5260" style="font-size:15px;">B</text>
-          <rect x="755" y="306" width="6" height="58" fill="#16181d"/>
-          <text x="758" y="388" text-anchor="middle" fill="#4b5260" style="font-size:15px;">C</text>
-          <rect x="721" y="347" width="74" height="15" rx="4" fill="#0b57d0"/>
-          <rect x="731" y="329" width="54" height="15" rx="4" fill="#e8f0fe" stroke="#0b57d0" stroke-width="2.5"/>
-          <text x="578" y="268" fill="#0b57d0" style="font-size:19px; font-weight:700;">6. B → C</text>
+          <rect x="562" y="246" width="248" height="168" rx="10" fill="none" stroke-width="2" class="s-surface-3"/>
+          <rect x="578" y="364" width="216" height="7" class="f-ink"/>
+          <rect x="611" y="306" width="6" height="58" class="f-ink"/>
+          <text x="614" y="388" text-anchor="middle" style="font-size:15px;" class="f-ink-soft">A</text>
+          <rect x="597" y="347" width="34" height="15" rx="4" stroke-width="2.5" class="f-accent-bg s-accent"/>
+          <rect x="683" y="306" width="6" height="58" class="f-ink"/>
+          <text x="686" y="388" text-anchor="middle" style="font-size:15px;" class="f-ink-soft">B</text>
+          <rect x="755" y="306" width="6" height="58" class="f-ink"/>
+          <text x="758" y="388" text-anchor="middle" style="font-size:15px;" class="f-ink-soft">C</text>
+          <rect x="721" y="347" width="74" height="15" rx="4" class="f-accent"/>
+          <rect x="731" y="329" width="54" height="15" rx="4" stroke-width="2.5" class="f-accent-bg s-accent"/>
+          <text x="578" y="268" style="font-size:19px; font-weight:700;" class="f-accent">6. B → C</text>
         </g>
         <g class="anim-step" data-step="8">
-          <rect x="834" y="246" width="248" height="168" rx="10" fill="none" stroke="#e8eaef" stroke-width="2"/>
-          <rect x="850" y="364" width="216" height="7" fill="#16181d"/>
-          <rect x="883" y="306" width="6" height="58" fill="#16181d"/>
-          <text x="886" y="388" text-anchor="middle" fill="#4b5260" style="font-size:15px;">A</text>
-          <rect x="955" y="306" width="6" height="58" fill="#16181d"/>
-          <text x="958" y="388" text-anchor="middle" fill="#4b5260" style="font-size:15px;">B</text>
-          <rect x="1027" y="306" width="6" height="58" fill="#16181d"/>
-          <text x="1030" y="388" text-anchor="middle" fill="#4b5260" style="font-size:15px;">C</text>
-          <rect x="993" y="347" width="74" height="15" rx="4" fill="#0b57d0"/>
-          <rect x="1003" y="329" width="54" height="15" rx="4" fill="#e8f0fe" stroke="#0b57d0" stroke-width="2.5"/>
-          <rect x="1013" y="311" width="34" height="15" rx="4" fill="#e8f0fe" stroke="#0b57d0" stroke-width="2.5"/>
-          <text x="850" y="268" fill="#0b57d0" style="font-size:19px; font-weight:700;">7. A → C</text>
+          <rect x="834" y="246" width="248" height="168" rx="10" fill="none" stroke-width="2" class="s-surface-3"/>
+          <rect x="850" y="364" width="216" height="7" class="f-ink"/>
+          <rect x="883" y="306" width="6" height="58" class="f-ink"/>
+          <text x="886" y="388" text-anchor="middle" style="font-size:15px;" class="f-ink-soft">A</text>
+          <rect x="955" y="306" width="6" height="58" class="f-ink"/>
+          <text x="958" y="388" text-anchor="middle" style="font-size:15px;" class="f-ink-soft">B</text>
+          <rect x="1027" y="306" width="6" height="58" class="f-ink"/>
+          <text x="1030" y="388" text-anchor="middle" style="font-size:15px;" class="f-ink-soft">C</text>
+          <rect x="993" y="347" width="74" height="15" rx="4" class="f-accent"/>
+          <rect x="1003" y="329" width="54" height="15" rx="4" stroke-width="2.5" class="f-accent-bg s-accent"/>
+          <rect x="1013" y="311" width="34" height="15" rx="4" stroke-width="2.5" class="f-accent-bg s-accent"/>
+          <text x="850" y="268" style="font-size:19px; font-weight:700;" class="f-accent">7. A → C</text>
         </g>
       </svg>
       <span class="fragment"></span>
@@ -669,31 +654,31 @@ long long fib(int n) {
         </g>
 
         <g class="anim-step" data-step="2">
-          <rect x="920" y="130" width="160" height="70" rx="12" fill="none" stroke="#0b57d0" stroke-width="3"/>
-          <text x="1000" y="160" text-anchor="middle" fill="#0b57d0" style="font-size:22px; font-weight:700;">caché</text>
-          <text x="1000" y="188" text-anchor="middle" fill="#0b57d0" style="font-size:20px;">n → fib(n)</text>
-          <circle cx="620" cy="240" r="26" fill="#e8eaef" stroke="#d7dbe2" stroke-width="2"/>
-          <text x="620" y="248" text-anchor="middle" fill="#4b5260" style="font-size:22px;">2</text>
-          <circle cx="820" cy="240" r="26" fill="#e8eaef" stroke="#d7dbe2" stroke-width="2"/>
-          <text x="820" y="248" text-anchor="middle" fill="#4b5260" style="font-size:22px;">1</text>
-          <circle cx="170" cy="240" r="26" fill="#e8eaef" stroke="#d7dbe2" stroke-width="2"/>
-          <text x="170" y="248" text-anchor="middle" fill="#4b5260" style="font-size:22px;">3</text>
-          <circle cx="90" cy="335" r="26" fill="#e8eaef" stroke="#d7dbe2" stroke-width="2"/>
-          <text x="90" y="343" text-anchor="middle" fill="#4b5260" style="font-size:22px;">2</text>
-          <circle cx="240" cy="335" r="26" fill="#e8eaef" stroke="#d7dbe2" stroke-width="2"/>
-          <text x="240" y="343" text-anchor="middle" fill="#4b5260" style="font-size:22px;">1</text>
+          <rect x="920" y="130" width="160" height="70" rx="12" fill="none" stroke-width="3" class="s-accent"/>
+          <text x="1000" y="160" text-anchor="middle" style="font-size:22px; font-weight:700;" class="f-accent">caché</text>
+          <text x="1000" y="188" text-anchor="middle" style="font-size:20px;" class="f-accent">n → fib(n)</text>
+          <circle cx="620" cy="240" r="26" stroke-width="2" class="f-surface-3 s-line"/>
+          <text x="620" y="248" text-anchor="middle" style="font-size:22px;" class="f-ink-soft">2</text>
+          <circle cx="820" cy="240" r="26" stroke-width="2" class="f-surface-3 s-line"/>
+          <text x="820" y="248" text-anchor="middle" style="font-size:22px;" class="f-ink-soft">1</text>
+          <circle cx="170" cy="240" r="26" stroke-width="2" class="f-surface-3 s-line"/>
+          <text x="170" y="248" text-anchor="middle" style="font-size:22px;" class="f-ink-soft">3</text>
+          <circle cx="90" cy="335" r="26" stroke-width="2" class="f-surface-3 s-line"/>
+          <text x="90" y="343" text-anchor="middle" style="font-size:22px;" class="f-ink-soft">2</text>
+          <circle cx="240" cy="335" r="26" stroke-width="2" class="f-surface-3 s-line"/>
+          <text x="240" y="343" text-anchor="middle" style="font-size:22px;" class="f-ink-soft">1</text>
           <path class="svg-edge" d="M 740 220 Q 840 160 915 160" stroke-dasharray="10 8"/>
           <text class="svg-label" x="700" y="300" text-anchor="middle" style="font-size:20px; font-weight:400;">los grises se responden desde la caché</text>
         </g>
 
         <g class="anim-step" data-step="3">
-          <circle cx="500" cy="50" r="30" fill="none" stroke="#0b57d0" stroke-width="4"/>
-          <circle cx="300" cy="145" r="30" fill="none" stroke="#0b57d0" stroke-width="4"/>
-          <circle cx="720" cy="145" r="30" fill="none" stroke="#0b57d0" stroke-width="4"/>
-          <circle cx="410" cy="240" r="30" fill="none" stroke="#0b57d0" stroke-width="4"/>
-          <circle cx="350" cy="335" r="30" fill="none" stroke="#0b57d0" stroke-width="4"/>
-          <circle cx="470" cy="335" r="30" fill="none" stroke="#0b57d0" stroke-width="4"/>
-          <text x="550" y="410" text-anchor="middle" fill="#0b57d0" style="font-size:23px; font-weight:700;">solo los subproblemas distintos se calculan: n+1 evaluaciones, O(n)</text>
+          <circle cx="500" cy="50" r="30" fill="none" stroke-width="4" class="s-accent"/>
+          <circle cx="300" cy="145" r="30" fill="none" stroke-width="4" class="s-accent"/>
+          <circle cx="720" cy="145" r="30" fill="none" stroke-width="4" class="s-accent"/>
+          <circle cx="410" cy="240" r="30" fill="none" stroke-width="4" class="s-accent"/>
+          <circle cx="350" cy="335" r="30" fill="none" stroke-width="4" class="s-accent"/>
+          <circle cx="470" cy="335" r="30" fill="none" stroke-width="4" class="s-accent"/>
+          <text x="550" y="410" text-anchor="middle" style="font-size:23px; font-weight:700;" class="f-accent">solo los subproblemas distintos se calculan: n+1 evaluaciones, O(n)</text>
         </g>
       </svg>
       <span class="fragment"></span>
@@ -716,49 +701,6 @@ long long fib(int n) {
           reduce el número de llamadas, no la longitud de la rama más profunda.
         </div>
       </div>
-    </section>
-
-    <!-- ============ POR QUÉ IMPORTA ============ -->
-    <section>
-      <span class="kicker kicker-ai">Por qué importa hoy</span>
-      <h2>El <span class="term" data-term="all-reduce">all-reduce</span> que entrena a los LLM</h2>
-      <div class="box-ai" data-label="Dónde vive esto en sistemas de IA">
-        <p>Para sincronizar gradientes entre \(p\) GPUs, el all-reduce existe en dos variantes, y elegir entre ellas es análisis de recurrencias:</p>
-        <table>
-          <thead><tr><th>Variante</th><th>Pasos</th><th>Gana en</th></tr></thead>
-          <tbody>
-            <tr class="fragment"><td>En árbol</td><td>\(O(\log p)\)</td><td>latencia (mensajes chicos)</td></tr>
-            <tr class="fragment"><td>En anillo</td><td>\(2(p-1)\)</td><td>ancho de banda (mensajes grandes)</td></tr>
-          </tbody>
-        </table>
-        <ul>
-          <li class="fragment">El árbol es la forma de divide y vencerás: combinar por mitades en \(\log p\) rondas.</li>
-          <li class="fragment">El anillo da más pasos, pero cada GPU transmite en total una cantidad de datos casi óptima; por eso NCCL lo usa para los tensores grandes del entrenamiento.</li>
-        </ul>
-      </div>
-    </section>
-
-    <!-- ============ CIERRE STL 1 ============ -->
-    <section>
-      <span class="kicker">Cierre STL</span>
-      <h2><code>std::stable_sort</code>: la recurrencia depende de la memoria</h2>
-      <ul>
-        <li class="fragment">En libstdc++, libc++ y MSVC, <code>stable_sort</code> es un merge sort adaptativo.</li>
-        <li class="fragment">Si consigue el buffer auxiliar de \(O(n)\), aplica la recurrencia de hoy: \(T(n) = 2T(n/2) + \Theta(n) \to O(n \log n)\).</li>
-        <li class="fragment">Si no hay memoria, fusiona in situ con rotaciones: la fusión pasa a \(\Theta(n \log n)\) por nivel y el total degrada a \(O(n \log^{2} n)\), donde \(\log^{2} n\) significa \((\log n)^{2}\).</li>
-        <li class="fragment">El estándar escribe ambas con \(O\) porque promete un techo; el análisis de hoy da la cota ajustada, \(\Theta\).</li>
-      </ul>
-    </section>
-
-    <!-- ============ CIERRE STL 2 ============ -->
-    <section>
-      <span class="kicker">Cierre STL</span>
-      <h2><code>std::sort</code> es <span class="term" data-term="introsort">introsort</span>: la profundidad como alarma</h2>
-      <ul>
-        <li class="fragment">Introsort arranca como quicksort y <strong>monitorea la profundidad de su propia recursión</strong>: si supera \(\approx 2\log_2 n\), cambia a heapsort; para tramos chicos remata con insertion sort.</li>
-        <li class="fragment">La lógica es puro análisis de recurrencias: una recursión de quicksort más profunda que \(\log n\) delata que las particiones están saliendo desbalanceadas — el camino al peor caso \(O(n^{2})\).</li>
-        <li class="fragment">Nada de esto lo exige el estándar (solo pide \(O(n \log n)\) peor caso desde C++11); es la decisión de implementación con la que las tres bibliotecas lo cumplen.</li>
-      </ul>
     </section>
 
     <!-- ============ RETO ============ -->
@@ -794,6 +736,55 @@ long long fib(int n) {
       <p class="muted">Recordatorio: la Act 1.2 (análisis de complejidad iterativa y recursiva) se entrega este domingo en el LMS.</p>
     </section>
 
+    <!-- ============ DIVIDER MATERIAL EXTRA ============ -->
+    <section class="divider">
+      <h2>Material extra · autoestudio</h2>
+      <p class="muted">No se cubre en clase: la STL del tema y su conexión con sistemas de IA.</p>
+    </section>
+
+    <!-- ============ POR QUÉ IMPORTA ============ -->
+    <section>
+      <span class="kicker kicker-ai">Por qué importa hoy</span>
+      <h2>El <span class="term" data-term="all-reduce">all-reduce</span> que entrena a los LLM</h2>
+      <div class="box-ai" data-label="Dónde vive esto en sistemas de IA">
+        <p>Para sincronizar gradientes entre \(p\) GPUs, el all-reduce existe en dos variantes, y elegir entre ellas es análisis de recurrencias:</p>
+        <table>
+          <thead><tr><th>Variante</th><th>Pasos</th><th>Gana en</th></tr></thead>
+          <tbody>
+            <tr class="fragment"><td>En árbol</td><td>\(O(\log p)\)</td><td>latencia (mensajes chicos)</td></tr>
+            <tr class="fragment"><td>En anillo</td><td>\(2(p-1)\)</td><td>ancho de banda (mensajes grandes)</td></tr>
+          </tbody>
+        </table>
+        <ul>
+          <li class="fragment">El árbol es la forma de divide y vencerás: combinar por mitades en \(\log p\) rondas.</li>
+          <li class="fragment">El anillo da más pasos, pero cada GPU transmite en total una cantidad de datos casi óptima; por eso NCCL lo usa para los tensores grandes del entrenamiento.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============ CIERRE STL 1 ============ -->
+    <section>
+      <span class="kicker">STL</span>
+      <h2><code>std::stable_sort</code>: la recurrencia depende de la memoria</h2>
+      <ul>
+        <li class="fragment">En libstdc++, libc++ y MSVC, <code>stable_sort</code> es un merge sort adaptativo.</li>
+        <li class="fragment">Si consigue el buffer auxiliar de \(O(n)\), aplica la recurrencia de hoy: \(T(n) = 2T(n/2) + \Theta(n) \to O(n \log n)\).</li>
+        <li class="fragment">Si no hay memoria, fusiona in situ con rotaciones: la fusión pasa a \(\Theta(n \log n)\) por nivel y el total degrada a \(O(n \log^{2} n)\), donde \(\log^{2} n\) significa \((\log n)^{2}\).</li>
+        <li class="fragment">El estándar escribe ambas con \(O\) porque promete un techo; el análisis de hoy da la cota ajustada, \(\Theta\).</li>
+      </ul>
+    </section>
+
+    <!-- ============ CIERRE STL 2 ============ -->
+    <section>
+      <span class="kicker">STL</span>
+      <h2><code>std::sort</code> es <span class="term" data-term="introsort">introsort</span>: la profundidad como alarma</h2>
+      <ul>
+        <li class="fragment">Introsort arranca como quicksort y <strong>monitorea la profundidad de su propia recursión</strong>: si supera \(\approx 2\log_2 n\), cambia a heapsort; para tramos chicos remata con insertion sort.</li>
+        <li class="fragment">La lógica es puro análisis de recurrencias: una recursión de quicksort más profunda que \(\log n\) delata que las particiones están saliendo desbalanceadas — el camino al peor caso \(O(n^{2})\).</li>
+        <li class="fragment">Nada de esto lo exige el estándar (solo pide \(O(n \log n)\) peor caso desde C++11); es la decisión de implementación con la que las tres bibliotecas lo cumplen.</li>
+      </ul>
+    </section>
+
     <!-- ============ REFERENCIAS ============ -->
     <section>
       <span class="kicker">Sesión 4</span>
@@ -816,6 +807,7 @@ long long fib(int n) {
           </ul>
         </div>
       </div>
+      <p class="refs-ia">Nota: estas diapositivas fueron generadas usando inteligencia artificial, específicamente Claude (Anthropic).</p>
     </section>
 
   </div>

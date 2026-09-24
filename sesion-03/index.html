@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+  <script>try{if(localStorage.getItem("curso-tema")==="dark"&&!/print-pdf/i.test(location.search))document.documentElement.dataset.theme="dark"}catch(e){}</script>
   <link rel="stylesheet" href="../css/theme-curso.css">
 </head>
 <body>
@@ -23,22 +24,6 @@
         Sesión 3 · Semana 2<br>
         Salvador Hinojosa
       </div>
-    </section>
-
-    <!-- ============ AGENDA ============ -->
-    <section>
-      <span class="kicker">Sesión 3 · Agenda</span>
-      <h2>Qué vamos a ver hoy</h2>
-      <table>
-        <tbody>
-          <tr><td>10 min</td><td>Por qué medir con reloj no basta</td></tr>
-          <tr><td>30 min</td><td>3.1.1 Preliminares: sumatorias y logaritmos</td></tr>
-          <tr><td>30 min</td><td>3.1.2 Contar operaciones: el <span class="term" data-term="modelo-ram">modelo de costo</span></td></tr>
-          <tr><td>35 min</td><td>3.1.3 Notación asintótica: O, Ω, Θ</td></tr>
-          <tr><td>10 min</td><td>Ejercicio: cinco fragmentos</td></tr>
-          <tr><td>5 min</td><td>Cierre STL</td></tr>
-        </tbody>
-      </table>
     </section>
 
     <!-- ============ OBJETIVO ============ -->
@@ -76,31 +61,31 @@
       <h2>Cómo se lee el símbolo de sumatoria</h2>
       <svg viewBox="0 0 1100 400" style="width:100%; max-height:400px;">
         <!-- La sumatoria, siempre visible -->
-        <text x="150" y="215" style="font-size:120px; font-weight:400;" fill="#16181d">Σ</text>
-        <text x="152" y="285" style="font-size:34px;" fill="#16181d">i = 1</text>
-        <text x="176" y="115" style="font-size:34px;" fill="#16181d">n</text>
-        <text x="255" y="215" style="font-size:52px;" fill="#16181d">i<tspan dy="-18" style="font-size:32px;">2</tspan></text>
+        <text x="150" y="215" style="font-size:120px; font-weight:400;" class="f-ink">Σ</text>
+        <text x="152" y="285" style="font-size:34px;" class="f-ink">i = 1</text>
+        <text x="176" y="115" style="font-size:34px;" class="f-ink">n</text>
+        <text x="255" y="215" style="font-size:52px;" class="f-ink">i<tspan dy="-18" style="font-size:32px;">2</tspan></text>
 
         <g class="anim-step" data-step="1">
-          <path class="svg-edge" d="M 190 300 Q 210 345 300 345" stroke="#0b57d0" stroke-width="3"/>
-          <text x="315" y="355" fill="#0b57d0" style="font-size:26px; font-weight:600;">el índice arranca en 1</text>
+          <path class="svg-edge s-accent" d="M 190 300 Q 210 345 300 345" stroke-width="3"/>
+          <text x="315" y="355" style="font-size:26px; font-weight:600;" class="f-accent">el índice arranca en 1</text>
         </g>
 
         <g class="anim-step" data-step="2">
-          <path class="svg-edge" d="M 205 100 Q 240 60 320 60" stroke="#0b57d0" stroke-width="3"/>
-          <text x="335" y="70" fill="#0b57d0" style="font-size:26px; font-weight:600;">y llega hasta n (inclusive)</text>
+          <path class="svg-edge s-accent" d="M 205 100 Q 240 60 320 60" stroke-width="3"/>
+          <text x="335" y="70" style="font-size:26px; font-weight:600;" class="f-accent">y llega hasta n (inclusive)</text>
         </g>
 
         <g class="anim-step" data-step="3">
-          <path class="svg-edge" d="M 285 240 Q 300 300 380 300" stroke="#b3261e" stroke-width="3"/>
-          <text x="395" y="310" fill="#b3261e" style="font-size:26px; font-weight:600;">el término que se suma</text>
+          <path class="svg-edge s-err" d="M 285 240 Q 300 300 380 300" stroke-width="3"/>
+          <text x="395" y="310" style="font-size:26px; font-weight:600;" class="f-err">el término que se suma</text>
         </g>
 
         <g class="anim-step" data-step="4">
-          <line x1="700" y1="60" x2="700" y2="340" stroke="#d7dbe2" stroke-width="3"/>
-          <text x="740" y="150" fill="#16181d" style="font-size:28px; font-weight:600;">Con n = 4 queda:</text>
-          <text x="740" y="210" fill="#16181d" style="font-size:34px;">1 + 4 + 9 + 16 = 30</text>
-          <text x="740" y="265" fill="#4b5260" style="font-size:24px;">un término por cada i</text>
+          <line x1="700" y1="60" x2="700" y2="340" stroke-width="3" class="s-line"/>
+          <text x="740" y="150" style="font-size:28px; font-weight:600;" class="f-ink">Con n = 4 queda:</text>
+          <text x="740" y="210" style="font-size:34px;" class="f-ink">1 + 4 + 9 + 16 = 30</text>
+          <text x="740" y="265" style="font-size:24px;" class="f-ink-soft">un término por cada i</text>
         </g>
       </svg>
       <span class="fragment"></span>
@@ -233,7 +218,7 @@ for (int i = 0; i &lt; n; ++i)
       <h2>El ciclo triangular, dibujado</h2>
       <svg viewBox="0 0 1100 400" style="width:100%; max-height:400px;">
         <!-- Rejilla n × n (aquí n = 8): siempre visible -->
-        <g stroke="#d7dbe2" stroke-width="2">
+        <g stroke-width="2" class="s-line">
           <line x1="90" y1="40" x2="90" y2="312"/><line x1="124" y1="40" x2="124" y2="312"/>
           <line x1="158" y1="40" x2="158" y2="312"/><line x1="192" y1="40" x2="192" y2="312"/>
           <line x1="226" y1="40" x2="226" y2="312"/><line x1="260" y1="40" x2="260" y2="312"/>
@@ -252,50 +237,50 @@ for (int i = 0; i &lt; n; ++i)
 
         <!-- Paso 1: el anidado completo llena el cuadrado -->
         <g class="anim-step" data-step="1">
-          <rect x="90" y="40" width="272" height="272" fill="#4b5260" opacity="0.18"/>
-          <text x="430" y="80" fill="#16181d" style="font-size:30px; font-weight:600;">Anidado completo</text>
-          <text x="430" y="122" fill="#4b5260" style="font-size:28px;">las 8 × 8 = 64 celdas</text>
+          <rect x="90" y="40" width="272" height="272" opacity="0.18" class="f-ink-soft"/>
+          <text x="430" y="80" style="font-size:30px; font-weight:600;" class="f-ink">Anidado completo</text>
+          <text x="430" y="122" style="font-size:28px;" class="f-ink-soft">las 8 × 8 = 64 celdas</text>
         </g>
 
         <!-- Paso 2: la diagonal y la mitad que sí visita el triangular -->
         <g class="anim-step" data-step="2">
-          <rect x="90" y="40" width="34" height="34" fill="#4b5260" opacity="0.3"/>
-          <rect x="124" y="74" width="34" height="34" fill="#4b5260" opacity="0.3"/>
-          <rect x="158" y="108" width="34" height="34" fill="#4b5260" opacity="0.3"/>
-          <rect x="192" y="142" width="34" height="34" fill="#4b5260" opacity="0.3"/>
-          <rect x="226" y="176" width="34" height="34" fill="#4b5260" opacity="0.3"/>
-          <rect x="260" y="210" width="34" height="34" fill="#4b5260" opacity="0.3"/>
-          <rect x="294" y="244" width="34" height="34" fill="#4b5260" opacity="0.3"/>
-          <rect x="328" y="278" width="34" height="34" fill="#4b5260" opacity="0.3"/>
-          <rect x="124" y="40"  width="238" height="34" fill="#0b57d0" opacity="0.35"/>
-          <rect x="158" y="74"  width="204" height="34" fill="#0b57d0" opacity="0.35"/>
-          <rect x="192" y="108" width="170" height="34" fill="#0b57d0" opacity="0.35"/>
-          <rect x="226" y="142" width="136" height="34" fill="#0b57d0" opacity="0.35"/>
-          <rect x="260" y="176" width="102" height="34" fill="#0b57d0" opacity="0.35"/>
-          <rect x="294" y="210" width="68"  height="34" fill="#0b57d0" opacity="0.35"/>
-          <rect x="328" y="244" width="34"  height="34" fill="#0b57d0" opacity="0.35"/>
-          <text x="430" y="180" fill="#0b57d0" style="font-size:30px; font-weight:600;">Triangular: solo j &gt; i</text>
-          <text x="430" y="222" fill="#4b5260" style="font-size:28px;">en gris, la diagonal que nunca se visita</text>
+          <rect x="90" y="40" width="34" height="34" opacity="0.3" class="f-ink-soft"/>
+          <rect x="124" y="74" width="34" height="34" opacity="0.3" class="f-ink-soft"/>
+          <rect x="158" y="108" width="34" height="34" opacity="0.3" class="f-ink-soft"/>
+          <rect x="192" y="142" width="34" height="34" opacity="0.3" class="f-ink-soft"/>
+          <rect x="226" y="176" width="34" height="34" opacity="0.3" class="f-ink-soft"/>
+          <rect x="260" y="210" width="34" height="34" opacity="0.3" class="f-ink-soft"/>
+          <rect x="294" y="244" width="34" height="34" opacity="0.3" class="f-ink-soft"/>
+          <rect x="328" y="278" width="34" height="34" opacity="0.3" class="f-ink-soft"/>
+          <rect x="124" y="40"  width="238" height="34" opacity="0.35" class="f-accent"/>
+          <rect x="158" y="74"  width="204" height="34" opacity="0.35" class="f-accent"/>
+          <rect x="192" y="108" width="170" height="34" opacity="0.35" class="f-accent"/>
+          <rect x="226" y="142" width="136" height="34" opacity="0.35" class="f-accent"/>
+          <rect x="260" y="176" width="102" height="34" opacity="0.35" class="f-accent"/>
+          <rect x="294" y="210" width="68"  height="34" opacity="0.35" class="f-accent"/>
+          <rect x="328" y="244" width="34"  height="34" opacity="0.35" class="f-accent"/>
+          <text x="430" y="180" style="font-size:30px; font-weight:600;" class="f-accent">Triangular: solo j &gt; i</text>
+          <text x="430" y="222" style="font-size:28px;" class="f-ink-soft">en gris, la diagonal que nunca se visita</text>
         </g>
 
         <!-- Paso 3: cuántas celdas aporta cada fila -->
         <g class="anim-step" data-step="3">
-          <text x="378" y="63"  fill="#0b57d0" style="font-size:24px; font-weight:600;">7</text>
-          <text x="378" y="97"  fill="#0b57d0" style="font-size:24px; font-weight:600;">6</text>
-          <text x="378" y="131" fill="#0b57d0" style="font-size:24px; font-weight:600;">5</text>
-          <text x="378" y="165" fill="#0b57d0" style="font-size:24px; font-weight:600;">4</text>
-          <text x="378" y="199" fill="#0b57d0" style="font-size:24px; font-weight:600;">3</text>
-          <text x="378" y="233" fill="#0b57d0" style="font-size:24px; font-weight:600;">2</text>
-          <text x="378" y="267" fill="#0b57d0" style="font-size:24px; font-weight:600;">1</text>
-          <text x="378" y="301" fill="#0b57d0" style="font-size:24px; font-weight:600;">0</text>
-          <text x="430" y="280" fill="#16181d" style="font-size:28px;">7 + 6 + 5 + 4 + 3 + 2 + 1 + 0 = 28</text>
+          <text x="378" y="63"  style="font-size:24px; font-weight:600;" class="f-accent">7</text>
+          <text x="378" y="97"  style="font-size:24px; font-weight:600;" class="f-accent">6</text>
+          <text x="378" y="131" style="font-size:24px; font-weight:600;" class="f-accent">5</text>
+          <text x="378" y="165" style="font-size:24px; font-weight:600;" class="f-accent">4</text>
+          <text x="378" y="199" style="font-size:24px; font-weight:600;" class="f-accent">3</text>
+          <text x="378" y="233" style="font-size:24px; font-weight:600;" class="f-accent">2</text>
+          <text x="378" y="267" style="font-size:24px; font-weight:600;" class="f-accent">1</text>
+          <text x="378" y="301" style="font-size:24px; font-weight:600;" class="f-accent">0</text>
+          <text x="430" y="280" style="font-size:28px;" class="f-ink">7 + 6 + 5 + 4 + 3 + 2 + 1 + 0 = 28</text>
         </g>
 
         <!-- Paso 4: el argumento general -->
         <g class="anim-step" data-step="4">
-          <rect x="424" y="298" width="600" height="82" fill="#e8f0fe" stroke="#0b57d0" stroke-width="3" rx="10"/>
-          <text x="444" y="330" fill="#16181d" style="font-size:25px; font-weight:600;">Dos triángulos iguales llenan el cuadrado</text>
-          <text x="444" y="362" fill="#16181d" style="font-size:25px; font-weight:600;">sin la diagonal: 2S = n² − n → S = n(n−1)/2</text>
+          <rect x="424" y="298" width="600" height="82" stroke-width="3" rx="10" class="f-accent-bg s-accent"/>
+          <text x="444" y="330" style="font-size:25px; font-weight:600;" class="f-ink">Dos triángulos iguales llenan el cuadrado</text>
+          <text x="444" y="362" style="font-size:25px; font-weight:600;" class="f-ink">sin la diagonal: 2S = n² − n → S = n(n−1)/2</text>
         </g>
       </svg>
       <span class="fragment"></span>
@@ -386,35 +371,35 @@ for (int paso = n; paso &gt; 0; paso /= 2)
       <span class="kicker">3.1.3 · Notación asintótica</span>
       <h2>La misma definición, dibujada</h2>
       <svg viewBox="0 0 1100 400" style="width:100%; max-height:400px;">
-        <line x1="80" y1="330" x2="1050" y2="330" stroke="#16181d" stroke-width="3"/>
-        <line x1="80" y1="330" x2="80" y2="30" stroke="#16181d" stroke-width="3"/>
+        <line x1="80" y1="330" x2="1050" y2="330" stroke-width="3" class="s-ink"/>
+        <line x1="80" y1="330" x2="80" y2="30" stroke-width="3" class="s-ink"/>
         <text class="svg-label" x="1042" y="362" text-anchor="end" style="font-size:22px; font-weight:400;">n</text>
         <text class="svg-label" x="46" y="44" style="font-size:22px; font-weight:400;">T(n)</text>
 
         <g class="anim-step" data-step="1">
-          <path d="M 80 268 L 940 94" fill="none" stroke="#16181d" stroke-width="4"/>
-          <text x="950" y="98" fill="#16181d" style="font-size:22px; font-weight:600;">f(n) = 3n+40</text>
-          <text x="120" y="70" fill="#16181d" style="font-size:26px; font-weight:600;">1. f es el costo real que contaste.</text>
+          <path d="M 80 268 L 940 94" fill="none" stroke-width="4" class="s-ink"/>
+          <text x="950" y="98" style="font-size:22px; font-weight:600;" class="f-ink">f(n) = 3n+40</text>
+          <text x="120" y="70" style="font-size:26px; font-weight:600;" class="f-ink">1. f es el costo real que contaste.</text>
         </g>
 
         <g class="anim-step" data-step="2">
-          <path d="M 80 330 L 940 272" fill="none" stroke="#4b5260" stroke-width="4"/>
-          <text x="950" y="276" fill="#4b5260" style="font-size:22px; font-weight:600;">g(n) = n</text>
-          <text x="120" y="110" fill="#4b5260" style="font-size:26px; font-weight:600;">2. g es la función simple de comparación.</text>
+          <path d="M 80 330 L 940 272" fill="none" stroke-width="4" class="s-ink-soft"/>
+          <text x="950" y="276" style="font-size:22px; font-weight:600;" class="f-ink-soft">g(n) = n</text>
+          <text x="120" y="110" style="font-size:26px; font-weight:600;" class="f-ink-soft">2. g es la función simple de comparación.</text>
         </g>
 
         <g class="anim-step" data-step="3">
-          <path d="M 80 330 L 940 40" fill="none" stroke="#0b57d0" stroke-width="4"/>
-          <text x="950" y="44" fill="#0b57d0" style="font-size:22px; font-weight:600;">c·g(n) = 5n</text>
-          <text x="120" y="150" fill="#0b57d0" style="font-size:26px; font-weight:600;">3. La estiras con c = 5.</text>
+          <path d="M 80 330 L 940 40" fill="none" stroke-width="4" class="s-accent"/>
+          <text x="950" y="44" style="font-size:22px; font-weight:600;" class="f-accent">c·g(n) = 5n</text>
+          <text x="120" y="150" style="font-size:26px; font-weight:600;" class="f-accent">3. La estiras con c = 5.</text>
         </g>
 
         <g class="anim-step" data-step="4">
-          <rect x="540" y="20" width="400" height="310" fill="#0b57d0" opacity="0.08"/>
-          <line x1="540" y1="330" x2="540" y2="175" stroke="#b3261e" stroke-width="3" stroke-dasharray="10 8"/>
-          <circle cx="540" cy="175" r="9" fill="#b3261e"/>
-          <text x="540" y="362" text-anchor="middle" fill="#b3261e" style="font-size:24px; font-weight:600;">n₀ = 20</text>
-          <text x="600" y="66" fill="#0b57d0" style="font-size:26px; font-weight:600;">aquí f ya no cruza a c·g</text>
+          <rect x="540" y="20" width="400" height="310" opacity="0.08" class="f-accent"/>
+          <line x1="540" y1="330" x2="540" y2="175" stroke-width="3" stroke-dasharray="10 8" class="s-err"/>
+          <circle cx="540" cy="175" r="9" class="f-err"/>
+          <text x="540" y="362" text-anchor="middle" style="font-size:24px; font-weight:600;" class="f-err">n₀ = 20</text>
+          <text x="600" y="66" style="font-size:26px; font-weight:600;" class="f-accent">aquí f ya no cruza a c·g</text>
         </g>
 
       </svg>
@@ -504,38 +489,38 @@ for (int paso = n; paso &gt; 0; paso /= 2)
       <span class="kicker">3.1.3 · Notación asintótica</span>
       <h2>Cómo crecen las curvas</h2>
       <svg viewBox="0 0 1100 420" style="width:100%; max-height:420px;">
-        <line x1="70" y1="380" x2="1060" y2="380" stroke="#16181d" stroke-width="3"/>
-        <line x1="70" y1="380" x2="70" y2="30" stroke="#16181d" stroke-width="3"/>
+        <line x1="70" y1="380" x2="1060" y2="380" stroke-width="3" class="s-ink"/>
+        <line x1="70" y1="380" x2="70" y2="30" stroke-width="3" class="s-ink"/>
         <text class="svg-label" x="1050" y="410" text-anchor="end" style="font-size:22px; font-weight:400;">n</text>
         <text class="svg-label" x="40" y="45" style="font-size:22px; font-weight:400;">T(n)</text>
 
         <g class="anim-step" data-step="1">
-          <path d="M 70 380 L 1010 300" fill="none" stroke="#4b5260" stroke-width="4"/>
-          <text x="1020" y="300" fill="#4b5260" style="font-size:24px; font-weight:600;">n</text>
+          <path d="M 70 380 L 1010 300" fill="none" stroke-width="4" class="s-ink-soft"/>
+          <text x="1020" y="300" style="font-size:24px; font-weight:600;" class="f-ink-soft">n</text>
         </g>
 
         <g class="anim-step" data-step="2">
-          <path d="M 70 380 Q 500 350 1010 240" fill="none" stroke="#0b57d0" stroke-width="4"/>
-          <text x="1020" y="240" fill="#0b57d0" style="font-size:24px; font-weight:600;">n log n</text>
+          <path d="M 70 380 Q 500 350 1010 240" fill="none" stroke-width="4" class="s-accent"/>
+          <text x="1020" y="240" style="font-size:24px; font-weight:600;" class="f-accent">n log n</text>
         </g>
 
         <g class="anim-step" data-step="3">
-          <path d="M 70 380 Q 540 380 1010 90" fill="none" stroke="#0b57d0" stroke-width="4" stroke-dasharray="2 0"/>
-          <text x="1020" y="90" fill="#0b57d0" style="font-size:24px; font-weight:600;">n²</text>
+          <path d="M 70 380 Q 540 380 1010 90" fill="none" stroke-width="4" stroke-dasharray="2 0" class="s-accent"/>
+          <text x="1020" y="90" style="font-size:24px; font-weight:600;" class="f-accent">n²</text>
         </g>
 
         <g class="anim-step" data-step="4">
-          <path d="M 70 380 C 450 378 700 360 800 40" fill="none" stroke="#b3261e" stroke-width="4"/>
-          <text x="812" y="40" fill="#b3261e" style="font-size:24px; font-weight:600;">2ⁿ  (sale de la gráfica)</text>
+          <path d="M 70 380 C 450 378 700 360 800 40" fill="none" stroke-width="4" class="s-err"/>
+          <text x="812" y="40" style="font-size:24px; font-weight:600;" class="f-err">2ⁿ  (sale de la gráfica)</text>
         </g>
 
         <g class="anim-step" data-step="5">
-          <path d="M 70 380 Q 500 260 1010 130" fill="none" stroke="#4b5260" stroke-width="3" stroke-dasharray="14 10"/>
-          <text x="700" y="180" fill="#4b5260" style="font-size:21px; font-weight:600;">n log n · constante grande</text>
-          <path d="M 70 380 Q 540 380 1010 230" fill="none" stroke="#0b57d0" stroke-width="3" stroke-dasharray="14 10"/>
-          <text x="820" y="290" fill="#0b57d0" style="font-size:21px; font-weight:600;">n² · constante chica</text>
-          <circle cx="880" cy="205" r="10" fill="none" stroke="#b3261e" stroke-width="4"/>
-          <text x="560" y="415" fill="#b3261e" style="font-size:22px; font-weight:600;">antes del cruce gana la n²; después, siempre la n log n</text>
+          <path d="M 70 380 Q 500 260 1010 130" fill="none" stroke-width="3" stroke-dasharray="14 10" class="s-ink-soft"/>
+          <text x="700" y="180" style="font-size:21px; font-weight:600;" class="f-ink-soft">n log n · constante grande</text>
+          <path d="M 70 380 Q 540 380 1010 230" fill="none" stroke-width="3" stroke-dasharray="14 10" class="s-accent"/>
+          <text x="820" y="290" style="font-size:21px; font-weight:600;" class="f-accent">n² · constante chica</text>
+          <circle cx="880" cy="205" r="10" fill="none" stroke-width="4" class="s-err"/>
+          <text x="560" y="415" style="font-size:22px; font-weight:600;" class="f-err">antes del cruce gana la n²; después, siempre la n log n</text>
         </g>
       </svg>
       <span class="fragment"></span>
@@ -613,6 +598,18 @@ for (i = 0; i &lt; n; ++i)
       <p class="muted">Misma receta que el ejemplo anterior: cuenta las vueltas, escríbelas como sumatoria, quédate con el término dominante y concluye con \(\Theta\). La justificación vale más que la letra griega.</p>
     </section>
 
+    <!-- ============ PRÓXIMA SESIÓN ============ -->
+    <section class="divider">
+      <h2>Próxima sesión:<br>Análisis de algoritmos recursivos</h2>
+      <p class="muted">Recordatorio: la Act 1.2 (análisis de complejidad iterativa y recursiva) se entrega este domingo en el LMS.</p>
+    </section>
+
+    <!-- ============ DIVIDER MATERIAL EXTRA ============ -->
+    <section class="divider">
+      <h2>Material extra · autoestudio</h2>
+      <p class="muted">No se cubre en clase: la STL del tema y su conexión con sistemas de IA.</p>
+    </section>
+
     <!-- ============ POR QUÉ IMPORTA 1 ============ -->
     <section>
       <span class="kicker kicker-ai">Por qué importa hoy</span>
@@ -660,7 +657,7 @@ for (i = 0; i &lt; n; ++i)
 
     <!-- ============ CIERRE STL 1 ============ -->
     <section>
-      <span class="kicker">Cierre STL</span>
+      <span class="kicker">STL</span>
       <h2>El estándar especifica complejidad, no implementación</h2>
       <table>
         <thead><tr><th>Operación</th><th>Garantía del estándar</th></tr></thead>
@@ -675,7 +672,7 @@ for (i = 0; i &lt; n; ++i)
 
     <!-- ============ CIERRE STL 2 ============ -->
     <section>
-      <span class="kicker">Cierre STL</span>
+      <span class="kicker">STL</span>
       <h2>Medir bien con <code>&lt;chrono&gt;</code></h2>
       <pre><code class="language-cpp" data-trim data-line-numbers="1-5|1,3|5">
 auto t0 = std::chrono::steady_clock::now();
@@ -689,12 +686,6 @@ auto ms = std::chrono::duration_cast&lt;std::chrono::milliseconds&gt;(t1 - t0);
         <li class="fragment">Compila con <code>-O2</code>. Medir un binario <code>-O0</code> no dice nada útil: el optimizador cambia las constantes por completo, y a veces elimina el código que creías medir.</li>
         <li class="fragment">Repite la medición con varios n y compara la <em>forma</em> del crecimiento contra tu análisis, no un solo número.</li>
       </ul>
-    </section>
-
-    <!-- ============ PRÓXIMA SESIÓN ============ -->
-    <section class="divider">
-      <h2>Próxima sesión:<br>Análisis de algoritmos recursivos</h2>
-      <p class="muted">Recordatorio: la Act 1.2 (análisis de complejidad iterativa y recursiva) se entrega este domingo en el LMS.</p>
     </section>
 
     <!-- ============ REFERENCIAS ============ -->
@@ -719,6 +710,7 @@ auto ms = std::chrono::duration_cast&lt;std::chrono::milliseconds&gt;(t1 - t0);
           </ul>
         </div>
       </div>
+      <p class="refs-ia">Nota: estas diapositivas fueron generadas usando inteligencia artificial, específicamente Claude (Anthropic).</p>
     </section>
 
   </div>

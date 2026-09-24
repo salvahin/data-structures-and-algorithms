@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+  <script>try{if(localStorage.getItem("curso-tema")==="dark"&&!/print-pdf/i.test(location.search))document.documentElement.dataset.theme="dark"}catch(e){}</script>
   <link rel="stylesheet" href="../css/theme-curso.css">
 </head>
 <body>
@@ -23,32 +24,6 @@
         Sesión 9 · Semana 5<br>
         Salvador Hinojosa
       </div>
-    </section>
-
-    <!-- ============ RETO ANTERIOR ============ -->
-    <section>
-      <span class="kicker">Apertura · Reto anterior (5 min)</span>
-      <h2>¿Cómo les fue con el merge fuera del arreglo?</h2>
-      <p>Una pareja pasa a explicar su enfoque de la sesión 8:</p>
-      <ul>
-        <li class="fragment"><strong>LC 148 — Sort List.</strong> ¿Cómo encontraron el punto medio de la lista sin acceso aleatorio? ¿Qué cambió en el <code>merge</code>?</li>
-        <li class="fragment"><strong>LC 315 — Count of Smaller Numbers After Self.</strong> ¿En qué momento exacto del merge se cuentan las inversiones?</li>
-        <li class="fragment">Pregunta para el grupo: en el 148, ¿por qué la versión con punteros lento/rápido encuentra el medio en una sola pasada?</li>
-      </ul>
-    </section>
-
-    <!-- ============ AGENDA ============ -->
-    <section>
-      <span class="kicker">Sesión 9 · Agenda</span>
-      <h2>Qué vamos a ver hoy</h2>
-      <table>
-        <tbody>
-          <tr><td>55 min</td><td>5.5 Quick Sort: particiones de Lomuto y Hoare, análisis, pivotes</td></tr>
-          <tr><td>45 min</td><td>Práctica de laboratorio: comparativa de los cinco algoritmos</td></tr>
-          <tr><td>20 min</td><td>Cierre STL y cierre de sesión</td></tr>
-        </tbody>
-      </table>
-      <p class="muted">Al final del deck hay material extra de autoestudio —quickselect y un reto opcional— que no se cubre en clase.</p>
     </section>
 
     <!-- ============ OBJETIVO ============ -->
@@ -91,23 +66,23 @@
           <rect class="svg-node" x="254" y="30" width="74" height="56" rx="8"/><text class="svg-label" x="291" y="67" text-anchor="middle" style="font-size:24px;">2</text>
           <rect class="svg-node" x="336" y="30" width="74" height="56" rx="8"/><text class="svg-label" x="373" y="67" text-anchor="middle" style="font-size:24px;">5</text>
           <rect class="svg-node" x="418" y="30" width="74" height="56" rx="8"/><text class="svg-label" x="455" y="67" text-anchor="middle" style="font-size:24px;">7</text>
-          <rect fill="#e8f0fe" stroke="#0b57d0" stroke-width="5" x="500" y="30" width="74" height="56" rx="8"/><text class="svg-label" x="537" y="67" text-anchor="middle" style="font-size:24px;">4</text>
-          <text x="537" y="18" text-anchor="middle" fill="#0b57d0" style="font-size:21px; font-weight:700;">pivote</text>
+          <rect stroke-width="5" x="500" y="30" width="74" height="56" rx="8" class="f-accent-bg s-accent"/><text class="svg-label" x="537" y="67" text-anchor="middle" style="font-size:24px;">4</text>
+          <text x="537" y="18" text-anchor="middle" style="font-size:21px; font-weight:700;" class="f-accent">pivote</text>
           <text class="svg-label" x="612" y="66" style="font-size:22px;">elige un elemento cualquiera</text>
         </g>
         <g class="anim-step" data-step="2">
-          <path d="M 210 100 L 210 138" stroke="#16181d" stroke-width="4"/>
-          <path d="M 200 126 L 210 142 L 220 126 Z" fill="#16181d"/>
+          <path d="M 210 100 L 210 138" stroke-width="4" class="s-ink"/>
+          <path d="M 200 126 L 210 142 L 220 126 Z" class="f-ink"/>
           <text class="svg-label" x="230" y="130" style="font-size:22px;">particionar</text>
-          <rect fill="#e8f0fe" stroke="#0b57d0" stroke-width="3" x="90" y="152" width="74" height="56" rx="8"/><text class="svg-label" x="127" y="189" text-anchor="middle" style="font-size:24px;">2</text>
-          <rect fill="#e8f0fe" stroke="#0b57d0" stroke-width="3" x="172" y="152" width="74" height="56" rx="8"/><text class="svg-label" x="209" y="189" text-anchor="middle" style="font-size:24px;">3</text>
-          <rect fill="#e6f4ea" stroke="#146c2e" stroke-width="5" x="254" y="152" width="74" height="56" rx="8"/><text class="svg-label" x="291" y="189" text-anchor="middle" style="font-size:24px;">4</text>
-          <rect fill="#f4f5f7" stroke="#4b5260" stroke-width="3" x="336" y="152" width="74" height="56" rx="8"/><text class="svg-label" x="373" y="189" text-anchor="middle" style="font-size:24px;">7</text>
-          <rect fill="#f4f5f7" stroke="#4b5260" stroke-width="3" x="418" y="152" width="74" height="56" rx="8"/><text class="svg-label" x="455" y="189" text-anchor="middle" style="font-size:24px;">5</text>
-          <rect fill="#f4f5f7" stroke="#4b5260" stroke-width="3" x="500" y="152" width="74" height="56" rx="8"/><text class="svg-label" x="537" y="189" text-anchor="middle" style="font-size:24px;">8</text>
-          <text x="168" y="238" text-anchor="middle" fill="#0b57d0" style="font-size:21px; font-weight:600;">menores</text>
-          <text x="291" y="238" text-anchor="middle" fill="#146c2e" style="font-size:21px; font-weight:600;">pivote</text>
-          <text x="455" y="238" text-anchor="middle" fill="#4b5260" style="font-size:21px; font-weight:600;">mayores o iguales</text>
+          <rect stroke-width="3" x="90" y="152" width="74" height="56" rx="8" class="f-accent-bg s-accent"/><text class="svg-label" x="127" y="189" text-anchor="middle" style="font-size:24px;">2</text>
+          <rect stroke-width="3" x="172" y="152" width="74" height="56" rx="8" class="f-accent-bg s-accent"/><text class="svg-label" x="209" y="189" text-anchor="middle" style="font-size:24px;">3</text>
+          <rect stroke-width="5" x="254" y="152" width="74" height="56" rx="8" class="f-ok-bg s-ok"/><text class="svg-label" x="291" y="189" text-anchor="middle" style="font-size:24px;">4</text>
+          <rect stroke-width="3" x="336" y="152" width="74" height="56" rx="8" class="f-code-bg s-ink-soft"/><text class="svg-label" x="373" y="189" text-anchor="middle" style="font-size:24px;">7</text>
+          <rect stroke-width="3" x="418" y="152" width="74" height="56" rx="8" class="f-code-bg s-ink-soft"/><text class="svg-label" x="455" y="189" text-anchor="middle" style="font-size:24px;">5</text>
+          <rect stroke-width="3" x="500" y="152" width="74" height="56" rx="8" class="f-code-bg s-ink-soft"/><text class="svg-label" x="537" y="189" text-anchor="middle" style="font-size:24px;">8</text>
+          <text x="168" y="238" text-anchor="middle" style="font-size:21px; font-weight:600;" class="f-accent">menores</text>
+          <text x="291" y="238" text-anchor="middle" style="font-size:21px; font-weight:600;" class="f-ok">pivote</text>
+          <text x="455" y="238" text-anchor="middle" style="font-size:21px; font-weight:600;" class="f-ink-soft">mayores o iguales</text>
         </g>
       </svg>
       <span class="fragment"></span>
@@ -202,32 +177,32 @@ int particionHoare(std::vector&lt;int&gt;&amp; a, int lo, int hi) {
       <svg viewBox="0 0 1100 400" style="width:100%; max-height:372px;">
         <g class="anim-step" data-step="1">
           <text class="svg-label" x="70" y="30" style="font-size:23px; font-weight:700;">Después de Lomuto</text>
-          <rect fill="#e8f0fe" stroke="#0b57d0" stroke-width="3" x="70" y="44" width="74" height="56" rx="8"/><text class="svg-label" x="107" y="81" text-anchor="middle" style="font-size:24px;">3</text>
-          <rect fill="#e8f0fe" stroke="#0b57d0" stroke-width="3" x="150" y="44" width="74" height="56" rx="8"/><text class="svg-label" x="187" y="81" text-anchor="middle" style="font-size:24px;">2</text>
-          <rect fill="#e6f4ea" stroke="#146c2e" stroke-width="5" x="230" y="44" width="74" height="56" rx="8"/><text class="svg-label" x="267" y="81" text-anchor="middle" style="font-size:24px;">4</text>
+          <rect stroke-width="3" x="70" y="44" width="74" height="56" rx="8" class="f-accent-bg s-accent"/><text class="svg-label" x="107" y="81" text-anchor="middle" style="font-size:24px;">3</text>
+          <rect stroke-width="3" x="150" y="44" width="74" height="56" rx="8" class="f-accent-bg s-accent"/><text class="svg-label" x="187" y="81" text-anchor="middle" style="font-size:24px;">2</text>
+          <rect stroke-width="5" x="230" y="44" width="74" height="56" rx="8" class="f-ok-bg s-ok"/><text class="svg-label" x="267" y="81" text-anchor="middle" style="font-size:24px;">4</text>
           <rect class="svg-node" x="310" y="44" width="74" height="56" rx="8"/><text class="svg-label" x="347" y="81" text-anchor="middle" style="font-size:24px;">5</text>
           <rect class="svg-node" x="390" y="44" width="74" height="56" rx="8"/><text class="svg-label" x="427" y="81" text-anchor="middle" style="font-size:24px;">7</text>
           <rect class="svg-node" x="470" y="44" width="74" height="56" rx="8"/><text class="svg-label" x="507" y="81" text-anchor="middle" style="font-size:24px;">8</text>
-          <text x="267" y="128" text-anchor="middle" fill="#146c2e" style="font-size:21px; font-weight:700;">p = 2 · ya está en su lugar</text>
-          <path d="M 70 142 L 70 152 L 224 152 L 224 142" fill="none" stroke="#0b57d0" stroke-width="3"/>
-          <text x="147" y="174" text-anchor="middle" fill="#0b57d0" style="font-size:21px; font-weight:600;">recursa (lo, p−1)</text>
-          <path d="M 310 142 L 310 152 L 544 152 L 544 142" fill="none" stroke="#0b57d0" stroke-width="3"/>
-          <text x="427" y="174" text-anchor="middle" fill="#0b57d0" style="font-size:21px; font-weight:600;">recursa (p+1, hi)</text>
+          <text x="267" y="128" text-anchor="middle" style="font-size:21px; font-weight:700;" class="f-ok">p = 2 · ya está en su lugar</text>
+          <path d="M 70 142 L 70 152 L 224 152 L 224 142" fill="none" stroke-width="3" class="s-accent"/>
+          <text x="147" y="174" text-anchor="middle" style="font-size:21px; font-weight:600;" class="f-accent">recursa (lo, p−1)</text>
+          <path d="M 310 142 L 310 152 L 544 152 L 544 142" fill="none" stroke-width="3" class="s-accent"/>
+          <text x="427" y="174" text-anchor="middle" style="font-size:21px; font-weight:600;" class="f-accent">recursa (p+1, hi)</text>
         </g>
         <g class="anim-step" data-step="2">
           <text class="svg-label" x="70" y="218" style="font-size:23px; font-weight:700;">Después de Hoare</text>
-          <rect fill="#e8f0fe" stroke="#0b57d0" stroke-width="3" x="70" y="232" width="74" height="56" rx="8"/><text class="svg-label" x="107" y="269" text-anchor="middle" style="font-size:24px;">1</text>
-          <rect fill="#e8f0fe" stroke="#0b57d0" stroke-width="3" x="150" y="232" width="74" height="56" rx="8"/><text class="svg-label" x="187" y="269" text-anchor="middle" style="font-size:24px;">2</text>
-          <rect fill="#e8f0fe" stroke="#0b57d0" stroke-width="3" x="230" y="232" width="74" height="56" rx="8"/><text class="svg-label" x="267" y="269" text-anchor="middle" style="font-size:24px;">5</text>
-          <rect fill="#fce8e6" stroke="#b3261e" stroke-width="3" x="310" y="232" width="74" height="56" rx="8"/><text class="svg-label" x="347" y="269" text-anchor="middle" style="font-size:24px;">8</text>
-          <rect fill="#fce8e6" stroke="#b3261e" stroke-width="3" x="390" y="232" width="74" height="56" rx="8"/><text class="svg-label" x="427" y="269" text-anchor="middle" style="font-size:24px;">7</text>
-          <rect fill="#fce8e6" stroke="#b3261e" stroke-width="3" x="470" y="232" width="74" height="56" rx="8"/><text class="svg-label" x="507" y="269" text-anchor="middle" style="font-size:24px;">6</text>
-          <line x1="307" y1="224" x2="307" y2="296" stroke="#16181d" stroke-width="4" stroke-dasharray="8 6"/>
-          <text x="70" y="316" fill="#16181d" style="font-size:21px; font-weight:700;">frontera j = 2 · el pivote (5) sigue suelto</text>
-          <path d="M 70 330 L 70 340 L 304 340 L 304 330" fill="none" stroke="#0b57d0" stroke-width="3"/>
-          <text x="187" y="362" text-anchor="middle" fill="#0b57d0" style="font-size:21px; font-weight:600;">recursa (lo, j)</text>
-          <path d="M 310 330 L 310 340 L 544 340 L 544 330" fill="none" stroke="#b3261e" stroke-width="3"/>
-          <text x="427" y="362" text-anchor="middle" fill="#b3261e" style="font-size:21px; font-weight:600;">recursa (j+1, hi)</text>
+          <rect stroke-width="3" x="70" y="232" width="74" height="56" rx="8" class="f-accent-bg s-accent"/><text class="svg-label" x="107" y="269" text-anchor="middle" style="font-size:24px;">1</text>
+          <rect stroke-width="3" x="150" y="232" width="74" height="56" rx="8" class="f-accent-bg s-accent"/><text class="svg-label" x="187" y="269" text-anchor="middle" style="font-size:24px;">2</text>
+          <rect stroke-width="3" x="230" y="232" width="74" height="56" rx="8" class="f-accent-bg s-accent"/><text class="svg-label" x="267" y="269" text-anchor="middle" style="font-size:24px;">5</text>
+          <rect stroke-width="3" x="310" y="232" width="74" height="56" rx="8" class="f-err-bg s-err"/><text class="svg-label" x="347" y="269" text-anchor="middle" style="font-size:24px;">8</text>
+          <rect stroke-width="3" x="390" y="232" width="74" height="56" rx="8" class="f-err-bg s-err"/><text class="svg-label" x="427" y="269" text-anchor="middle" style="font-size:24px;">7</text>
+          <rect stroke-width="3" x="470" y="232" width="74" height="56" rx="8" class="f-err-bg s-err"/><text class="svg-label" x="507" y="269" text-anchor="middle" style="font-size:24px;">6</text>
+          <line x1="307" y1="224" x2="307" y2="296" stroke-width="4" stroke-dasharray="8 6" class="s-ink"/>
+          <text x="70" y="316" style="font-size:21px; font-weight:700;" class="f-ink">frontera j = 2 · el pivote (5) sigue suelto</text>
+          <path d="M 70 330 L 70 340 L 304 340 L 304 330" fill="none" stroke-width="3" class="s-accent"/>
+          <text x="187" y="362" text-anchor="middle" style="font-size:21px; font-weight:600;" class="f-accent">recursa (lo, j)</text>
+          <path d="M 310 330 L 310 340 L 544 340 L 544 330" fill="none" stroke-width="3" class="s-err"/>
+          <text x="427" y="362" text-anchor="middle" style="font-size:21px; font-weight:600;" class="f-err">recursa (j+1, hi)</text>
         </g>
       </svg>
       <span class="fragment"></span>
@@ -303,7 +278,7 @@ int particionHoare(std::vector&lt;int&gt;&amp; a, int lo, int hi) {
           <rect class="svg-node" x="180" y="220" width="150" height="52" rx="10"/><text class="svg-label" x="255" y="254" text-anchor="middle" style="font-size:21px;">n − 2</text>
           <text class="svg-label" x="300" y="310" style="font-size:26px;">⋮</text>
           <rect class="svg-node" x="260" y="330" width="150" height="52" rx="10"/><text class="svg-label" x="335" y="364" text-anchor="middle" style="font-size:21px;">1</text>
-          <text x="60" y="415" style="font-size:21px; font-weight:700;" fill="#b3261e">cada pivote separa 0 | n−1 → profundidad n → Θ(n²)</text>
+          <text x="60" y="415" style="font-size:21px; font-weight:700;" class="f-err">cada pivote separa 0 | n−1 → profundidad n → Θ(n²)</text>
         </g>
         <!-- derecha: árbol balanceado -->
         <g class="anim-step" data-step="2">
@@ -321,12 +296,12 @@ int particionHoare(std::vector&lt;int&gt;&amp; a, int lo, int hi) {
           <rect class="svg-node" x="800" y="220" width="110" height="50" rx="10"/><text class="svg-label" x="855" y="252" text-anchor="middle" style="font-size:21px;">n/4</text>
           <rect class="svg-node" x="930" y="220" width="110" height="50" rx="10"/><text class="svg-label" x="985" y="252" text-anchor="middle" style="font-size:21px;">n/4</text>
           <text class="svg-label" x="785" y="310" text-anchor="middle" style="font-size:26px;">⋮</text>
-          <text x="560" y="415" style="font-size:21px; font-weight:700;" fill="#146c2e">mediana de tres → profundidad ≈ log n → Θ(n log n)</text>
+          <text x="560" y="415" style="font-size:21px; font-weight:700;" class="f-ok">mediana de tres → profundidad ≈ log n → Θ(n log n)</text>
         </g>
         <!-- comparación -->
         <g class="anim-step" data-step="3">
-          <text x="440" y="40" style="font-size:22px; font-weight:700;" fill="#0b57d0">mismo código, misma entrada:</text>
-          <text x="440" y="72" style="font-size:22px; font-weight:700;" fill="#0b57d0">solo cambió el pivote</text>
+          <text x="440" y="40" style="font-size:22px; font-weight:700;" class="f-accent">mismo código, misma entrada:</text>
+          <text x="440" y="72" style="font-size:22px; font-weight:700;" class="f-accent">solo cambió el pivote</text>
         </g>
       </svg>
       <span class="fragment"></span>
@@ -368,23 +343,9 @@ int particionHoare(std::vector&lt;int&gt;&amp; a, int lo, int hi) {
       </div>
     </section>
 
-    <!-- ============ POR QUÉ IMPORTA HOY ============ -->
-    <section>
-      <span class="kicker kicker-ai">Por qué importa hoy</span>
-      <h2><span class="term" data-term="top-k">Top-k</span>: la operación central de la recuperación</h2>
-      <div class="box-ai" data-label="Dónde vive esto en sistemas de IA">
-        <ul>
-          <li class="fragment">Un sistema de recuperación tiene un millón de documentos con puntaje de similitud y debe devolver los 5 mejores.</li>
-          <li class="fragment">Ordenar el millón completo cuesta O(n log n) — y tira a la basura el orden de 999 995 elementos que nadie pidió.</li>
-          <li class="fragment">Quickselect —el material extra del final— coloca los k mejores en tiempo O(n) promedio. Para flujos continuos, la alternativa es un heap de tamaño k (lo veremos en el bloque de árboles).</li>
-          <li class="fragment">Cada vez que un chatbot con RAG recupera contexto, hay una selección por partición o un heap ejecutándose detrás.</li>
-        </ul>
-      </div>
-    </section>
-
     <!-- ============ PRÁCTICA LAB ============ -->
     <section>
-      <span class="kicker">Práctica de laboratorio · 45 min</span>
+      <span class="kicker">Práctica de laboratorio</span>
       <h2>Los cinco algoritmos, a la báscula</h2>
       <p>Comparativa empírica, no evaluable. En parejas:</p>
       <ul>
@@ -394,26 +355,6 @@ int particionHoare(std::vector&lt;int&gt;&amp; a, int lo, int hi) {
         <li class="fragment"><strong>Antes de correr:</strong> predigan cada celda de la tabla con la teoría del bloque.</li>
       </ul>
       <p class="fragment muted">Esta tabla es exactamente el tipo de evidencia empírica que la Act 1.5 pide el jueves para justificar la elección de algoritmo.</p>
-    </section>
-
-    <!-- ============ CIERRE STL ============ -->
-    <section>
-      <span class="kicker">Cierre STL</span>
-      <h2>Selección en la biblioteca estándar</h2>
-      <pre><code class="language-cpp" data-trim data-line-numbers="1-4|6-7">
-// los k mejores al frente, sin orden interno garantizado: O(n) promedio
-std::nth_element(v.begin(), v.begin() + k, v.end(),
-                 [](auto&amp; a, auto&amp; b){ return a.score &gt; b.score; });
-// v[0..k) son los k mejores; v[k] es el k-ésimo
-
-// los k mejores, además ordenados entre sí: O(n log k)
-std::partial_sort(v.begin(), v.begin() + k, v.end());
-      </code></pre>
-      <ul>
-        <li class="fragment"><code>std::nth_element</code> es la versión de biblioteca de ese material extra: selección por partición: <span class="term" data-term="introselect">introselect</span> en la práctica, con respaldo por heapselect.</li>
-        <li class="fragment"><code>std::partition</code> y <code>std::stable_partition</code> exponen la partición como algoritmo independiente.</li>
-        <li class="fragment">Para los k mejores, <code>std::sort</code> hace trabajo de más.</li>
-      </ul>
     </section>
 
     <!-- ============ DIVIDER MATERIAL EXTRA ============ -->
@@ -426,12 +367,7 @@ std::partial_sort(v.begin(), v.begin() + k, v.end());
     <section>
       <span class="kicker">Quickselect</span>
       <h2>El k-ésimo menor, con la mitad del trabajo</h2>
-      <ul>
-        <li class="fragment">Problema: encontrar el k-ésimo menor de un arreglo desordenado (la mediana es k = n/2).</li>
-        <li class="fragment">Tras una partición, el pivote queda en el índice <code>p</code>. Si <code>p == k</code>, terminamos. Si <code>k &lt; p</code>, el k-ésimo está a la izquierda; si <code>k &gt; p</code>, a la derecha.</li>
-        <li class="fragment">La diferencia con Quick Sort: se recursa en <strong>una sola</strong> zona. La otra no contiene la respuesta y no se toca jamás.</li>
-      </ul>
-      <p class="fragment">Cada paso descarta una fracción del arreglo, igual que la búsqueda binaria descartaba mitades — pero aquí sin necesidad de orden previo, pagando Θ(n) por partición.</p>
+      <div class="sim-particion" data-alg="quickselect" data-array="9,2,4,8,0,3,5,7,1,6" data-k="7"></div>
     </section>
 
     <!-- ============ QS CÓDIGO ============ -->
@@ -491,6 +427,40 @@ int quickselect(std::vector&lt;int&gt;&amp; a, int lo, int hi, int k) {
       </ul>
     </section>
 
+    <!-- ============ POR QUÉ IMPORTA HOY ============ -->
+    <section>
+      <span class="kicker kicker-ai">Por qué importa hoy</span>
+      <h2><span class="term" data-term="top-k">Top-k</span>: la operación central de la recuperación</h2>
+      <div class="box-ai" data-label="Dónde vive esto en sistemas de IA">
+        <ul>
+          <li class="fragment">Un sistema de recuperación tiene un millón de documentos con puntaje de similitud y debe devolver los 5 mejores.</li>
+          <li class="fragment">Ordenar el millón completo cuesta O(n log n) — y tira a la basura el orden de 999 995 elementos que nadie pidió.</li>
+          <li class="fragment">Quickselect —el material extra del final— coloca los k mejores en tiempo O(n) promedio. Para flujos continuos, la alternativa es un heap de tamaño k (lo veremos en el bloque de árboles).</li>
+          <li class="fragment">Cada vez que un chatbot con RAG recupera contexto, hay una selección por partición o un heap ejecutándose detrás.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============ CIERRE STL ============ -->
+    <section>
+      <span class="kicker">STL</span>
+      <h2>Selección en la biblioteca estándar</h2>
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-4|6-7">
+// los k mejores al frente, sin orden interno garantizado: O(n) promedio
+std::nth_element(v.begin(), v.begin() + k, v.end(),
+                 [](auto&amp; a, auto&amp; b){ return a.score &gt; b.score; });
+// v[0..k) son los k mejores; v[k] es el k-ésimo
+
+// los k mejores, además ordenados entre sí: O(n log k)
+std::partial_sort(v.begin(), v.begin() + k, v.end());
+      </code></pre>
+      <ul>
+        <li class="fragment"><code>std::nth_element</code> es la versión de biblioteca de ese material extra: selección por partición: <span class="term" data-term="introselect">introselect</span> en la práctica, con respaldo por heapselect.</li>
+        <li class="fragment"><code>std::partition</code> y <code>std::stable_partition</code> exponen la partición como algoritmo independiente.</li>
+        <li class="fragment">Para los k mejores, <code>std::sort</code> hace trabajo de más.</li>
+      </ul>
+    </section>
+
     <!-- ============ PRÓXIMA SESIÓN ============ -->
     <section class="divider">
       <h2>Próxima sesión:<br>Act 1.5, actividad integral</h2>
@@ -521,6 +491,7 @@ int quickselect(std::vector&lt;int&gt;&amp; a, int lo, int hi, int k) {
           </ul>
         </div>
       </div>
+      <p class="refs-ia">Nota: estas diapositivas fueron generadas usando inteligencia artificial, específicamente Claude (Anthropic).</p>
     </section>
 
   </div>

@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+  <script>try{if(localStorage.getItem("curso-tema")==="dark"&&!/print-pdf/i.test(location.search))document.documentElement.dataset.theme="dark"}catch(e){}</script>
   <link rel="stylesheet" href="../css/theme-curso.css">
 </head>
 <body>
@@ -76,25 +77,25 @@ collect2: error: ld returned 1 exit status
         <g class="anim-step" data-step="1">
           <rect class="svg-node" x="20" y="110" width="180" height="80" rx="10"/>
           <text class="svg-label" x="110" y="145" text-anchor="middle">main.cpp</text>
-          <text class="svg-label" x="110" y="175" text-anchor="middle" style="font-size:20px;fill:#4b5260">texto</text>
+          <text class="svg-label" x="110" y="175" text-anchor="middle" style="font-size:20px;fill:var(--c-ink-soft)">texto</text>
         </g>
         <g class="anim-step" data-step="2">
           <path class="svg-edge" d="M200 150 H 280"/>
           <rect class="svg-node-hl" x="280" y="110" width="200" height="80" rx="10"/>
           <text class="svg-label" x="380" y="145" text-anchor="middle">Preprocesador</text>
-          <text class="svg-label" x="380" y="175" text-anchor="middle" style="font-size:20px;fill:#4b5260">pega los #include</text>
+          <text class="svg-label" x="380" y="175" text-anchor="middle" style="font-size:20px;fill:var(--c-ink-soft)">pega los #include</text>
         </g>
         <g class="anim-step" data-step="3">
           <path class="svg-edge" d="M480 150 H 560"/>
           <rect class="svg-node-hl" x="560" y="110" width="200" height="80" rx="10"/>
           <text class="svg-label" x="660" y="145" text-anchor="middle">Compilador</text>
-          <text class="svg-label" x="660" y="175" text-anchor="middle" style="font-size:20px;fill:#4b5260">genera main.o</text>
+          <text class="svg-label" x="660" y="175" text-anchor="middle" style="font-size:20px;fill:var(--c-ink-soft)">genera main.o</text>
         </g>
         <g class="anim-step" data-step="4">
           <path class="svg-edge" d="M760 150 H 840"/>
           <rect class="svg-node-hl" x="840" y="110" width="200" height="80" rx="10"/>
           <text class="svg-label" x="940" y="145" text-anchor="middle">Enlazador</text>
-          <text class="svg-label" x="940" y="175" text-anchor="middle" style="font-size:20px;fill:#4b5260">une los .o</text>
+          <text class="svg-label" x="940" y="175" text-anchor="middle" style="font-size:20px;fill:var(--c-ink-soft)">une los .o</text>
         </g>
       </svg>
       <span class="fragment"></span>
@@ -353,6 +354,7 @@ g++ main.o -o programa
           </ul>
         </div>
       </div>
+      <p class="refs-ia">Nota: estas diapositivas fueron generadas usando inteligencia artificial, específicamente Claude (Anthropic).</p>
     </section>
 
   </div>

@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+  <script>try{if(localStorage.getItem("curso-tema")==="dark"&&!/print-pdf/i.test(location.search))document.documentElement.dataset.theme="dark"}catch(e){}</script>
   <link rel="stylesheet" href="../css/theme-curso.css">
 </head>
 <body>
@@ -23,34 +24,6 @@
         Sesión 6 · Semana 3<br>
         Salvador Hinojosa
       </div>
-    </section>
-
-    <!-- ============ RETO ANTERIOR ============ -->
-    <section>
-      <span class="kicker">Apertura · Reto anterior (5 min)</span>
-      <h2>¿Cómo les fue con divide y vencerás?</h2>
-      <p>Una pareja pasa a explicar su enfoque de la sesión 4:</p>
-      <ul>
-        <li class="fragment"><strong>LC 241 — Different Ways to Add Parentheses.</strong> ¿Dónde partieron la expresión y qué devolvía cada llamada recursiva?</li>
-        <li class="fragment"><strong>LC 329 — Longest Increasing Path.</strong> ¿Qué guardaron en la caché de memoización y cuántas veces se calcula cada celda?</li>
-        <li class="fragment">Pregunta para el grupo: en el 329, ¿qué complejidad queda <em>sin</em> memoización y cuál con ella?</li>
-      </ul>
-    </section>
-
-    <!-- ============ AGENDA ============ -->
-    <section>
-      <span class="kicker">Sesión 6 · Agenda</span>
-      <h2>Qué vamos a ver hoy</h2>
-      <table>
-        <tbody>
-          <tr><td>15 min</td><td>Presentación: algoritmos de búsqueda y ordenamiento</td></tr>
-          <tr><td>25 min</td><td>4.1 Búsqueda secuencial</td></tr>
-          <tr><td>45 min</td><td>4.2 Búsqueda binaria: código, invariante, O(log n)</td></tr>
-          <tr><td>20 min</td><td>4.3 El costo oculto: ¿cuándo compensa ordenar?</td></tr>
-          <tr><td>15 min</td><td>4.4 Búsqueda binaria sobre la respuesta</td></tr>
-          <tr><td>25 min</td><td>Cierre STL · Reto en parejas</td></tr>
-        </tbody>
-      </table>
     </section>
 
     <!-- ============ OBJETIVO ============ -->
@@ -161,7 +134,7 @@ int busquedaBinaria(const std::vector&lt;int&gt;&amp; a, int x) {
       <span class="kicker">4.2 · Búsqueda binaria</span>
       <h2>El invariante en acción: buscar 37</h2>
       <svg viewBox="0 0 1100 420" style="width:100%; max-height:420px;">
-        <text x="30" y="50" style="font-size:26px; font-weight:700;" fill="#0b57d0">Invariante: si 37 está en el arreglo, está en a[lo..hi]</text>
+        <text x="30" y="50" style="font-size:26px; font-weight:700;" class="f-accent">Invariante: si 37 está en el arreglo, está en a[lo..hi]</text>
         <text x="30" y="95" class="svg-label" style="font-size:22px;">Buscamos x = 37 en 16 elementos ordenados</text>
 
         <!-- celdas base -->
@@ -192,10 +165,10 @@ int busquedaBinaria(const std::vector&lt;int&gt;&amp; a, int x) {
 
         <!-- paso 1: mid=7, descarta [0..7] -->
         <g class="anim-step" data-step="1" data-step-off="2">
-          <rect x="482" y="150" width="62" height="76" rx="8" fill="none" stroke="#0b57d0" stroke-width="5"/>
+          <rect x="482" y="150" width="62" height="76" rx="8" fill="none" stroke-width="5" class="s-accent"/>
         </g>
         <g class="anim-step" data-step="1">
-          <rect x="18" y="148" width="528" height="80" rx="8" fill="#eceff3" opacity="0.9"/>
+          <rect x="18" y="148" width="528" height="80" rx="8" opacity="0.9" class="f-surface-2"/>
         </g>
         <g class="anim-step" data-step="1" data-step-off="2">
           <text x="30" y="330" class="svg-label" style="font-size:24px;">Paso 1 — a[7] = 31 &lt; 37 → descarta [0..7] · ahora lo = 8, hi = 15</text>
@@ -203,10 +176,10 @@ int busquedaBinaria(const std::vector&lt;int&gt;&amp; a, int x) {
 
         <!-- paso 2: mid=11, descarta [11..15] -->
         <g class="anim-step" data-step="2" data-step-off="3">
-          <rect x="746" y="150" width="62" height="76" rx="8" fill="none" stroke="#0b57d0" stroke-width="5"/>
+          <rect x="746" y="150" width="62" height="76" rx="8" fill="none" stroke-width="5" class="s-accent"/>
         </g>
         <g class="anim-step" data-step="2">
-          <rect x="744" y="148" width="330" height="80" rx="8" fill="#eceff3" opacity="0.9"/>
+          <rect x="744" y="148" width="330" height="80" rx="8" opacity="0.9" class="f-surface-2"/>
         </g>
         <g class="anim-step" data-step="2" data-step-off="3">
           <text x="30" y="330" class="svg-label" style="font-size:24px;">Paso 2 — a[11] = 53 &gt; 37 → descarta [11..15] · ahora lo = 8, hi = 10</text>
@@ -214,10 +187,10 @@ int busquedaBinaria(const std::vector&lt;int&gt;&amp; a, int x) {
 
         <!-- paso 3: mid=9, descarta [9..10] -->
         <g class="anim-step" data-step="3" data-step-off="4">
-          <rect x="614" y="150" width="62" height="76" rx="8" fill="none" stroke="#0b57d0" stroke-width="5"/>
+          <rect x="614" y="150" width="62" height="76" rx="8" fill="none" stroke-width="5" class="s-accent"/>
         </g>
         <g class="anim-step" data-step="3">
-          <rect x="612" y="148" width="132" height="80" rx="8" fill="#eceff3" opacity="0.9"/>
+          <rect x="612" y="148" width="132" height="80" rx="8" opacity="0.9" class="f-surface-2"/>
         </g>
         <g class="anim-step" data-step="3" data-step-off="4">
           <text x="30" y="330" class="svg-label" style="font-size:24px;">Paso 3 — a[9] = 41 &gt; 37 → descarta [9..10] · ahora lo = hi = 8</text>
@@ -225,8 +198,8 @@ int busquedaBinaria(const std::vector&lt;int&gt;&amp; a, int x) {
 
         <!-- paso 4: encontrado -->
         <g class="anim-step" data-step="4">
-          <rect x="546" y="148" width="66" height="80" rx="8" fill="none" stroke="#146c2e" stroke-width="6"/>
-          <text x="30" y="330" style="font-size:24px; font-weight:700;" fill="#146c2e">Paso 4 — a[8] = 37 → encontrado con 4 comparaciones (n = 16, log₂16 = 4)</text>
+          <rect x="546" y="148" width="66" height="80" rx="8" fill="none" stroke-width="6" class="s-ok"/>
+          <text x="30" y="330" style="font-size:24px; font-weight:700;" class="f-ok">Paso 4 — a[8] = 37 → encontrado con 4 comparaciones (n = 16, log₂16 = 4)</text>
         </g>
       </svg>
       <span class="fragment"></span>
@@ -419,59 +392,9 @@ return lo;
       </div>
     </section>
 
-    <!-- ============ POR QUÉ IMPORTA HOY ============ -->
-    <section>
-      <span class="kicker kicker-ai">Por qué importa hoy</span>
-      <h2>Por qué un RAG no puede usar búsqueda binaria</h2>
-      <div class="box-ai" data-label="Dónde vive esto en sistemas de IA">
-        <ul>
-          <li class="fragment">La búsqueda semántica de un sistema RAG compara <span class="term" data-term="embedding">embeddings</span>: vectores de 768 o 1536 dimensiones.</li>
-          <li class="fragment">En una dimensión, "ordenado" y "cercano" coinciden: los vecinos de un valor están junto a él en el arreglo. Eso es lo que la búsqueda binaria explota.</li>
-          <li class="fragment">En 1536 dimensiones sí se puede imponer un orden total (lexicográfico, orden de Morton), pero <strong>ninguno compatible con la proximidad</strong>: dos vectores cercanos pueden quedar en extremos opuestos del orden.</li>
-          <li class="fragment">Por eso existen los índices de búsqueda aproximada — <span class="term" data-term="hnsw">HNSW</span>, IVF — que cambian exactitud por velocidad.</li>
-        </ul>
-      </div>
-    </section>
-
-    <!-- ============ CIERRE STL ============ -->
-    <section>
-      <span class="kicker">Cierre STL</span>
-      <h2>La búsqueda que ya viene incluida</h2>
-      <table>
-        <thead><tr><th>Algoritmo</th><th>Requiere orden</th><th>Costo</th><th>Devuelve</th></tr></thead>
-        <tbody>
-          <tr class="fragment"><td><code>std::find</code></td><td>No</td><td>O(n)</td><td>iterador al elemento</td></tr>
-          <tr class="fragment"><td><code>std::binary_search</code></td><td>Sí</td><td>O(log n)</td><td>solo <code>bool</code></td></tr>
-          <tr class="fragment"><td><code>std::lower_bound</code></td><td>Sí</td><td>O(log n)</td><td>iterador al primer elemento ≥ x</td></tr>
-          <tr class="fragment"><td><code>std::upper_bound</code></td><td>Sí</td><td>O(log n)</td><td>iterador al primer elemento &gt; x</td></tr>
-          <tr class="fragment"><td><code>std::equal_range</code></td><td>Sí</td><td>O(log n)</td><td>par de iteradores (el rango igual a x)</td></tr>
-        </tbody>
-      </table>
-      <p class="fragment"><code>lower_bound</code> es casi siempre lo que en realidad querías: además de decirte si está, te dice <em>dónde</em> insertarlo si no está.</p>
-    </section>
-
-    <!-- ============ CIERRE STL: TRAMPA ============ -->
-    <section>
-      <span class="kicker">Cierre STL</span>
-      <h2>La trampa: O(log n) exige acceso aleatorio</h2>
-      <pre><code class="language-cpp" data-trim data-line-numbers="1-3|5-7">
-std::vector&lt;int&gt; v = { /* ordenado */ };
-auto it = std::lower_bound(v.begin(), v.end(), x);   // O(log n)
-if (it != v.end() &amp;&amp; *it == x) { /* está */ }
-
-std::list&lt;int&gt; l = { /* ordenado */ };
-auto it2 = std::lower_bound(l.begin(), l.end(), x);  // ¡compila!
-// pero avanza el iterador paso a paso: O(n)
-      </code></pre>
-      <ul>
-        <li class="fragment">Los iteradores de <code>std::list</code> no son de <span class="term" data-term="acceso-aleatorio">acceso aleatorio</span>: llegar al punto medio cuesta n/2 pasos.</li>
-        <li class="fragment"><code>lower_bound</code> sobre una lista hace O(log n) <em>comparaciones</em> pero O(n) <em>movimientos</em> de iterador. Compila, corre y es lento.</li>
-      </ul>
-    </section>
-
     <!-- ============ RETO EN PAREJAS ============ -->
     <section>
-      <span class="kicker">Reto en parejas · 25 min</span>
+      <span class="kicker">Reto en parejas</span>
       <h2>Búsqueda binaria sobre la respuesta, en serio</h2>
       <div class="cols">
         <div>
@@ -492,6 +415,62 @@ auto it2 = std::lower_bound(l.begin(), l.end(), x);  // ¡compila!
     <section class="divider">
       <h2>Próxima sesión:<br>Ordenamiento elemental</h2>
       <p class="muted" style="margin-top:1em;">Recuerda: la Act 1.3 se entrega este domingo 30 de agosto, 23:59.</p>
+    </section>
+
+    <!-- ============ DIVIDER MATERIAL EXTRA ============ -->
+    <section class="divider">
+      <h2>Material extra · autoestudio</h2>
+      <p class="muted">No se cubre en clase: la STL del tema y su conexión con sistemas de IA.</p>
+    </section>
+
+    <!-- ============ POR QUÉ IMPORTA HOY ============ -->
+    <section>
+      <span class="kicker kicker-ai">Por qué importa hoy</span>
+      <h2>Por qué un RAG no puede usar búsqueda binaria</h2>
+      <div class="box-ai" data-label="Dónde vive esto en sistemas de IA">
+        <ul>
+          <li class="fragment">La búsqueda semántica de un sistema RAG compara <span class="term" data-term="embedding">embeddings</span>: vectores de 768 o 1536 dimensiones.</li>
+          <li class="fragment">En una dimensión, "ordenado" y "cercano" coinciden: los vecinos de un valor están junto a él en el arreglo. Eso es lo que la búsqueda binaria explota.</li>
+          <li class="fragment">En 1536 dimensiones sí se puede imponer un orden total (lexicográfico, orden de Morton), pero <strong>ninguno compatible con la proximidad</strong>: dos vectores cercanos pueden quedar en extremos opuestos del orden.</li>
+          <li class="fragment">Por eso existen los índices de búsqueda aproximada — <span class="term" data-term="hnsw">HNSW</span>, IVF — que cambian exactitud por velocidad.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============ CIERRE STL ============ -->
+    <section>
+      <span class="kicker">STL</span>
+      <h2>La búsqueda que ya viene incluida</h2>
+      <table>
+        <thead><tr><th>Algoritmo</th><th>Requiere orden</th><th>Costo</th><th>Devuelve</th></tr></thead>
+        <tbody>
+          <tr class="fragment"><td><code>std::find</code></td><td>No</td><td>O(n)</td><td>iterador al elemento</td></tr>
+          <tr class="fragment"><td><code>std::binary_search</code></td><td>Sí</td><td>O(log n)</td><td>solo <code>bool</code></td></tr>
+          <tr class="fragment"><td><code>std::lower_bound</code></td><td>Sí</td><td>O(log n)</td><td>iterador al primer elemento ≥ x</td></tr>
+          <tr class="fragment"><td><code>std::upper_bound</code></td><td>Sí</td><td>O(log n)</td><td>iterador al primer elemento &gt; x</td></tr>
+          <tr class="fragment"><td><code>std::equal_range</code></td><td>Sí</td><td>O(log n)</td><td>par de iteradores (el rango igual a x)</td></tr>
+        </tbody>
+      </table>
+      <p class="fragment"><code>lower_bound</code> es casi siempre lo que en realidad querías: además de decirte si está, te dice <em>dónde</em> insertarlo si no está.</p>
+    </section>
+
+    <!-- ============ CIERRE STL: TRAMPA ============ -->
+    <section>
+      <span class="kicker">STL</span>
+      <h2>La trampa: O(log n) exige acceso aleatorio</h2>
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-3|5-7">
+std::vector&lt;int&gt; v = { /* ordenado */ };
+auto it = std::lower_bound(v.begin(), v.end(), x);   // O(log n)
+if (it != v.end() &amp;&amp; *it == x) { /* está */ }
+
+std::list&lt;int&gt; l = { /* ordenado */ };
+auto it2 = std::lower_bound(l.begin(), l.end(), x);  // ¡compila!
+// pero avanza el iterador paso a paso: O(n)
+      </code></pre>
+      <ul>
+        <li class="fragment">Los iteradores de <code>std::list</code> no son de <span class="term" data-term="acceso-aleatorio">acceso aleatorio</span>: llegar al punto medio cuesta n/2 pasos.</li>
+        <li class="fragment"><code>lower_bound</code> sobre una lista hace O(log n) <em>comparaciones</em> pero O(n) <em>movimientos</em> de iterador. Compila, corre y es lento.</li>
+      </ul>
     </section>
 
     <!-- ============ REFERENCIAS ============ -->
@@ -516,6 +495,7 @@ auto it2 = std::lower_bound(l.begin(), l.end(), x);  // ¡compila!
           </ul>
         </div>
       </div>
+      <p class="refs-ia">Nota: estas diapositivas fueron generadas usando inteligencia artificial, específicamente Claude (Anthropic).</p>
     </section>
 
   </div>

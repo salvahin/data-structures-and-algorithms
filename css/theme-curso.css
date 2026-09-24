@@ -20,6 +20,26 @@
   --c-code-bg: #f4f5f7;
   --c-ai: #6d28d9;         /* violeta: exclusivo de conexiones con IA */
   --c-ai-bg: #f4effc;
+  --c-ai-hover: #e9defa;
+  --c-on-accent: #ffffff;  /* texto sobre rellenos de color (acento, tinta, ok, err, IA) */
+
+  /* Grises y azules auxiliares de los diagramas SVG */
+  --c-surface-1: #f0f1f4;
+  --c-surface-2: #eceff3;
+  --c-surface-3: #e8eaef;
+  --c-surface-4: #e2e6ec;
+  --c-ink-faint: #aab0bb;
+  --c-ink-faint-2: #9aa1ad;
+  --c-accent-soft: #9dc0f0;
+  --c-accent-soft-2: #cfe0f8;
+  --c-mm-stack: #f5f8fe;
+  --c-mm-heap: #f4faf6;
+  --c-mm-datos: #f7f7f9;
+  --c-mm-basura: #f1f2f4;
+
+  --c-shadow: rgba(20, 22, 29, 0.18);
+  --c-shadow-strong: rgba(0, 0, 0, 0.3);
+  --c-overlay: rgba(22, 24, 29, 0.55);
 
   --font-sans: "Inter", -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-mono: "JetBrains Mono", "SF Mono", Consolas, monospace;
@@ -103,6 +123,52 @@
   --c-code-panel: #14161d;     /* panel oscuro: el código destaca sobre el slide claro */
   --c-code-head: #1f232d;
   --c-code-head-ink: #8b93a5;
+  --c-code-head-line: #2a2f3b;
+  --c-code-ink: #e8eaf0;
+  --c-code-border: transparent;
+}
+
+/* ---------- Modo oscuro ----------
+   Se activa con data-theme="dark" en <html> (botón o tecla D; ver curso-slides.js).
+   Mismos nombres de token; solo cambian los valores. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --c-bg: #15171c;
+  --c-ink: #e6e8ee;
+  --c-ink-soft: #a7adba;
+  --c-accent: #8ab4f8;
+  --c-accent-bg: #1d2a44;
+  --c-ok: #6dd58c;
+  --c-ok-bg: #16301f;
+  --c-err: #f2b8b5;
+  --c-err-bg: #3b1d1b;
+  --c-line: #3a3f4b;
+  --c-code-bg: #1f222a;
+  --c-ai: #c4a5f5;
+  --c-ai-bg: #261d3a;
+  --c-ai-hover: #3a2c58;
+  --c-on-accent: #15171c;
+
+  --c-surface-1: #20232b;
+  --c-surface-2: #252932;
+  --c-surface-3: #2a2e38;
+  --c-surface-4: #30343f;
+  --c-ink-faint: #6b7280;
+  --c-ink-faint-2: #747b88;
+  --c-accent-soft: #3b5b8f;
+  --c-accent-soft-2: #27406a;
+  --c-mm-stack: #1b2233;
+  --c-mm-heap: #1a261f;
+  --c-mm-datos: #1f2128;
+  --c-mm-basura: #262930;
+
+  --c-shadow: rgba(0, 0, 0, 0.5);
+  --c-shadow-strong: rgba(0, 0, 0, 0.6);
+  --c-overlay: rgba(0, 0, 0, 0.65);
+
+  --c-code-panel: #0e1014;
+  --c-code-head: #1a1d25;
+  --c-code-border: #3a3f4b;
 }
 
 .reveal code {
@@ -121,8 +187,10 @@
   margin: 0.34em 0;
   background: var(--c-code-panel);
   border: none;
+  outline: 1px solid var(--c-code-border);  /* solo visible en oscuro */
+  outline-offset: -1px;
   border-radius: 14px;
-  box-shadow: 0 8px 28px rgba(20, 22, 29, 0.18);
+  box-shadow: 0 8px 28px var(--c-shadow);
   font-size: 0.72em;             /* ~24px proyectado */
   line-height: 1.55;
   overflow: hidden;
@@ -137,12 +205,12 @@
   font-family: var(--font-mono);
   font-size: 0.68em;
   padding: 0.55em 1.3em;
-  border-bottom: 1px solid #2a2f3b;
+  border-bottom: 1px solid var(--c-code-head-line);
 }
 
 .reveal pre code {
   background: transparent;
-  color: #e8eaf0;
+  color: var(--c-code-ink);
   padding: 0.75em 1.15em;
   max-height: 560px;
 }
@@ -224,7 +292,7 @@
   position: absolute;
   top: -0.85em; left: 0.7em;
   background: var(--c-ai);
-  color: #ffffff;
+  color: var(--c-on-accent);
   font-size: 0.55em;
   font-weight: 700;
   text-transform: uppercase;
@@ -234,7 +302,7 @@
 }
 .reveal .box-ai:not([data-label])::before { content: "🤖 Conexión con IA"; }
 .reveal .box-ai .term { color: var(--c-ai); border-bottom-color: var(--c-ai); }
-.reveal .box-ai .term:hover { background: #e9defa; }
+.reveal .box-ai .term:hover { background: var(--c-ai-hover); }
 .reveal .box-ai em { color: var(--c-ai); }
 .reveal .box-ai li::marker { color: var(--c-ai); }
 
@@ -257,7 +325,7 @@
 /* Modal de definición */
 .glossary-overlay {
   position: fixed; inset: 0; z-index: 200;
-  background: rgba(22, 24, 29, 0.55);
+  background: var(--c-overlay);
   display: flex; align-items: center; justify-content: center;
   padding: 24px;
 }
@@ -271,14 +339,14 @@
   padding: 28px 32px;
   font-size: 24px; line-height: 1.55;
   font-family: var(--font-sans);
-  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  box-shadow: 0 20px 60px var(--c-shadow-strong);
 }
 .glossary-card h4 { margin: 0 0 0.5em; font-size: 1.25em; color: var(--c-accent); }
 .glossary-card p { margin: 0 0 0.6em; }
 .glossary-card code { font-family: var(--font-mono); background: var(--c-code-bg); padding: 0.1em 0.3em; border-radius: 4px; }
 .glossary-card .glossary-close {
   margin-top: 0.8em;
-  border: 2px solid var(--c-ink); background: none;
+  border: 2px solid var(--c-ink); background: none; color: var(--c-ink);
   font: inherit; font-weight: 600;
   padding: 0.35em 1em; border-radius: 8px; cursor: pointer;
 }
@@ -414,7 +482,7 @@
 .reveal .checklist li.done::before {
   content: "✓";
   display: flex; align-items: center; justify-content: center;
-  border-color: var(--c-ok); background: var(--c-ok); color: #fff;
+  border-color: var(--c-ok); background: var(--c-ok); color: var(--c-on-accent);
   font-size: 0.8em; font-weight: 700;
 }
 .reveal .checklist .cl-ref { color: var(--c-ink-soft); font-size: 0.85em; margin-left: auto; white-space: nowrap; }
@@ -479,6 +547,14 @@
 .reveal .refs em { color: var(--c-ink); font-style: italic; font-weight: 400; }
 .reveal .refs .ref-nota { color: var(--c-ink-soft); }
 
+/* Nota de uso de IA al pie del slide de referencias */
+.reveal .refs-ia {
+  font-size: 0.5em; line-height: 1.4;
+  color: var(--c-ink-soft);
+  border-top: 2px solid var(--c-line);
+  margin-top: 1.2em; padding-top: 0.6em;
+}
+
 /* ---------- Progreso y controles ---------- */
 .reveal .progress { color: var(--c-accent); height: 6px; }
 .reveal .controls { color: var(--c-accent); }
@@ -530,12 +606,16 @@
   transition: opacity .18s ease, transform .18s ease;
   padding: 0.14em 0.34em;
   border-radius: 0.3em;
-  color: #fff;
+  color: var(--c-on-accent);
 }
 .reveal .sim-ptr .pi { background: var(--c-accent); }
 .reveal .sim-ptr .pj { background: var(--c-err); }
+.reveal .sim-ptr .pk { background: var(--c-accent); }
+.reveal .sim-ptr .pp { background: var(--c-ok); }
 .reveal .sim-col.has-i .sim-ptr .pi,
-.reveal .sim-col.has-j .sim-ptr .pj { opacity: 1; transform: none; }
+.reveal .sim-col.has-j .sim-ptr .pj,
+.reveal .sim-col.has-k .sim-ptr .pk,
+.reveal .sim-col.has-p .sim-ptr .pp { opacity: 1; transform: none; }
 
 /* la casilla */
 .reveal .sim-celda {
@@ -562,6 +642,18 @@
 .reveal .sim-col.mk-sw .sim-celda { border-color: var(--c-ok);     background: var(--c-ok-bg); transform: translateY(-0.12em); }
 .reveal .sim-col.mk-p  .sim-celda { border-color: var(--c-accent); border-style: dashed; border-width: 4px; }
 .reveal .sim-col.mk-f  .sim-celda { border-color: var(--c-ok);     background: var(--c-ok-bg); }
+
+/* Prefijo ya ordenado y definitivo (selection sort). */
+.reveal .sim-col.mk-ord .sim-celda { border-color: var(--c-ok); background: var(--c-ok-bg); }
+
+/* Descartado en quickselect: sigue visible, pero fuera de juego. */
+.reveal .sim-col.mk-desc .sim-celda {
+  opacity: .28;
+  border-color: var(--c-line);
+  border-width: 2px;
+  background: var(--c-bg);
+}
+.reveal .sim-col.mk-desc .sim-idx { opacity: .3; }
 
 /* número de índice, debajo */
 .reveal .sim-idx {
@@ -592,6 +684,9 @@
 }
 .reveal .sim-zona.on { opacity: 1; }
 .reveal .sim-zona.piv { border-top-color: var(--c-accent); color: var(--c-accent); }
+/* Invariante de selection sort: lo ordenado contra lo que falta. */
+.reveal .sim-zona.ord  { border-top-color: var(--c-ok); color: var(--c-ok); }
+.reveal .sim-zona.pend { border-top-color: var(--c-line); color: var(--c-ink-soft); font-weight: 400; }
 
 /* ---------- Barra de estado + controles ---------- */
 .reveal .sim-barra {
@@ -612,6 +707,8 @@
 }
 .reveal .sim-chip.ci { background: var(--c-accent-bg); color: var(--c-accent); }
 .reveal .sim-chip.cj { background: var(--c-err-bg);    color: var(--c-err); }
+.reveal .sim-chip.cok { background: var(--c-ok-bg);    color: var(--c-ok); }
+.reveal .sim-chip[hidden] { display: none; }
 .reveal .sim-test {
   font-family: var(--font-mono);
   font-size: 0.56em;
@@ -664,7 +761,17 @@
   min-height: 5.4em;       /* alto fijo: el layout no salta entre pasos */
 }
 .reveal .sim-dice b { color: var(--c-accent); font-weight: 700; }
+/* Pausa de predicción: se pregunta un paso antes de mostrar la respuesta. */
+.reveal .sim-dice .predice {
+  display: block;
+  margin-top: 0.3em;
+  padding: 0.18em 0.55em;
+  border-left: 5px solid var(--c-accent);
+  background: var(--c-accent-bg);
+  border-radius: 0 8px 8px 0;
+}
 .reveal .sim-dice code {
+  white-space: nowrap;
   font-size: 0.92em;
   background: var(--c-code-bg);
   padding: 0.05em 0.24em;
@@ -684,7 +791,7 @@
   font-size: 0.72em;       /* mínimo proyectable: ~24px en el lienzo de 1280 */
   line-height: 1.42;
   overflow-x: auto;
-  color: #e8eaf0;
+  color: var(--c-code-ink);
 }
 .reveal .sim-linea {
   padding: 0 0.9em;
@@ -693,10 +800,147 @@
   transition: background .18s ease;
 }
 .reveal .sim-linea.on { background: rgba(130,171,245,.20); border-left-color: #82abf5; }
+/* El panel de trabajo de quickselect se llena ronda por ronda. Los renglones
+   que faltan no ocupan lugar: el panel crece hacia abajo y no empuja nada,
+   porque es lo último del slide. */
+.reveal .sim-linea.oculta { display: none; }
+.reveal .sim-trabajo { letter-spacing: -0.01em; }
 .reveal .sim-codigo .kw  { color: #ff7b72; }
 .reveal .sim-codigo .num { color: #79c0ff; }
 .reveal .sim-codigo .fn  { color: #d2a8ff; }
 .reveal .sim-codigo .cm  { color: #8b949e; }
+
+/* ---------- Simulador de lista enlazada ---------- */
+.reveal .sim-lista .sl-svg { width: 100%; height: 232px; display: block; }
+.reveal .sim-lista .sl-codigo { max-width: 58%; }
+
+.reveal .sl-nodo .caja  { fill: var(--c-bg); stroke: var(--c-ink); stroke-width: 3; }
+.reveal .sl-nodo .div   { stroke: var(--c-ink); stroke-width: 2; }
+.reveal .sl-nodo .dato  { font-family: var(--font-mono); font-size: 26px; font-weight: 700;
+                          fill: var(--c-ink); text-anchor: middle; }
+.reveal .sl-nodo .raiz  { fill: var(--c-ink); }
+.reveal .sl-nodo.hl .caja      { fill: var(--c-accent-bg); stroke: var(--c-accent); }
+.reveal .sl-nodo.nuevo .caja   { fill: var(--c-ok-bg); stroke: var(--c-ok); }
+.reveal .sl-nodo.liberado      { opacity: .45; }
+.reveal .sl-nodo.liberado .caja{ stroke-dasharray: 7 5; stroke: var(--c-ink-soft); }
+.reveal .sl-nodo.perdido .caja { fill: var(--c-err-bg); stroke: var(--c-err); stroke-dasharray: 7 5; }
+.reveal .sl-etq { font-family: var(--font-mono); font-size: 15px; font-weight: 700;
+                  fill: var(--c-err); text-anchor: middle; }
+.reveal .sl-nodo.liberado .sl-etq { fill: var(--c-ink-soft); }
+
+.reveal .sl-flecha       { stroke: var(--c-ink); stroke-width: 3; fill: none; }
+.reveal .sl-flecha.nueva { stroke: var(--c-ok); stroke-width: 4; }
+.reveal .sl-punta        { fill: var(--c-ink); }
+.reveal .sl-punta.nueva  { fill: var(--c-ok); }
+.reveal .sl-flecha.muerta { stroke: var(--c-ink-soft); stroke-width: 2; stroke-dasharray: 6 5; opacity: .6; }
+.reveal .sl-punta.muerta  { fill: var(--c-ink-soft); opacity: .6; }
+.reveal .sl-etq.izq       { text-anchor: start; }
+.reveal .sl-nulo         { stroke: var(--c-ink); stroke-width: 2.5; }
+
+.reveal .sl-ptr text { font-family: var(--font-mono); font-size: 16px; font-weight: 700;
+                       fill: var(--c-on-accent); text-anchor: middle; }
+.reveal .sl-ptr.ph rect { fill: var(--c-ink); }
+.reveal .sl-ptr.pp rect { fill: var(--c-accent); }
+.reveal .sl-ptr.pn rect { fill: var(--c-ok); }
+.reveal .sl-ptr.pv rect { fill: var(--c-err); }
+
+/* ---------- Diagramas de variantes de lista (sesión 11) ---------- */
+.reveal .vl-titulo { font-family: var(--font-sans); font-size: 26px; font-weight: 700; fill: var(--c-ink); }
+.reveal .vl-sub    { font-family: var(--font-mono); font-size: 17px; fill: var(--c-ink-soft); }
+.reveal .vl-inv    { font-family: var(--font-mono); font-size: 19px; font-weight: 700; fill: var(--c-ok); }
+.reveal .vl-inv.c  { text-anchor: middle; }
+.reveal .vl-inv.r  { text-anchor: end; }
+.reveal .vl-a      { font-family: var(--font-mono); font-size: 19px; font-weight: 700; fill: var(--c-ok); text-anchor: middle; }
+.reveal .vl-hl     { fill: none; stroke: var(--c-ok); stroke-width: 4; }
+.reveal .vl-cap      { font-family: var(--font-sans); font-size: 25px; font-weight: 600; fill: var(--c-ink); }
+.reveal .vl-cap.err  { fill: var(--c-err); }
+.reveal .vl-cap.ok   { fill: var(--c-ok); }
+.reveal .vl-mono     { font-family: var(--font-mono); }
+.reveal .vl-flecha-err { stroke: var(--c-err); stroke-width: 4; fill: none; }
+.reveal .vl-punta-err  { fill: var(--c-err); }
+.reveal .vl-liberado   { fill: var(--c-bg); fill-opacity: .6; stroke: var(--c-ink-soft); stroke-width: 3; stroke-dasharray: 7 5; }
+.reveal .vl-liberado.err { stroke: var(--c-err); }
+.reveal .vl-perdido    { fill: var(--c-err-bg); fill-opacity: .75; stroke: var(--c-err); stroke-width: 3; stroke-dasharray: 7 5; }
+.reveal .sl-etq.gris   { fill: var(--c-ink-soft); }
+.reveal .vl-sep    { stroke: var(--c-line); stroke-width: 2; stroke-dasharray: 4 6; }
+
+/* ---------- Simuladores de memoria ---------- */
+.reveal .mm-svg { display: block; width: 100%; }
+.reveal .mm-fila { height: 184px; }
+.reveal .sim-mem .sim-codigo { line-height: 1.34; }
+
+/* mem-alias: celdas del stack */
+.reveal .mm-celda rect { fill: var(--c-bg); stroke: var(--c-ink); stroke-width: 3; }
+.reveal .mm-celda.ptr rect { fill: var(--c-accent-bg); stroke: var(--c-accent); }
+.reveal .mm-celda.cambio rect { fill: var(--c-ok-bg); stroke: var(--c-ok); stroke-width: 4; }
+.reveal .mm-hueco { fill: none; stroke: var(--c-line); stroke-width: 2; stroke-dasharray: 6 6; }
+.reveal .mm-valor { font-family: var(--font-mono); font-size: 30px; font-weight: 700;
+                    fill: var(--c-ink); text-anchor: middle; }
+.reveal .mm-valor.dir { font-size: 24px; fill: var(--c-accent); }
+.reveal .mm-dir { font-family: var(--font-mono); font-size: 15px; fill: var(--c-ink-soft); text-anchor: middle; }
+.reveal .mm-tam { font-family: var(--font-mono); font-size: 13px; fill: var(--c-ink-soft); text-anchor: end; }
+.reveal .mm-nombre rect { fill: var(--c-ink); }
+.reveal .mm-nombre text { font-family: var(--font-mono); font-size: 17px; font-weight: 700;
+                          fill: var(--c-on-accent); text-anchor: middle; }
+.reveal .mm-nombre.alias rect { fill: var(--c-accent); }
+
+.reveal .mm-flecha { fill: none; stroke: var(--c-accent); stroke-width: 3; }
+.reveal .mm-flecha.nueva { stroke: var(--c-ok); stroke-width: 4; }
+.reveal .mm-flecha.colgante { stroke: var(--c-err); stroke-dasharray: 7 5; }
+.reveal .mm-flecha.saliendo { opacity: .45; }
+.reveal .mm-punta { fill: var(--c-accent); }
+.reveal .mm-punta.nueva { fill: var(--c-ok); }
+.reveal .mm-punta.tinta { fill: var(--c-ink); }
+.reveal .mm-flecha.copia { stroke: var(--c-ink); }
+.reveal .mm-flecha.ref { stroke: var(--c-accent); stroke-dasharray: 7 5; }
+.reveal .mm-push { height: 226px; }
+.reveal .sl-nodo.fuga .caja { fill: var(--c-err-bg); stroke: var(--c-err); stroke-dasharray: 7 5; }
+.reveal .mm-punta.colgante { fill: var(--c-err); }
+
+/* mem-mapa: mapa del proceso a la izquierda, código y explicación a la derecha */
+.reveal .mm-cuerpo { display: flex; gap: 0.5em; align-items: flex-start; }
+.reveal .mm-izq { flex: 0 0 44%; }
+.reveal .mm-der { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: 0.3em; }
+.reveal .mm-mapa .mm-der .sim-codigo { max-width: 100%; line-height: 1.34; }
+.reveal .mm-mapa .mm-der .sim-dice { min-height: 0; flex: none; font-size: 0.62em; }  /* flex:none: en columna, flex-basis 0 lo aplastaba y el texto se salía */
+
+.reveal .mm-eje { stroke: var(--c-line); stroke-width: 2; }
+.reveal .mm-eje-txt { font-family: var(--font-sans); font-size: 12px; fill: var(--c-ink-soft); letter-spacing: .04em; }
+.reveal .mm-region { fill: none; stroke: var(--c-line); stroke-width: 2; }
+.reveal .mm-region.stack { fill: var(--c-mm-stack); }
+.reveal .mm-region.heap  { fill: var(--c-mm-heap); }
+.reveal .mm-region.datos, .reveal .mm-region.cod { fill: var(--c-mm-datos); }
+.reveal .mm-reg-titulo { font-family: var(--font-sans); font-size: 15px; font-weight: 700; fill: var(--c-ink);
+                         text-transform: uppercase; letter-spacing: .08em; }
+.reveal .mm-reg-nota { font-family: var(--font-sans); font-size: 13px; fill: var(--c-ink-soft); text-anchor: end; }
+.reveal .mm-libre { font-family: var(--font-sans); font-size: 13px; fill: var(--c-ink-soft); text-anchor: middle; }
+
+.reveal .mm-frame rect { fill: var(--c-bg); stroke: var(--c-accent); stroke-width: 2.5; }
+.reveal .mm-frame.saliendo { opacity: .4; }
+.reveal .mm-frame.saliendo > rect { stroke-dasharray: 6 5; stroke: var(--c-ink-soft); }
+.reveal .mm-fn  { font-family: var(--font-mono); font-size: 15px; font-weight: 700; fill: var(--c-accent); }
+.reveal .mm-var { font-family: var(--font-mono); font-size: 16px; fill: var(--c-ink); }
+.reveal .mm-val { fill: var(--c-bg); stroke: var(--c-ink); stroke-width: 1.5; }
+.reveal .mm-val.basura { fill: var(--c-mm-basura); stroke: var(--c-line); stroke-dasharray: 4 3; }
+.reveal .mm-val.cambio { fill: var(--c-ok-bg); stroke: var(--c-ok); stroke-width: 2.5; }
+.reveal .mm-val-txt { font-family: var(--font-mono); font-size: 16px; font-weight: 700; fill: var(--c-ink); text-anchor: middle; }
+.reveal .mm-val-txt.basura { font-weight: 400; font-style: italic; fill: var(--c-ink-soft); }
+.reveal .mm-dir-txt { font-family: var(--font-mono); font-size: 13px; fill: var(--c-ink-soft); text-anchor: end; }
+.reveal .mm-dir-txt.izq { text-anchor: start; }
+
+.reveal .mm-bloque rect { fill: var(--c-ok-bg); stroke: var(--c-ok); stroke-width: 2.5; }
+.reveal .mm-bloque.liberado { opacity: .5; }
+.reveal .mm-bloque.liberado rect { fill: var(--c-bg); stroke: var(--c-ink-soft); stroke-dasharray: 6 5; }
+.reveal .mm-bloque.fuga rect { fill: var(--c-err-bg); stroke: var(--c-err); stroke-dasharray: 6 5; }
+.reveal .mm-b-val { font-family: var(--font-mono); font-size: 24px; font-weight: 700; fill: var(--c-ink); text-anchor: middle; }
+.reveal .mm-b-dir { font-family: var(--font-mono); font-size: 13px; fill: var(--c-ink-soft); text-anchor: middle; }
+.reveal .mm-b-etq { font-family: var(--font-mono); font-size: 13px; font-weight: 700; fill: var(--c-err); text-anchor: middle; }
+.reveal .mm-bloque.liberado .mm-b-etq { fill: var(--c-ink-soft); }
+
+.reveal .mm-fcod rect { fill: var(--c-bg); stroke: var(--c-line); stroke-width: 1.5; }
+.reveal .mm-fcod.activo rect { fill: var(--c-accent-bg); stroke: var(--c-accent); stroke-width: 2.5; }
+.reveal .mm-fcod-n { font-family: var(--font-mono); font-size: 15px; font-weight: 700; fill: var(--c-ink); }
+.reveal .mm-fcod.activo .mm-fcod-n { fill: var(--c-accent); }
 
 @media (prefers-reduced-motion: reduce) {
   .reveal .sim-celda,
@@ -717,10 +961,72 @@
   .reveal .sim-dice { min-height: 0; }
 }
 
+/* ---------- Colores de diagramas SVG ----------
+   f-<token> = fill, s-<token> = stroke. :where() deja especificidad 0,
+   así cualquier regla de clase del tema sigue mandando (como hacían los
+   atributos fill/stroke que reemplazan). Nunca escribir hex en un deck. */
+:where(.f-bg) { fill: var(--c-bg); }
+:where(.f-ink) { fill: var(--c-ink); }
+:where(.f-ink-soft) { fill: var(--c-ink-soft); }
+:where(.f-accent) { fill: var(--c-accent); }
+:where(.f-accent-bg) { fill: var(--c-accent-bg); }
+:where(.f-ok) { fill: var(--c-ok); }
+:where(.f-ok-bg) { fill: var(--c-ok-bg); }
+:where(.f-err) { fill: var(--c-err); }
+:where(.f-err-bg) { fill: var(--c-err-bg); }
+:where(.f-line) { fill: var(--c-line); }
+:where(.f-code-bg) { fill: var(--c-code-bg); }
+:where(.f-surface-1) { fill: var(--c-surface-1); }
+:where(.f-surface-2) { fill: var(--c-surface-2); }
+:where(.f-surface-3) { fill: var(--c-surface-3); }
+:where(.f-surface-4) { fill: var(--c-surface-4); }
+:where(.f-ink-faint) { fill: var(--c-ink-faint); }
+:where(.f-ink-faint-2) { fill: var(--c-ink-faint-2); }
+:where(.f-accent-soft) { fill: var(--c-accent-soft); }
+:where(.f-accent-soft-2) { fill: var(--c-accent-soft-2); }
+:where(.s-bg) { stroke: var(--c-bg); }
+:where(.s-ink) { stroke: var(--c-ink); }
+:where(.s-ink-soft) { stroke: var(--c-ink-soft); }
+:where(.s-accent) { stroke: var(--c-accent); }
+:where(.s-accent-bg) { stroke: var(--c-accent-bg); }
+:where(.s-ok) { stroke: var(--c-ok); }
+:where(.s-ok-bg) { stroke: var(--c-ok-bg); }
+:where(.s-err) { stroke: var(--c-err); }
+:where(.s-err-bg) { stroke: var(--c-err-bg); }
+:where(.s-line) { stroke: var(--c-line); }
+:where(.s-code-bg) { stroke: var(--c-code-bg); }
+:where(.s-surface-1) { stroke: var(--c-surface-1); }
+:where(.s-surface-2) { stroke: var(--c-surface-2); }
+:where(.s-surface-3) { stroke: var(--c-surface-3); }
+:where(.s-surface-4) { stroke: var(--c-surface-4); }
+:where(.s-ink-faint) { stroke: var(--c-ink-faint); }
+:where(.s-ink-faint-2) { stroke: var(--c-ink-faint-2); }
+:where(.s-accent-soft) { stroke: var(--c-accent-soft); }
+:where(.s-accent-soft-2) { stroke: var(--c-accent-soft-2); }
+
+/* En oscuro, lo que en SVG no declara color (negro por omisión) toma la tinta del tema */
+:root[data-theme="dark"] .reveal svg { fill: var(--c-ink); }
+
+/* ---------- Botón de modo oscuro ---------- */
+.theme-toggle {
+  position: fixed; left: 14px; bottom: 12px; z-index: 30;
+  width: 40px; height: 40px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: transparent; color: var(--c-ink-soft);
+  border: 2px solid var(--c-line); cursor: pointer; padding: 0;
+  opacity: 0.55; transition: opacity .15s, color .15s, border-color .15s;
+}
+.theme-toggle:hover, .theme-toggle:focus-visible { opacity: 1; color: var(--c-accent); border-color: var(--c-accent); }
+.theme-toggle svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+.theme-toggle .ic-sun { display: none; }
+:root[data-theme="dark"] .theme-toggle .ic-sun { display: block; }
+:root[data-theme="dark"] .theme-toggle .ic-moon { display: none; }
+
 /* ---------- Impresión / PDF ---------- */
 @media print {
   .reveal .quiz-explain { display: block; }
   .reveal .solucion-body { display: block; }
   .reveal .solucion-toggle { display: none; }
   .reveal .sim-ctrl { display: none; }
+  .theme-toggle { display: none; }
 }

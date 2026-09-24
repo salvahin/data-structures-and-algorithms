@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+  <script>try{if(localStorage.getItem("curso-tema")==="dark"&&!/print-pdf/i.test(location.search))document.documentElement.dataset.theme="dark"}catch(e){}</script>
   <link rel="stylesheet" href="../css/theme-curso.css">
 </head>
 <body>
@@ -23,23 +24,6 @@
         Taller 1 · 60 minutos<br>
         Salvador Hinojosa
       </div>
-    </section>
-
-    <!-- ============ AGENDA ============ -->
-    <section>
-      <span class="kicker">Taller 1 · Agenda</span>
-      <h2>Cómo vamos a trabajar hoy</h2>
-      <table>
-        <tbody>
-          <tr><td>5 min</td><td>Panorama: los patrones que se repiten</td></tr>
-          <tr><td>10 min</td><td>El patrón de dos punteros</td></tr>
-          <tr><td>20 min</td><td>Problema 1: pares que suman un objetivo</td></tr>
-          <tr><td>5 min</td><td>Recordatorio de <code>std::string</code></td></tr>
-          <tr><td>18 min</td><td>Problema 2: palíndromo</td></tr>
-          <tr><td>2 min</td><td>Cierre: cuándo aplica y cuándo no</td></tr>
-        </tbody>
-      </table>
-      <p class="muted">Los dos problemas los programas tú. Aquí solo va el razonamiento y los casos con los que vas a probar.</p>
     </section>
 
     <!-- ============ OBJETIVO ============ -->
@@ -94,33 +78,33 @@
       <h2>Buscar dos valores que sumen 9</h2>
       <svg viewBox="0 0 1100 400" style="width:100%; max-height:400px;">
         <!-- arreglo, siempre visible -->
-        <rect x="250" y="70" width="120" height="80" fill="#ffffff" stroke="#16181d" stroke-width="3"/>
-        <rect x="370" y="70" width="120" height="80" fill="#ffffff" stroke="#16181d" stroke-width="3"/>
-        <rect x="490" y="70" width="120" height="80" fill="#ffffff" stroke="#16181d" stroke-width="3"/>
-        <rect x="610" y="70" width="120" height="80" fill="#ffffff" stroke="#16181d" stroke-width="3"/>
-        <text x="310" y="125" text-anchor="middle" style="font-size:36px; font-weight:600;" fill="#16181d">2</text>
-        <text x="430" y="125" text-anchor="middle" style="font-size:36px; font-weight:600;" fill="#16181d">7</text>
-        <text x="550" y="125" text-anchor="middle" style="font-size:36px; font-weight:600;" fill="#16181d">11</text>
-        <text x="670" y="125" text-anchor="middle" style="font-size:36px; font-weight:600;" fill="#16181d">15</text>
-        <text x="250" y="52" style="font-size:22px;" fill="#4b5260">arreglo ordenado · objetivo = 9</text>
+        <rect x="250" y="70" width="120" height="80" stroke-width="3" class="f-bg s-ink"/>
+        <rect x="370" y="70" width="120" height="80" stroke-width="3" class="f-bg s-ink"/>
+        <rect x="490" y="70" width="120" height="80" stroke-width="3" class="f-bg s-ink"/>
+        <rect x="610" y="70" width="120" height="80" stroke-width="3" class="f-bg s-ink"/>
+        <text x="310" y="125" text-anchor="middle" style="font-size:36px; font-weight:600;" class="f-ink">2</text>
+        <text x="430" y="125" text-anchor="middle" style="font-size:36px; font-weight:600;" class="f-ink">7</text>
+        <text x="550" y="125" text-anchor="middle" style="font-size:36px; font-weight:600;" class="f-ink">11</text>
+        <text x="670" y="125" text-anchor="middle" style="font-size:36px; font-weight:600;" class="f-ink">15</text>
+        <text x="250" y="52" style="font-size:22px;" class="f-ink-soft">arreglo ordenado · objetivo = 9</text>
 
         <g class="anim-step" data-step="1">
-          <text x="310" y="185" text-anchor="middle" fill="#0b57d0" style="font-size:26px; font-weight:700;">i</text>
-          <text x="670" y="185" text-anchor="middle" fill="#b3261e" style="font-size:26px; font-weight:700;">j</text>
-          <text x="250" y="240" fill="#16181d" style="font-size:26px;">2 + 15 = 17, se pasa del objetivo</text>
-          <text x="250" y="275" fill="#b3261e" style="font-size:26px; font-weight:600;">baja j</text>
+          <text x="310" y="185" text-anchor="middle" style="font-size:26px; font-weight:700;" class="f-accent">i</text>
+          <text x="670" y="185" text-anchor="middle" style="font-size:26px; font-weight:700;" class="f-err">j</text>
+          <text x="250" y="240" style="font-size:26px;" class="f-ink">2 + 15 = 17, se pasa del objetivo</text>
+          <text x="250" y="275" style="font-size:26px; font-weight:600;" class="f-err">baja j</text>
         </g>
 
         <g class="anim-step" data-step="2">
-          <text x="550" y="185" text-anchor="middle" fill="#b3261e" style="font-size:26px; font-weight:700;">j</text>
-          <text x="620" y="240" fill="#16181d" style="font-size:26px;">2 + 11 = 13, sigue pasándose</text>
-          <text x="620" y="275" fill="#b3261e" style="font-size:26px; font-weight:600;">baja j otra vez</text>
+          <text x="550" y="185" text-anchor="middle" style="font-size:26px; font-weight:700;" class="f-err">j</text>
+          <text x="620" y="240" style="font-size:26px;" class="f-ink">2 + 11 = 13, sigue pasándose</text>
+          <text x="620" y="275" style="font-size:26px; font-weight:600;" class="f-err">baja j otra vez</text>
         </g>
 
         <g class="anim-step" data-step="3">
-          <rect x="250" y="70" width="240" height="80" fill="#146c2e" opacity="0.18"/>
-          <text x="430" y="185" text-anchor="middle" fill="#146c2e" style="font-size:26px; font-weight:700;">j</text>
-          <text x="250" y="330" fill="#146c2e" style="font-size:28px; font-weight:600;">2 + 7 = 9 · encontrado en 3 pasos, no en 6 parejas</text>
+          <rect x="250" y="70" width="240" height="80" opacity="0.18" class="f-ok"/>
+          <text x="430" y="185" text-anchor="middle" style="font-size:26px; font-weight:700;" class="f-ok">j</text>
+          <text x="250" y="330" style="font-size:28px; font-weight:600;" class="f-ok">2 + 7 = 9 · encontrado en 3 pasos, no en 6 parejas</text>
         </g>
       </svg>
       <span class="fragment"></span>
@@ -360,6 +344,7 @@ bool esPalindromo(std::string s);
           </ul>
         </div>
       </div>
+      <p class="refs-ia">Nota: estas diapositivas fueron generadas usando inteligencia artificial, específicamente Claude (Anthropic).</p>
     </section>
 
   </div>
