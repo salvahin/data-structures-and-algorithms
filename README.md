@@ -21,6 +21,7 @@ Cada deck es un `index.html` autocontenido hecho con [reveal.js](https://revealj
 | `sesion-07/` | S7 — Ordenamiento elemental I: Bubble y Selection |
 | `sesion-08/` | S8 — Insertion Sort y Merge Sort |
 | `sesion-09/` | S9 — Quick Sort y selección por partición |
+| `sesion-11/` | S11 — Memoria dinámica, apuntadores y listas encadenadas |
 | `taller-01-two-pointers/` | T1 — Patrones de LeetCode: two pointers |
 
 El resto de las sesiones se publica conforme avanza el semestre.
