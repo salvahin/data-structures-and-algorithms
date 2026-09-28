@@ -904,6 +904,30 @@
 .reveal .mm-mapa .mm-der .sim-codigo { max-width: 100%; line-height: 1.34; }
 .reveal .mm-mapa .mm-der .sim-dice { min-height: 0; flex: none; font-size: 0.62em; }  /* flex:none: en columna, flex-basis 0 lo aplastaba y el texto se salía */
 
+/* mem-carga: disco a la izquierda, espacio de direcciones a la derecha */
+.reveal .mm-carga .mm-izq { flex: 0 0 53%; }
+.reveal .mm-carga .mm-der .sim-dice { font-size: 0.6em; }
+.reveal .mm-region.mc-pend { fill: none; stroke: var(--c-line); stroke-dasharray: 6 5; }
+.reveal .mm-region.mc-nueva { stroke: var(--c-ok); stroke-width: 3; }
+.reveal .mm-region.mc-kernel { fill: var(--c-mm-basura); stroke: var(--c-ink-faint); }
+.reveal .mm-reg-titulo.mc-tenue, .reveal .mm-var.mc-tenue { fill: var(--c-ink-faint); }
+.reveal .mm-reg-nota.mc-nota-izq { text-anchor: start; }
+.reveal .mc-chico  { font-size: 13px; }
+.reveal .mc-chico2 { font-size: 11px; }
+.reveal .mc-archivo { fill: var(--c-bg); stroke: var(--c-ink); stroke-width: 2; }
+.reveal .mc-term { fill: var(--c-code-panel); }
+.reveal .mc-term-txt { font-family: var(--font-mono); font-size: 13px; fill: var(--c-code-ink); }
+.reveal .mc-sec rect { fill: var(--c-code-bg); stroke: var(--c-line); stroke-width: 1.5; }
+.reveal .mc-sec text { font-family: var(--font-mono); font-size: 12px; fill: var(--c-ink); }
+.reveal .mc-sec.activa rect { fill: var(--c-accent-bg); stroke: var(--c-accent); stroke-width: 2.5; }
+.reveal .mc-sec.activa text { fill: var(--c-accent); font-weight: 700; }
+.reveal .mc-sec.nocarga { opacity: .55; }
+.reveal .mc-sec.nocarga rect, .reveal .mc-sec.sinbytes rect { stroke-dasharray: 5 4; }
+.reveal .mm-flecha.mc-enlace { stroke: var(--c-ink-faint); stroke-width: 2; }
+.reveal .mm-flecha.mc-sinbytes { stroke-dasharray: 6 4; }
+.reveal .mc-punta-tenue { fill: var(--c-ink-faint); }
+.reveal .mm-carga .mc-aslr { fill: var(--c-err); font-weight: 700; }
+
 .reveal .mm-eje { stroke: var(--c-line); stroke-width: 2; }
 .reveal .mm-eje-txt { font-family: var(--font-sans); font-size: 12px; fill: var(--c-ink-soft); letter-spacing: .04em; }
 .reveal .mm-region { fill: none; stroke: var(--c-line); stroke-width: 2; }

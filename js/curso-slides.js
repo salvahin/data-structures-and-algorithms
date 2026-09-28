@@ -1009,10 +1009,7 @@ const CursoSlides = (() => {
         const n = f.nodos[id], p = posDe(n);
         const sx = p.x + 125, sy = p.y + H / 2;
         const cambio = previo && (!previo.nodos[id] || previo.nodos[id].next !== n.next) && n.next !== null;
-        if (n.next === null) {
-          capa.appendChild(el('line', { x1: p.x + 108, y1: p.y + H - 8, x2: p.x + W - 8, y2: p.y + 8, class: 'sl-nulo' }));
-          continue;
-        }
+        if (n.next === null) continue;            // nullptr: la diagonal se dibuja encima del nodo (paso 2)
         const t = f.nodos[n.next];
         if (!t) continue;
         const q = posDe(t);
@@ -1040,6 +1037,8 @@ const CursoSlides = (() => {
         g.appendChild(el('line', { x1: p.x + 100, y1: p.y, x2: p.x + 100, y2: p.y + H, class: 'div' }));
         g.appendChild(el('text', { x: p.x + 50, y: p.y + H / 2 + 9, class: 'dato' }, n.dato));
         g.appendChild(el('circle', { cx: p.x + 125, cy: p.y + H / 2, r: 4.5, class: 'raiz' }));
+        if (n.next === null)
+          g.appendChild(el('line', { x1: p.x + 108, y1: p.y + H - 8, x2: p.x + W - 8, y2: p.y + 8, class: 'sl-nulo' }));
         const etq = n.est === 'liberado' ? 'liberado' : n.est === 'perdido' ? 'inalcanzable' : '';
         if (etq) g.appendChild(n.r === 0
           ? el('text', { x: p.x + W / 2, y: p.y - 10, class: 'sl-etq' }, etq)
@@ -1096,11 +1095,15 @@ const CursoSlides = (() => {
      6. SIMULADORES DE MEMORIA
      <div class="sim-particion sim-mem" data-alg="mem-alias"></div>
      <div class="sim-particion sim-mem" data-alg="mem-mapa"></div>
+     <div class="sim-particion sim-mem" data-alg="mem-carga"></div>
 
      mem-alias: una fila de celdas del stack, con dirección y
        tamaño. Valor, puntero y referencia lado a lado: la copia
        tiene celda propia, el puntero tiene celda propia que guarda
        una dirección, la referencia NO agrega celda.
+     mem-carga: cómo el kernel y ld-linux convierten a.out en un
+       proceso, sección por sección, hasta apilar main. Usa el mismo
+       programa que mem-mapa y termina donde mem-mapa empieza.
      mem-mapa: las cuatro regiones de un proceso (stack, heap,
        datos, código) mientras corre un programa de 11 líneas:
        frames que se apilan y desaparecen, bloques del heap que
@@ -1345,7 +1348,7 @@ const CursoSlides = (() => {
     const varDe = (fn, n) => frame(fn).vars.find(v => v.n === n);
 
     add({ test: 'antes de main',
-      say: `Antes de que <code>main</code> empiece, el sistema ya cargó dos regiones: el <b>código</b> de las funciones y la global <code>total</code>, que existe durante todo el programa. El stack y el heap están vacíos.` });
+      say: `Retomamos el slide anterior justo antes de apilar <code>main</code>. Para dejar espacio, el dibujo omite el kernel, las bibliotecas y el arranque. Ya están el <b>código</b> y la global <code>total</code>, que existe durante todo el programa; el heap está vacío.` });
 
     S.pc = 'main';
     S.pila.push({ fn: 'main', est: '', vars: [
@@ -1542,6 +1545,322 @@ const CursoSlides = (() => {
     pintar(0);
   }
 
+  /* ---------- 6b′. Del archivo al proceso: cómo se carga un programa ----------
+     Mismo programa que mem-mapa. A la izquierda, el disco (la terminal,
+     las bibliotecas y a.out por secciones); a la derecha, el espacio de
+     direcciones del proceso con las regiones de mem-mapa más el kernel,
+     las bibliotecas compartidas y la página nula. Cada sección del
+     archivo está a la altura de la región a la que se mapea, así las
+     flechas quedan horizontales y no se cruzan. Termina en el estado
+     con el que empieza mem-mapa: main apilado y sus locales con basura.
+     El último paso vuelve a correr el programa para mostrar ASLR. */
+  function pasosCarga() {
+    const F = [];
+    const BASES = [{ cod: '0x5621', stk: '0x7ffc', lib: '0x7f3a' },
+                   { cod: '0x55d3', stk: '0x7ffe', lib: '0x7f81' }];
+    const S = {
+      term: ['$ g++ main.cpp -o a.out'],
+      proc: false,
+      reg: { cod: '', dat: '', bss: '', heap: '', stk: '', lib: '' },
+      stk: { args: false, libc: false, main: false },
+      lee: [], nuevas: [], pc: '', corrida: 0
+    };
+    const NOMBRE_PC = { '': '—', ld: 'ld-linux', start: '_start', main: 'main' };
+    const add = o => {
+      const n = Object.values(S.reg).filter(Boolean).length;
+      F.push(Object.assign(JSON.parse(JSON.stringify(S)), {
+        code: -1, test: '', say: '',
+        chips: [[S.proc ? `mapeadas: ${n} de 6` : 'sin proceso', S.proc ? 'ci' : ''],
+                [`ejecuta: ${NOMBRE_PC[S.pc]}`, S.pc ? 'cok' : ''],
+                [`corrida ${S.corrida + 1}`, S.corrida ? 'cj' : '']]
+      }, o));
+      // Lo recién mapeado pasa a "listo" en el paso siguiente.
+      for (const r in S.reg) if (S.reg[r] === 'nueva') S.reg[r] = 'lista';
+      S.lee = []; S.nuevas = [];
+    };
+    const B = () => BASES[S.corrida];
+
+    add({ test: 'g++ main.cpp -o a.out',
+      say: `El compilador tradujo el programa a <code>a.out</code>, un archivo en disco dividido en <b>secciones</b>: el código de las funciones va en <code>.text</code>, las constantes en <code>.rodata</code> y las globales en <code>.data</code> o <code>.bss</code>. Todavía no hay proceso ni memoria asignada.` });
+
+    S.term.push('$ ./a.out'); S.proc = true;
+    add({ test: '$ ./a.out → el kernel crea el proceso',
+      say: `Al escribir <code>./a.out</code>, el sistema operativo crea un <b>proceso</b> con su propio espacio de direcciones: un rango enorme de direcciones sin nada detrás todavía. La parte más alta queda reservada para el kernel y el programa no puede tocarla.` });
+
+    S.lee = ['hdr'];
+    add({ test: 'el kernel lee el encabezado de a.out',
+      say: `El kernel lee el <b>encabezado</b> del archivo. Ahí vienen los segmentos (qué parte del archivo va a qué dirección y con qué permisos), la dirección de la primera instrucción, <code>_start</code>, y el cargador dinámico que hay que usar, <code>ld-linux.so</code>.` });
+
+    S.reg.cod = 'nueva'; S.lee = ['text', 'rodata']; S.nuevas = ['text', 'rodata'];
+    add({ code: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], test: '.text y .rodata → 0x5621…, leer y ejecutar',
+      say: `Se mapea el <b>código</b>: las instrucciones de <code>crear</code> y <code>main</code> quedan en direcciones fijas, con permiso de leer y ejecutar pero no de escribir. <code>_start</code> lo agrega el enlazador a todo programa. Arriba va <code>.rodata</code>, con las constantes.` });
+
+    S.reg.dat = 'nueva'; S.lee = ['data']; S.nuevas = ['data'];
+    add({ test: '.data → globales con valor inicial',
+      say: `Se mapea <code>.data</code>, con las globales que empiezan con un valor distinto de cero. Este programa no tiene ninguna.`,
+      predice: `¿en qué sección quedó <code>total</code>, y cuántos bytes ocupa en el archivo?` });
+
+    S.reg.bss = 'nueva'; S.lee = ['bss']; S.nuevas = ['bss'];
+    add({ code: 0, test: '.bss → 4 bytes en ceros · total = 0',
+      say: `<code>total</code> empieza en 0, así que el compilador la puso en <code>.bss</code>. El archivo solo guarda <b>cuántos bytes</b> reservar; al cargar, esa zona se llena con ceros. Por eso una global sin inicializar vale 0 y una local sin inicializar tiene basura.` });
+
+    S.reg.heap = 'nueva';
+    add({ test: 'heap: inicio = fin → 0 bytes',
+      say: `Arriba de <code>.bss</code> el kernel marca dónde empieza el <b>heap</b>. Empieza vacío, con el inicio y el fin en la misma dirección; crece cada vez que el programa pide memoria con <code>new</code>.` });
+
+    S.reg.stk = 'nueva'; S.stk.args = true; S.nuevas = ['args'];
+    add({ test: 'stack: argc = 1, argv = { "./a.out" }',
+      say: `El kernel crea el <b>stack</b> cerca de la parte alta y copia ahí los argumentos de la línea de comandos, que <code>main</code> puede leer como <code>argc</code> y <code>argv</code>.`,
+      predice: `¿lo primero que corre es <code>main</code>?` });
+
+    S.reg.lib = 'nueva'; S.pc = 'ld'; S.lee = ['libs']; S.nuevas = ['libs'];
+    add({ test: 'ld-linux mapea libstdc++ y libc',
+      say: `No: primero corre el <b>cargador dinámico</b> <code>ld-linux.so</code>. Mapea las bibliotecas que pide el encabezado: <code>libstdc++</code>, con el código de <code>new</code>, y <code>libc</code>, con <code>malloc</code>, que <code>new</code> usa por dentro.` });
+
+    S.pc = 'start'; S.stk.libc = true;
+    add({ test: '_start → __libc_start_main',
+      say: `El control pasa a <code>_start</code>, que llama a <code>__libc_start_main</code>: prepara la biblioteca estándar, corre los constructores de los objetos globales (aquí no hay) y llama a <code>main</code>. Su frame es el primero del stack.` });
+
+    S.pc = 'main'; S.stk.main = true;
+    add({ code: 4, test: 'se apila main: n y a con basura',
+      say: `Se apila el frame de <code>main</code>, con <code>n</code> y <code>a</code> sin valor. Aquí empieza el siguiente slide, que dibuja solo lo que cambia al ejecutar.`,
+      predice: `en otra corrida, ¿<code>main</code> queda en la misma dirección?` });
+
+    S.corrida = 1;
+    add({ code: 4, test: 'otra corrida: bases distintas, mismo orden',
+      say: `No. Cada región empieza en una base elegida al azar en cada corrida (<b>ASLR</b>), para que un atacante no sepa dónde está cada cosa. El orden de las regiones y las distancias dentro de cada una se conservan: <code>main</code> sigue terminando en …1a9.` });
+
+    F.bases = BASES;
+    return F;
+  }
+
+  function construirCarga(cont) {
+    const F = pasosCarga();
+    const BASES = F.bases;
+    const S = armarCascaron(cont, MAPA_CODIGO, F.length);
+    cont.innerHTML = '';
+    cont.classList.add('mm-mapa', 'mm-carga');
+
+    const svg = svgEl('svg', { viewBox: '0 0 712 494', class: 'mm-svg', preserveAspectRatio: 'xMinYMin meet' });
+    const uid = 'mmc' + (++simListaUid);
+    svg.innerHTML =
+      `<defs>
+         <marker id="${uid}-a" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="10" refX="10" refY="5" orient="auto"><path d="M0,0 L11,5 L0,10 z" class="mm-punta"/></marker>
+         <marker id="${uid}-n" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="10" refX="10" refY="5" orient="auto"><path d="M0,0 L11,5 L0,10 z" class="mm-punta nueva"/></marker>
+         <marker id="${uid}-t" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="10" refX="10" refY="5" orient="auto"><path d="M0,0 L11,5 L0,10 z" class="mc-punta-tenue"/></marker>
+       </defs><g></g>`;
+    const capa = svg.querySelector('g');
+
+    const izq = document.createElement('div');
+    izq.className = 'mm-izq';
+    izq.appendChild(svg);
+    const der = document.createElement('div');
+    der.className = 'mm-der';
+    der.appendChild(S.pre);
+    der.appendChild(S.dice);
+    const cuerpo = document.createElement('div');
+    cuerpo.className = 'mm-cuerpo';
+    cuerpo.appendChild(izq); cuerpo.appendChild(der);
+    cont.appendChild(cuerpo);
+    cont.appendChild(S.barra);
+    cont.appendChild(S.huecos);
+    const lineas = [...S.pre.querySelectorAll('.sim-linea')];
+
+    // Columna de memoria, direcciones altas arriba (como mem-mapa).
+    const MX = 258, MW = 424, DX = 0, DW = 204;
+    const REG = {
+      ker:  { y: 0,   h: 24 },
+      stk:  { y: 30,  h: 180, titulo: 'Stack',  nota: 'crece hacia abajo ↓', cls: 'stack' },
+      lib:  { y: 216, h: 62,  titulo: 'Bibliotecas compartidas', nota: '', cls: 'datos' },
+      heap: { y: 300, h: 40,  titulo: 'Heap',   nota: 'crece hacia arriba ↑', cls: 'heap' },
+      dat:  { y: 346, h: 58,  titulo: 'Datos',  nota: 'globales y static', cls: 'datos' },
+      cod:  { y: 408, h: 66,  titulo: 'Código', nota: '.text y .rodata · solo lectura', cls: 'cod' },
+      nul:  { y: 478, h: 16 }
+    };
+    // Filas internas, compartidas con las secciones del disco para alinear flechas.
+    const FIL = {
+      data:   REG.dat.y + 28,     // centro de la fila .data
+      bss:    REG.dat.y + 45,     // centro de la fila .bss
+      rodata: REG.cod.y + 30,
+      text:   REG.cod.y + 50,
+      libs:   REG.lib.y + 41,
+      args:   REG.stk.y + 35
+    };
+
+    function region(k, R, f, extra) {
+      const est = f.reg[k] || '';
+      const pend = !est;
+      capa.appendChild(svgEl('rect', { x: MX, y: R.y, width: MW, height: R.h, rx: 8,
+        class: 'mm-region ' + (pend ? 'mc-pend' : R.cls + (est === 'nueva' ? ' mc-nueva' : '')) }));
+      capa.appendChild(svgEl('text', { x: MX + 10, y: R.y + 17, class: 'mm-reg-titulo' + (pend ? ' mc-tenue' : '') }, R.titulo));
+      capa.appendChild(svgEl('text', { x: MX + MW - 10, y: R.y + 17, class: 'mm-reg-nota' + (extra && f.corrida ? ' mc-aslr' : '') },
+        pend ? 'sin mapear' : (extra || R.nota)));
+      return !pend;
+    }
+
+    function celda(y, etq, dir, val, cls, dirCls) {
+      capa.appendChild(svgEl('text', { x: MX + 22, y: y + 15, class: 'mm-var' }, etq));
+      capa.appendChild(svgEl('text', { x: MX + 150, y: y + 15, class: 'mm-dir-txt izq' + (dirCls || '') }, dir));
+      capa.appendChild(svgEl('rect', { x: MX + 262, y, width: 150, height: 21, rx: 4, class: 'mm-val' + (cls ? ' ' + cls : '') }));
+      capa.appendChild(svgEl('text', { x: MX + 337, y: y + 15, class: 'mm-val-txt' + (cls === 'basura' ? ' basura' : '') }, val));
+    }
+
+    // Una sección de a.out (o un archivo de biblioteca) en la columna del disco.
+    function seccion(y, h, txt, clave, f, cls) {
+      const act = f.lee.includes(clave);
+      const g = svgEl('g', { class: 'mc-sec' + (act ? ' activa' : '') + (cls ? ' ' + cls : '') });
+      g.appendChild(svgEl('rect', { x: DX + 8, y, width: DW - 16, height: h, rx: 4 }));
+      g.appendChild(svgEl('text', { x: DX + 16, y: y + h / 2 + 4.5 }, txt));
+      capa.appendChild(g);
+    }
+
+    function flecha(y, clave, f, discontinua) {
+      const nueva = f.nuevas.includes(clave);
+      capa.appendChild(svgEl('path', {
+        d: `M ${DX + DW - 6} ${y} H ${MX - 4}`,
+        class: 'mm-flecha ' + (nueva ? 'nueva' : 'mc-enlace') + (discontinua ? ' mc-sinbytes' : ''),
+        'marker-end': `url(#${uid}-${nueva ? 'n' : 't'})` }));
+    }
+
+    function pintar(k) {
+      const f = F[Math.max(0, Math.min(k, F.length - 1))];
+      const b = BASES[f.corrida];
+      const cambia = f.corrida ? ' mc-aslr' : '';
+      capa.innerHTML = '';
+
+      /* ---- Disco ---- */
+      capa.appendChild(svgEl('text', { x: DX + 8, y: 16, class: 'mm-reg-titulo' }, 'Disco'));
+      // Terminal
+      capa.appendChild(svgEl('rect', { x: DX + 8, y: 26, width: DW - 16, height: 50, rx: 6, class: 'mc-term' }));
+      f.term.forEach((l, i) =>
+        capa.appendChild(svgEl('text', { x: DX + 16, y: 45 + i * 20, class: 'mc-term-txt' }, l)));
+      // Bibliotecas: archivos aparte, a la altura de su región.
+      capa.appendChild(svgEl('text', { x: DX + 8, y: REG.lib.y - 4, class: 'mm-reg-nota mc-nota-izq' }, '/usr/lib/…'));
+      seccion(REG.lib.y + 2, 18, 'ld-linux.so', 'libs', f);
+      seccion(REG.lib.y + 22, 18, 'libstdc++.so', 'libs', f);
+      seccion(REG.lib.y + 42, 18, 'libc.so', 'libs', f);
+      // a.out
+      const AY = REG.heap.y - 4;
+      capa.appendChild(svgEl('rect', { x: DX, y: AY, width: DW, height: 494 - AY, rx: 8, class: 'mc-archivo' }));
+      capa.appendChild(svgEl('text', { x: DX + 10, y: AY + 17, class: 'mm-reg-titulo' }, 'a.out'));
+      capa.appendChild(svgEl('text', { x: DX + DW - 10, y: AY + 17, class: 'mm-reg-nota' }, 'archivo ELF'));
+      seccion(AY + 24, 18, '.symtab · no se carga', 'symtab', f, 'nocarga');
+      seccion(FIL.data - 9, 18, '.data · vacía', 'data', f);
+      seccion(FIL.bss - 9, 18, '.bss · solo tamaño: 4 B', 'bss', f, 'sinbytes');
+      seccion(FIL.rodata - 8, 16, '.rodata', 'rodata', f);
+      seccion(FIL.text - 8, 16, '.text · instrucciones', 'text', f);
+      seccion(REG.nul.y - 2, 16, 'encabezado ELF', 'hdr', f);
+
+      /* ---- Memoria del proceso ---- */
+      capa.appendChild(svgEl('text', { x: 704, y: 30, class: 'mm-eje-txt', transform: 'rotate(90 704 30)' }, 'direcciones altas → bajas'));
+      capa.appendChild(svgEl('line', { x1: 697, y1: 4, x2: 697, y2: 490, class: 'mm-eje' }));
+
+      if (!f.proc) {
+        capa.appendChild(svgEl('rect', { x: MX, y: 0, width: MW, height: 494, rx: 8, class: 'mm-region mc-pend' }));
+        capa.appendChild(svgEl('text', { x: MX + MW / 2, y: 250, class: 'mm-libre' }, 'todavía no hay proceso'));
+      } else {
+        // Kernel y página nula: existen desde que hay espacio de direcciones.
+        capa.appendChild(svgEl('rect', { x: MX, y: REG.ker.y, width: MW, height: REG.ker.h, rx: 6, class: 'mm-region mc-kernel' }));
+        capa.appendChild(svgEl('text', { x: MX + 10, y: REG.ker.y + 16, class: 'mm-reg-titulo' }, 'Kernel'));
+        capa.appendChild(svgEl('text', { x: MX + MW - 10, y: REG.ker.y + 16, class: 'mm-reg-nota' }, 'el programa no puede tocarla'));
+
+        // Stack
+        if (region('stk', REG.stk, f, `${b.stk}… · crece hacia abajo ↓`)) {
+          const y0 = REG.stk.y + 25;
+          const nArgs = f.nuevas.includes('args');
+          capa.appendChild(svgEl('text', { x: MX + 22, y: y0 + 15, class: 'mm-var' }, 'argv, envp'));
+          capa.appendChild(svgEl('rect', { x: MX + 150, y: y0, width: 262, height: 21, rx: 4, class: 'mm-val' + (nArgs ? ' cambio' : '') }));
+          capa.appendChild(svgEl('text', { x: MX + 281, y: y0 + 15, class: 'mm-val-txt mc-chico' }, '"./a.out"  "PATH=…"  …'));
+          celda(y0 + 25, 'int argc', `${b.stk}…d3c`, '1', nArgs ? 'cambio' : '', cambia);
+          let fy = y0 + 52;
+          if (f.stk.libc) {
+            const g = svgEl('g', { class: 'mm-frame' });
+            g.appendChild(svgEl('rect', { x: MX + 10, y: fy, width: MW - 20, height: 24, rx: 6 }));
+            g.appendChild(svgEl('text', { x: MX + 20, y: fy + 16, class: 'mm-fn' }, '__libc_start_main()'));
+            capa.appendChild(g);
+            fy += 28;
+          }
+          if (f.stk.main) {
+            const g = svgEl('g', { class: 'mm-frame' });
+            g.appendChild(svgEl('rect', { x: MX + 10, y: fy, width: MW - 20, height: 70, rx: 6 }));
+            g.appendChild(svgEl('text', { x: MX + 20, y: fy + 16, class: 'mm-fn' }, 'main()'));
+            capa.appendChild(g);
+            celda(fy + 22, 'int n', `${b.stk}…5c`, 'basura', 'basura', cambia);
+            celda(fy + 45, 'int* a', `${b.stk}…50`, 'basura', 'basura', cambia);
+          }
+        }
+
+        // Bibliotecas compartidas
+        if (region('lib', REG.lib, f, `${b.lib}… · mmap`)) {
+          [['ld-linux', ''], ['libstdc++', 'new'], ['libc', 'malloc']].forEach(([n, fn], i) => {
+            const x = MX + 10 + i * 139, y = REG.lib.y + 26;
+            const g = svgEl('g', { class: 'mm-fcod' + (f.pc === 'ld' && i === 0 ? ' activo' : '') });
+            g.appendChild(svgEl('rect', { x, y, width: 131, height: 30 }));
+            g.appendChild(svgEl('text', { x: x + 8, y: y + 20, class: 'mm-fcod-n mc-chico' }, n));
+            if (fn) g.appendChild(svgEl('text', { x: x + 124, y: y + 20, class: 'mm-dir-txt' }, fn));
+            capa.appendChild(g);
+          });
+        }
+
+        capa.appendChild(svgEl('text', { x: MX + MW / 2, y: REG.heap.y - 8, class: 'mm-libre' }, '· · · espacio libre · · ·'));
+
+        // Heap
+        if (region('heap', REG.heap, f)) {
+          capa.appendChild(svgEl('text', { x: MX + 22, y: REG.heap.y + 33, class: 'mm-dir-txt izq' + cambia },
+            `inicio = fin = ${b.cod}…e90 · 0 bytes`));
+        }
+
+        // Datos: .data y .bss
+        if (region('dat', REG.dat, f)) {
+          capa.appendChild(svgEl('text', { x: MX + 22, y: FIL.data + 5, class: 'mm-var' }, '.data'));
+          capa.appendChild(svgEl('text', { x: MX + 150, y: FIL.data + 5, class: 'mm-dir-txt izq' }, 'ninguna global con valor ≠ 0'));
+          if (f.reg.bss) {
+            celda(FIL.bss - 10, 'int total', `${b.cod}…010`, '0', f.reg.bss === 'nueva' ? 'cambio' : '', cambia);
+          } else {
+            capa.appendChild(svgEl('text', { x: MX + 22, y: FIL.bss + 5, class: 'mm-var mc-tenue' }, '.bss'));
+            capa.appendChild(svgEl('text', { x: MX + 150, y: FIL.bss + 5, class: 'mm-dir-txt izq' }, 'sin mapear'));
+          }
+        }
+
+        // Código
+        if (region('cod', REG.cod, f)) {
+          capa.appendChild(svgEl('text', { x: MX + 22, y: FIL.rodata + 5, class: 'mm-var mc-chico' }, '.rodata'));
+          capa.appendChild(svgEl('text', { x: MX + 150, y: FIL.rodata + 5, class: 'mm-dir-txt izq' + cambia }, `${b.cod}…2000 · constantes`));
+          [['_start', '0e0', 'start'], ['crear()', '189', ''], ['main()', '1a9', 'main']].forEach(([fn, suf, pc], i) => {
+            const x = MX + 10 + i * 139, y = FIL.text - 12;
+            const act = f.pc === pc && pc !== '';
+            const g = svgEl('g', { class: 'mm-fcod' + (act ? ' activo' : '') });
+            g.appendChild(svgEl('rect', { x, y, width: 131, height: 24, rx: 5 }));
+            g.appendChild(svgEl('text', { x: x + 8, y: y + 17, class: 'mm-fcod-n mc-chico' }, (act ? '▶ ' : '') + fn));
+            g.appendChild(svgEl('text', { x: x + 124, y: y + 17, class: 'mm-dir-txt' }, `…${suf}`));
+            capa.appendChild(g);
+          });
+        }
+
+        // Página nula
+        capa.appendChild(svgEl('rect', { x: MX, y: REG.nul.y, width: MW, height: REG.nul.h, rx: 4, class: 'mm-region mc-pend' }));
+        capa.appendChild(svgEl('text', { x: MX + MW / 2, y: REG.nul.y + 12, class: 'mm-libre mc-chico2' }, '0x0 · sin mapear: aquí cae desreferenciar nullptr'));
+
+        // Flechas disco → memoria
+        if (f.reg.cod) { flecha(FIL.text, 'text', f); flecha(FIL.rodata, 'rodata', f); }
+        if (f.reg.dat) flecha(FIL.data, 'data', f);
+        if (f.reg.bss) flecha(FIL.bss, 'bss', f, true);
+        if (f.reg.lib) flecha(FIL.libs, 'libs', f);
+        if (f.reg.stk) {
+          const n = f.nuevas.includes('args');
+          capa.appendChild(svgEl('path', { d: `M ${DX + DW - 6} ${51} C ${MX - 20} 51, ${MX - 50} ${FIL.args}, ${MX - 4} ${FIL.args}`,
+            class: 'mm-flecha ' + (n ? 'nueva' : 'mc-enlace'), 'marker-end': `url(#${uid}-${n ? 'n' : 't'})` }));
+        }
+      }
+
+      S.pintarComun(f, k);
+      if (Array.isArray(f.code)) lineas.forEach((l, idx) => l.classList.toggle('on', f.code.includes(idx)));
+    }
+    cont._simPintar = pintar;
+    cont._simTotal = F.length;
+    pintar(0);
+  }
+
   /* ---------- 6c. pushFront: puntero por valor contra Nodo*& ----------
      Corre las dos versiones sobre la MISMA memoria, una tras otra: la
      del checkpoint (por valor) deja una fuga y no cambia la lista; la
@@ -1732,6 +2051,7 @@ const CursoSlides = (() => {
     if (cont.dataset.alg === 'mem-push') return construirPush(cont);
     if (cont.dataset.alg === 'mem-alias') return construirAlias(cont);
     if (cont.dataset.alg === 'mem-mapa') return construirMapa(cont);
+    if (cont.dataset.alg === 'mem-carga') return construirCarga(cont);
     if ((cont.dataset.alg || '').startsWith('lista-')) return construirLista(cont);
     const alg = ['lomuto', 'hoare', 'quickselect', 'seleccion'].includes(cont.dataset.alg)
       ? cont.dataset.alg : 'hoare';
