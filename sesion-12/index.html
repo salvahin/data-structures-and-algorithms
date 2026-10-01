@@ -32,7 +32,8 @@
       <h2>Al salir de esta sesión podrás…</h2>
       <ul>
         <li class="fragment">Explicar el modelo de una lista encadenada: <span class="term" data-term="nodo">nodos</span>, enlaces y el orden correcto de re-cableado al insertar y eliminar.</li>
-        <li class="fragment">Comparar lista y arreglo por operación, y decir cuándo la teoría no basta para decidir.</li>
+        <li class="fragment">Leer y escribir expresiones con el operador <code>-&gt;</code>, incluidas las encadenadas.</li>
+        <li class="fragment">Comparar lista y arreglo por el costo de cada operación.</li>
         <li class="fragment">Diseñar la interfaz de un <span class="term" data-term="adt">ADT</span> antes de codificarlo: operaciones, precondiciones y respuesta a cada caso límite.</li>
         <li class="fragment">Implementar <code>LinkedList&lt;T&gt;</code> genérica, con un destructor que libere todos los nodos en el orden correcto.</li>
       </ul>
@@ -47,10 +48,11 @@
     <section>
       <span class="kicker">7.1 · Listas encadenadas</span>
       <h2>El modelo: nodos enlazados por punteros</h2>
-      <pre><code class="language-cpp" data-trim data-line-numbers="1-4|6-7">
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-5|4|7-8">
 struct Nodo {
     int   dato;
     Nodo* next;    // direccion del siguiente nodo, o nullptr
+    Nodo(int d) { dato = d; next = nullptr; }   // nace sin siguiente
 };
 
 Nodo* head;        // la lista completa se alcanza desde aqui
@@ -60,6 +62,56 @@ Nodo* head;        // la lista completa se alcanza desde aqui
         <li class="fragment">Cada <span class="term" data-term="nodo">nodo</span> vive en el heap, en una dirección arbitraria; el orden lógico lo dan los enlaces, no la posición en memoria.</li>
         <li class="fragment">Insertar y eliminar consiste en reasignar punteros; ningún elemento se desplaza.</li>
       </ul>
+    </section>
+
+    <!-- ============ 7.1 OPERADOR FLECHA: ORIGEN ============ -->
+    <section>
+      <span class="kicker">7.1 · Listas encadenadas</span>
+      <h2>El operador <code>-&gt;</code>: de dónde viene</h2>
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-7|4|5|6|7">
+Nodo n(7);
+Nodo* p = &amp;n;
+
+n.dato;       // objeto: se usa el punto
+(*p).dato;    // puntero: primero *, despues el punto
+*p.dato;      // error: se lee como *(p.dato)
+p-&gt;dato;      // abreviatura de (*p).dato
+      </code></pre>
+      <ul>
+        <li class="fragment">El punto tiene mayor precedencia que <code>*</code>; sin paréntesis, <code>*p.dato</code> intenta aplicar el punto a un puntero y no compila.</li>
+        <li class="fragment">C introdujo <code>-&gt;</code> para no escribir <code>(*p).</code> cada vez que se accede a un campo por medio de un puntero. C++ lo heredó sin cambios.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 7.1 OPERADOR FLECHA: ENCADENAR ============ -->
+    <section>
+      <span class="kicker">7.1 · Listas encadenadas</span>
+      <h2>Encadenar flechas: un salto por cada <code>-&gt;</code></h2>
+      <svg viewBox="0 0 1210 260" class="vl-svg" style="width:100%; max-height:260px;"><defs><marker id="fla" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L13,6 L0,12 z" class="sl-punta"/></marker></defs><g class="sl-nodo"><rect x="200" y="70" width="150" height="56" rx="8" class="caja"/><line x1="300" y1="70" x2="300" y2="126" class="div"/><text x="250" y="107" class="dato">10</text><circle cx="325" cy="98" r="4.5" class="raiz"/></g><g class="sl-nodo"><rect x="490" y="70" width="150" height="56" rx="8" class="caja"/><line x1="590" y1="70" x2="590" y2="126" class="div"/><text x="540" y="107" class="dato">20</text><circle cx="615" cy="98" r="4.5" class="raiz"/></g><g class="sl-nodo"><rect x="780" y="70" width="150" height="56" rx="8" class="caja"/><line x1="880" y1="70" x2="880" y2="126" class="div"/><text x="830" y="107" class="dato">30</text><circle cx="905" cy="98" r="4.5" class="raiz"/></g><line x1="325" y1="98" x2="488" y2="98" class="sl-flecha" marker-end="url(#fla)"/><line x1="615" y1="98" x2="778" y2="98" class="sl-flecha" marker-end="url(#fla)"/><line x1="888" y1="118" x2="922" y2="78" class="sl-nulo"/><g class="sl-ptr ph"><rect x="200" y="36" width="60" height="26" rx="6"/><text x="230" y="54">head</text></g><g class="anim-step" data-step="1" data-step-off="2"><rect x="194" y="64" width="162" height="68" rx="10" class="vl-hl"/></g><g class="anim-step" data-step="1"><text x="275" y="174" class="vl-inv c" style="font-size:24px">head-&gt;dato</text></g><g class="anim-step" data-step="2" data-step-off="3"><rect x="484" y="64" width="162" height="68" rx="10" class="vl-hl"/></g><g class="anim-step" data-step="2"><text x="565" y="208" class="vl-inv c" style="font-size:24px">head-&gt;next-&gt;dato</text></g><g class="anim-step" data-step="3"><rect x="774" y="64" width="162" height="68" rx="10" class="vl-hl"/></g><g class="anim-step" data-step="3"><text x="855" y="242" class="vl-inv c" style="font-size:24px">head-&gt;next-&gt;next-&gt;dato</text></g></svg>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <ul>
+        <li class="fragment">Se lee de izquierda a derecha: cada <code>-&gt;</code> sigue un puntero hasta el nodo al que apunta.</li>
+        <li class="fragment">Si un puntero del camino vale <code>nullptr</code>, la flecha que sigue es <span class="term" data-term="ub">comportamiento indefinido</span>. Antes de escribir <code>p-&gt;next-&gt;dato</code> hay que saber que <code>p</code> y <code>p-&gt;next</code> no son <code>nullptr</code>.</li>
+      </ul>
+    </section>
+
+    <!-- ============ QUIZ FLECHA ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="a">
+        <p class="quiz-question">Si <code>p</code> es un <code>Nodo*</code>, ¿qué expresión es equivalente a <code>p-&gt;next-&gt;dato</code>?</p>
+        <button class="quiz-option" data-opt="a"><code>(*(*p).next).dato</code></button>
+        <button class="quiz-option" data-opt="b"><code>(*p).next.dato</code></button>
+        <button class="quiz-option" data-opt="c"><code>*p.next.dato</code></button>
+        <div class="quiz-explain">
+          <strong>A.</strong> Cada <code>-&gt;</code> se traduce a <code>(*…).</code>: <code>p-&gt;next</code> es
+          <code>(*p).next</code>, que es otro puntero, y para leer su dato hay que desreferenciarlo también.
+          En la B, <code>(*p).next</code> es un <code>Nodo*</code> y el punto no se aplica a punteros. La C no
+          compila: el punto se aplica antes que el <code>*</code>.
+        </div>
+      </div>
     </section>
 
     <!-- ============ 7.1 VARIANTES ============ -->
@@ -95,63 +147,6 @@ Nodo* head;        // la lista completa se alcanza desde aqui
       <span class="fragment"></span>
     </section>
 
-    <!-- ============ 7.1 SVG INSERCIÓN ============ -->
-    <section>
-      <span class="kicker">7.1 · Listas encadenadas</span>
-      <h2>Insertar entre A y B: el orden de las flechas</h2>
-      <svg viewBox="0 0 1210 372" class="vl-svg" style="width:100%; max-height:372px;"><defs><marker id="insa" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L13,6 L0,12 z" class="sl-punta"/></marker><marker id="insv" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L13,6 L0,12 z" class="sl-punta nueva"/></marker><marker id="insr" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L13,6 L0,12 z" class="vl-punta-err"/></marker><marker id="insm" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L13,6 L0,12 z" class="sl-punta muerta"/></marker></defs><g class="anim-step" data-step="1"><text x="0" y="30" class="vl-cap ">1. Crear el nodo nuevo</text></g><g class="anim-step" data-step="2"><text x="0" y="66" class="vl-cap ">2. <tspan class="vl-mono">nuevo-&gt;next = B</tspan>   (primero)</text></g><g class="anim-step" data-step="3"><text x="0" y="102" class="vl-cap ">3. <tspan class="vl-mono">A-&gt;next = nuevo</tspan>   (después)</text></g><g class="sl-ptr ph"><rect x="200" y="156" width="60" height="26" rx="6"/><text x="230" y="174">head</text></g><g class="sl-nodo "><rect x="200" y="190" width="150" height="56" rx="8" class="caja"/><line x1="300" y1="190" x2="300" y2="246" class="div"/><text x="250" y="227.0" class="dato">A</text><circle cx="325" cy="218.0" r="4.5" class="raiz"/></g><g class="sl-nodo "><rect x="490" y="190" width="150" height="56" rx="8" class="caja"/><line x1="590" y1="190" x2="590" y2="246" class="div"/><text x="540" y="227.0" class="dato">B</text><circle cx="615" cy="218.0" r="4.5" class="raiz"/></g><g class="sl-nodo "><rect x="780" y="190" width="150" height="56" rx="8" class="caja"/><line x1="880" y1="190" x2="880" y2="246" class="div"/><text x="830" y="227.0" class="dato">C</text><circle cx="905" cy="218.0" r="4.5" class="raiz"/></g><line x1="615" y1="218.0" x2="778" y2="218.0" class="sl-flecha" marker-end="url(#insa)"/><line x1="888" y1="238" x2="922" y2="198" class="sl-nulo"/><line x1="325" y1="218.0" x2="488" y2="218.0" class="sl-flecha" marker-end="url(#insa)"/><g class="anim-step" data-step="1"><g class="sl-nodo nuevo"><rect x="345" y="302" width="150" height="56" rx="8" class="caja"/><line x1="445" y1="302" x2="445" y2="358" class="div"/><text x="395" y="339.0" class="dato">X</text><circle cx="470" cy="330.0" r="4.5" class="raiz"/></g></g><g class="anim-step" data-step="1" data-step-off="2"><line x1="453" y1="350" x2="487" y2="310" class="sl-nulo"/></g><g class="anim-step" data-step="2"><line x1="470" y1="330.0" x2="520" y2="249" class="sl-flecha nueva" marker-end="url(#insv)"/></g><g class="anim-step" data-step="3"><line x1="325" y1="218.0" x2="488" y2="218.0" stroke-width="10" class="s-bg"/><line x1="331" y1="218.0" x2="482" y2="218.0" class="sl-flecha muerta" marker-end="url(#insm)"/><line x1="325" y1="224.0" x2="375" y2="299" class="sl-flecha nueva" marker-end="url(#insv)"/><text x="930" y="338.0" class="vl-inv r">2 asignaciones; ningún nodo se movió</text></g></svg>
-      <span class="fragment"></span>
-      <span class="fragment"></span>
-      <span class="fragment"></span>
-    </section>
-
-    <!-- ============ 7.1 SVG ELIMINACIÓN INCORRECTA ============ -->
-    <section>
-      <span class="kicker">7.1 · Listas encadenadas</span>
-      <h2>Eliminar B: qué pasa si el orden es el equivocado</h2>
-      <svg viewBox="0 0 1210 380" class="vl-svg" style="width:100%; max-height:380px;"><defs><marker id="dela" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L13,6 L0,12 z" class="sl-punta"/></marker><marker id="delv" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L13,6 L0,12 z" class="sl-punta nueva"/></marker><marker id="delr" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L13,6 L0,12 z" class="vl-punta-err"/></marker><marker id="delm" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L13,6 L0,12 z" class="sl-punta muerta"/></marker></defs><g class="anim-step" data-step="1"><text x="0" y="30" class="vl-cap err">Incorrecto: <tspan class="vl-mono">delete B</tspan> antes de re-enlazar…</text></g><g class="anim-step" data-step="2"><text x="0" y="66" class="vl-cap err">…<tspan class="vl-mono">B-&gt;next</tspan> ya no se puede leer: C queda inalcanzable</text></g><g class="anim-step" data-step="3"><text x="0" y="102" class="vl-cap ok">Correcto: primero <tspan class="vl-mono">A-&gt;next = B-&gt;next</tspan>, después <tspan class="vl-mono">delete B</tspan></text></g><g class="sl-ptr ph"><rect x="200" y="162" width="60" height="26" rx="6"/><text x="230" y="180">head</text></g><g class="sl-nodo "><rect x="200" y="196" width="150" height="56" rx="8" class="caja"/><line x1="300" y1="196" x2="300" y2="252" class="div"/><text x="250" y="233.0" class="dato">A</text><circle cx="325" cy="224.0" r="4.5" class="raiz"/></g><g class="sl-nodo "><rect x="490" y="196" width="150" height="56" rx="8" class="caja"/><line x1="590" y1="196" x2="590" y2="252" class="div"/><text x="540" y="233.0" class="dato">B</text><circle cx="615" cy="224.0" r="4.5" class="raiz"/></g><g class="sl-nodo "><rect x="780" y="196" width="150" height="56" rx="8" class="caja"/><line x1="880" y1="196" x2="880" y2="252" class="div"/><text x="830" y="233.0" class="dato">C</text><circle cx="905" cy="224.0" r="4.5" class="raiz"/></g><line x1="325" y1="224.0" x2="488" y2="224.0" class="sl-flecha" marker-end="url(#dela)"/><line x1="615" y1="224.0" x2="778" y2="224.0" class="sl-flecha" marker-end="url(#dela)"/><line x1="888" y1="244" x2="922" y2="204" class="sl-nulo"/><g class="anim-step" data-step="1" data-step-off="3"><rect x="490" y="196" width="150" height="56" rx="8" class="vl-liberado err"/><text x="565.0" y="278" class="sl-etq">liberado</text></g><g class="anim-step" data-step="1"><line x1="615" y1="224.0" x2="778" y2="224.0" stroke-width="10" class="s-bg"/><line x1="621" y1="224.0" x2="772" y2="224.0" class="sl-flecha muerta" marker-end="url(#delm)"/></g><g class="anim-step" data-step="2" data-step-off="3"><line x1="325" y1="224.0" x2="488" y2="224.0" class="vl-flecha-err" marker-end="url(#delr)"/><text x="410.0" y="186" class="sl-etq">colgante</text><rect x="780" y="196" width="150" height="56" rx="8" class="vl-perdido"/><text x="855.0" y="278" class="sl-etq">fuga: nadie apunta aquí</text></g><g class="anim-step" data-step="3"><path d="M 325 228.0 C 430 362, 660 362, 810 255" class="sl-flecha nueva" marker-end="url(#delv)"/><line x1="325" y1="224.0" x2="488" y2="224.0" stroke-width="10" class="s-bg"/><line x1="331" y1="224.0" x2="482" y2="224.0" class="sl-flecha muerta" marker-end="url(#delm)"/><rect x="490" y="196" width="150" height="56" rx="8" class="vl-liberado"/><text x="565.0" y="186" class="sl-etq gris">liberado, ya fuera de la cadena</text><text x="565.0" y="370" class="vl-inv c">A-&gt;next = C, y solo entonces delete B</text></g></svg>
-      <span class="fragment"></span>
-      <span class="fragment"></span>
-      <span class="fragment"></span>
-    </section>
-
-    <!-- ============ 7.1 CÓDIGO ============ -->
-    <section>
-      <span class="kicker">7.1 · Listas encadenadas</span>
-      <h2>Las mismas flechas, en código</h2>
-      <pre><code class="language-cpp" data-trim data-line-numbers="1-3|5-8">
-// insertar x despues del nodo prev
-Nodo* nuevo = new Nodo{x, prev-&gt;next};  // nuevo-&gt;next primero
-prev-&gt;next  = nuevo;                    // re-enlazar despues
-
-// eliminar el nodo que sigue a prev
-Nodo* victima = prev-&gt;next;
-prev-&gt;next    = victima-&gt;next;  // 1. puentear la victima
-delete victima;                 // 2. liberar al final
-      </code></pre>
-      <ul>
-        <li class="fragment">La regla en ambos casos: no liberar ni sobrescribir un puntero mientras todavía se necesite leerlo.</li>
-        <li class="fragment">Casos límite que el código de arriba no cubre: insertar antes de la cabeza y eliminar la cabeza. Ahí quien cambia es <code>head</code> — por eso la sesión pasada de punteros a punteros.</li>
-      </ul>
-    </section>
-
-    <!-- ============ QUIZ 3 ============ -->
-    <section>
-      <span class="kicker">Checkpoint</span>
-      <div class="quiz" data-correct="a">
-        <p class="quiz-question">Para eliminar el nodo que sigue a <code>prev</code>, un compañero escribe: <code>delete prev-&gt;next; prev-&gt;next = prev-&gt;next-&gt;next;</code>. ¿Qué está mal?</p>
-        <button class="quiz-option" data-opt="a">La segunda línea lee memoria ya liberada: había que puentear (<code>prev-&gt;next = victima-&gt;next</code>) antes del <code>delete</code>.</button>
-        <button class="quiz-option" data-opt="b">Nada: el orden de las dos líneas no afecta el resultado, solo el estilo.</button>
-        <button class="quiz-option" data-opt="c">Falta liberar también <code>prev-&gt;next-&gt;next</code>, porque los nodos siguientes quedan huérfanos.</button>
-        <div class="quiz-explain">
-          <strong>A.</strong> Tras el <code>delete</code>, <code>prev-&gt;next</code> es un puntero colgante y
-          leerle <code>-&gt;next</code> es comportamiento indefinido — puede "funcionar" en la máquina de
-          pruebas y fallar en otra. El orden sí importa (descarta B); los nodos siguientes se conservan al
-          puentear, no hay que liberarlos (descarta C).
-        </div>
-      </div>
-    </section>
-
     <!-- ============ ANÁLISIS ============ -->
     <section>
       <span class="kicker">Análisis · Lista vs. arreglo</span>
@@ -166,35 +161,6 @@ delete victima;                 // 2. liberar al final
         </tbody>
       </table>
       <p class="fragment">El O(1) de la lista tiene letra chica: aplica <em>si ya tienes el puntero al nodo</em>. Llegar hasta él cuesta O(n), y esa suma es la que se paga en la práctica.</p>
-    </section>
-
-    <!-- ============ CACHÉ ============ -->
-    <section>
-      <span class="kicker">Análisis · Lo que la O(·) no ve</span>
-      <h2>La caché premia lo contiguo</h2>
-      <ul>
-        <li class="fragment">Recorrer un <code>vector</code>: los elementos son vecinos en memoria; cada carga de caché trae varios de golpe y el prefetcher anticipa el siguiente.</li>
-        <li class="fragment">Recorrer una lista: cada <code>next</code> puede saltar a cualquier parte del heap; en el peor caso, un fallo de caché por nodo — cientos de ciclos cada uno.</li>
-        <li class="fragment">Resultado medible: en recorridos y búsquedas, un <code>vector</code> suele ganarle a una lista aun en operaciones donde la lista tiene mejor cota asintótica.</li>
-      </ul>
-      <p class="fragment box-key">La notación asintótica es necesaria y no es suficiente: cuenta operaciones, no lo que cuesta cada acceso a memoria. La <span class="term" data-term="localidad">localidad</span> decide el factor constante, y el factor a veces decide todo.</p>
-    </section>
-
-    <!-- ============ QUIZ 4 ============ -->
-    <section>
-      <span class="kicker">Checkpoint</span>
-      <div class="quiz" data-correct="c">
-        <p class="quiz-question">Dos programas recorren 10 millones de enteros y los suman: uno sobre <code>std::vector</code>, otro sobre una lista encadenada. Ambos hacen O(n) operaciones, pero el del vector termina varias veces más rápido. ¿Por qué?</p>
-        <button class="quiz-option" data-opt="a">Porque el análisis estaba mal: recorrer una lista es O(n²) por el costo de seguir cada puntero.</button>
-        <button class="quiz-option" data-opt="b">Porque el compilador solo puede optimizar ciclos sobre arreglos, y deja la lista sin optimizar.</button>
-        <button class="quiz-option" data-opt="c">Porque ambos hacen O(n) accesos, pero cada acceso del vector suele resolverse en caché y muchos de la lista fallan a memoria principal.</button>
-        <div class="quiz-explain">
-          <strong>C.</strong> Las dos cotas son O(n); lo que cambia es el costo de cada acceso. El vector es
-          contiguo y aprovecha caché y prefetcher; los nodos de la lista están dispersos y cada
-          <code>next</code> puede costar un fallo de caché. La opción A confunde constante con cota;
-          la B no es el factor dominante.
-        </div>
-      </div>
     </section>
 
     <!-- ============ DIVIDER DISEÑO ============ -->
@@ -218,14 +184,15 @@ delete victima;                 // 2. liberar al final
     <section>
       <span class="kicker">Diseño · La interfaz primero</span>
       <h2>El contrato que implementaremos</h2>
-      <pre><code class="language-plaintext" data-trim data-line-numbers="1-8|2-4|5-6|7-8">
+      <pre><code class="language-plaintext" data-trim data-line-numbers="1-9|2-3|4-5|6-8|9">
 LinkedList&lt;T&gt;
-  insert(x, pos)  pre: 0 &lt;= pos &lt;= size
-                  post: x queda en la posicion pos
+  insert(x, pos)  post: x queda en la posicion pos;
+                  false si pos no esta entre 0 y size
   remove(x)       post: devuelve true si elimino la
                   primera aparicion; false si no estaba
   find(x)         post: posicion de x, o -1
   size()          post: numero de elementos, en O(1)
+  print()         post: muestra los datos en orden; no modifica nada
   invariantes: size == numero de nodos; el ultimo -&gt; nullptr
       </code></pre>
       <p class="fragment"><code>size()</code> en O(1) obliga a mantener un contador y a actualizarlo en cada inserción y eliminación: la garantía de complejidad también es parte del contrato.</p>
@@ -257,30 +224,47 @@ LinkedList&lt;T&gt;
     <section>
       <span class="kicker">Implementación · Esqueleto</span>
       <h2>Nodo interno y estado de la lista</h2>
-      <pre><code class="language-cpp" data-trim data-line-numbers="1-14|3-6|8-9|11-13">
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-15|3-7|8-9|12-14">
 template &lt;typename T&gt;
 class LinkedList {
     struct Nodo {                 // privado: el usuario no ve nodos
         T     dato;
         Nodo* next;
+        Nodo(T d) { dato = d; next = nullptr; }
     };
-
-    Nodo*  head  = nullptr;
-    size_t count = 0;
+    Nodo* head;                   // primer nodo, o nullptr
+    int   count;                  // numero de nodos
 
 public:
-    LinkedList() = default;       // default: lo genera el compilador
+    LinkedList() { head = nullptr; count = 0; }   // lista vacia
     ~LinkedList();                // hoy lo escribimos con cuidado
-    size_t size() const { return count; }
+    int size() { return count; }
 };
       </code></pre>
       <p class="fragment muted"><code>Nodo</code> es un detalle de implementación: va dentro de la clase, privado. La interfaz habla de valores y posiciones, no de punteros.</p>
     </section>
 
+    <!-- ============ IMPL: PRINT ============ -->
+    <section>
+      <span class="kicker">Implementación · print</span>
+      <h2><code>print()</code>: recorrer la lista</h2>
+      <div class="sim-particion sim-lista" data-alg="lista-print" data-lista="10,20,30"></div>
+    </section>
+
+    <!-- ============ 7.1 SVG INSERCIÓN ============ -->
+    <section>
+      <span class="kicker">Implementación · insert</span>
+      <h2>Insertar entre A y B: el orden de las flechas</h2>
+      <svg viewBox="0 0 1210 372" class="vl-svg" style="width:100%; max-height:372px;"><defs><marker id="insa" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L13,6 L0,12 z" class="sl-punta"/></marker><marker id="insv" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L13,6 L0,12 z" class="sl-punta nueva"/></marker><marker id="insr" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L13,6 L0,12 z" class="vl-punta-err"/></marker><marker id="insm" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L13,6 L0,12 z" class="sl-punta muerta"/></marker></defs><g class="anim-step" data-step="1"><text x="0" y="30" class="vl-cap ">1. Crear el nodo nuevo</text></g><g class="anim-step" data-step="2"><text x="0" y="66" class="vl-cap ">2. <tspan class="vl-mono">nuevo-&gt;next = B</tspan>   (primero)</text></g><g class="anim-step" data-step="3"><text x="0" y="102" class="vl-cap ">3. <tspan class="vl-mono">A-&gt;next = nuevo</tspan>   (después)</text></g><g class="sl-ptr ph"><rect x="200" y="156" width="60" height="26" rx="6"/><text x="230" y="174">head</text></g><g class="sl-nodo "><rect x="200" y="190" width="150" height="56" rx="8" class="caja"/><line x1="300" y1="190" x2="300" y2="246" class="div"/><text x="250" y="227.0" class="dato">A</text><circle cx="325" cy="218.0" r="4.5" class="raiz"/></g><g class="sl-nodo "><rect x="490" y="190" width="150" height="56" rx="8" class="caja"/><line x1="590" y1="190" x2="590" y2="246" class="div"/><text x="540" y="227.0" class="dato">B</text><circle cx="615" cy="218.0" r="4.5" class="raiz"/></g><g class="sl-nodo "><rect x="780" y="190" width="150" height="56" rx="8" class="caja"/><line x1="880" y1="190" x2="880" y2="246" class="div"/><text x="830" y="227.0" class="dato">C</text><circle cx="905" cy="218.0" r="4.5" class="raiz"/></g><line x1="615" y1="218.0" x2="778" y2="218.0" class="sl-flecha" marker-end="url(#insa)"/><line x1="888" y1="238" x2="922" y2="198" class="sl-nulo"/><line x1="325" y1="218.0" x2="488" y2="218.0" class="sl-flecha" marker-end="url(#insa)"/><g class="anim-step" data-step="1"><g class="sl-nodo nuevo"><rect x="345" y="302" width="150" height="56" rx="8" class="caja"/><line x1="445" y1="302" x2="445" y2="358" class="div"/><text x="395" y="339.0" class="dato">X</text><circle cx="470" cy="330.0" r="4.5" class="raiz"/></g></g><g class="anim-step" data-step="1" data-step-off="2"><line x1="453" y1="350" x2="487" y2="310" class="sl-nulo"/></g><g class="anim-step" data-step="2"><line x1="470" y1="330.0" x2="520" y2="249" class="sl-flecha nueva" marker-end="url(#insv)"/></g><g class="anim-step" data-step="3"><line x1="325" y1="218.0" x2="488" y2="218.0" stroke-width="10" class="s-bg"/><line x1="331" y1="218.0" x2="482" y2="218.0" class="sl-flecha muerta" marker-end="url(#insm)"/><line x1="325" y1="224.0" x2="375" y2="299" class="sl-flecha nueva" marker-end="url(#insv)"/><text x="930" y="338.0" class="vl-inv r">2 asignaciones; ningún nodo se movió</text></g></svg>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+    </section>
+
     <!-- ============ IMPL: INSERT ============ -->
     <section>
       <span class="kicker">Implementación · insert</span>
-      <h2><code>insert(x, pos)</code>: un solo caso especial</h2>
+      <h2><code>insert(x, pos)</code>: el caso general</h2>
       <div class="sim-particion sim-lista" data-alg="lista-insert" data-lista="10,20,40" data-x="30" data-pos="2"></div>
     </section>
 
@@ -290,11 +274,86 @@ public:
       <div class="sim-particion sim-lista" data-alg="lista-insert-al-reves" data-lista="10,20,40" data-x="30" data-pos="2"></div>
     </section>
 
-    <!-- ============ IMPL: REMOVE ============ -->
+    <section>
+      <span class="kicker">Implementación · insert</span>
+      <h2><code>insert</code> completo: validar y la cabeza</h2>
+      <pre data-title="linkedlist.hpp"><code class="language-cpp" data-trim data-line-numbers="1-16|2|4-6|7-12|14">
+bool insert(T x, int pos) {
+    if (pos &lt; 0 || pos &gt; count) return false;   // posicion invalida
+    Nodo* nuevo = new Nodo(x);
+    if (pos == 0) {               // caso especial: nueva cabeza
+        nuevo-&gt;next = head;
+        head = nuevo;
+    } else {                      // caso general: el de la animacion
+        Nodo* prev = head;
+        for (int i = 0; i &lt; pos - 1; i++)
+            prev = prev-&gt;next;
+        nuevo-&gt;next = prev-&gt;next;
+        prev-&gt;next = nuevo;
+    }
+    count++;
+    return true;
+}
+      </code></pre>
+    </section>
+
+    <!-- ============ 7.1 SVG ELIMINACIÓN INCORRECTA ============ -->
     <section>
       <span class="kicker">Implementación · remove</span>
-      <h2><code>remove(x)</code>: la cabeza es distinta al resto</h2>
-      <div class="sim-particion sim-lista" data-alg="lista-remove" data-lista="10,20,30,40" data-x="30"></div>
+      <h2>Eliminar B: qué pasa si el orden es el equivocado</h2>
+      <svg viewBox="0 0 1210 380" class="vl-svg" style="width:100%; max-height:380px;"><defs><marker id="dela" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L13,6 L0,12 z" class="sl-punta"/></marker><marker id="delv" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L13,6 L0,12 z" class="sl-punta nueva"/></marker><marker id="delr" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L13,6 L0,12 z" class="vl-punta-err"/></marker><marker id="delm" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="12" refX="12" refY="6" orient="auto"><path d="M0,0 L13,6 L0,12 z" class="sl-punta muerta"/></marker></defs><g class="anim-step" data-step="1"><text x="0" y="30" class="vl-cap err">Incorrecto: <tspan class="vl-mono">delete B</tspan> antes de re-enlazar…</text></g><g class="anim-step" data-step="2"><text x="0" y="66" class="vl-cap err">…<tspan class="vl-mono">B-&gt;next</tspan> ya no se puede leer: C queda inalcanzable</text></g><g class="anim-step" data-step="3"><text x="0" y="102" class="vl-cap ok">Correcto: primero <tspan class="vl-mono">A-&gt;next = B-&gt;next</tspan>, después <tspan class="vl-mono">delete B</tspan></text></g><g class="sl-ptr ph"><rect x="200" y="162" width="60" height="26" rx="6"/><text x="230" y="180">head</text></g><g class="sl-nodo "><rect x="200" y="196" width="150" height="56" rx="8" class="caja"/><line x1="300" y1="196" x2="300" y2="252" class="div"/><text x="250" y="233.0" class="dato">A</text><circle cx="325" cy="224.0" r="4.5" class="raiz"/></g><g class="sl-nodo "><rect x="490" y="196" width="150" height="56" rx="8" class="caja"/><line x1="590" y1="196" x2="590" y2="252" class="div"/><text x="540" y="233.0" class="dato">B</text><circle cx="615" cy="224.0" r="4.5" class="raiz"/></g><g class="sl-nodo "><rect x="780" y="196" width="150" height="56" rx="8" class="caja"/><line x1="880" y1="196" x2="880" y2="252" class="div"/><text x="830" y="233.0" class="dato">C</text><circle cx="905" cy="224.0" r="4.5" class="raiz"/></g><line x1="325" y1="224.0" x2="488" y2="224.0" class="sl-flecha" marker-end="url(#dela)"/><line x1="615" y1="224.0" x2="778" y2="224.0" class="sl-flecha" marker-end="url(#dela)"/><line x1="888" y1="244" x2="922" y2="204" class="sl-nulo"/><g class="anim-step" data-step="1" data-step-off="3"><rect x="490" y="196" width="150" height="56" rx="8" class="vl-liberado err"/><text x="565.0" y="278" class="sl-etq">liberado</text></g><g class="anim-step" data-step="1"><line x1="615" y1="224.0" x2="778" y2="224.0" stroke-width="10" class="s-bg"/><line x1="621" y1="224.0" x2="772" y2="224.0" class="sl-flecha muerta" marker-end="url(#delm)"/></g><g class="anim-step" data-step="2" data-step-off="3"><line x1="325" y1="224.0" x2="488" y2="224.0" class="vl-flecha-err" marker-end="url(#delr)"/><text x="410.0" y="186" class="sl-etq">colgante</text><rect x="780" y="196" width="150" height="56" rx="8" class="vl-perdido"/><text x="855.0" y="278" class="sl-etq">fuga: nadie apunta aquí</text></g><g class="anim-step" data-step="3"><path d="M 325 228.0 C 430 362, 660 362, 810 255" class="sl-flecha nueva" marker-end="url(#delv)"/><line x1="325" y1="224.0" x2="488" y2="224.0" stroke-width="10" class="s-bg"/><line x1="331" y1="224.0" x2="482" y2="224.0" class="sl-flecha muerta" marker-end="url(#delm)"/><rect x="490" y="196" width="150" height="56" rx="8" class="vl-liberado"/><text x="565.0" y="186" class="sl-etq gris">liberado, ya fuera de la cadena</text><text x="565.0" y="370" class="vl-inv c">A-&gt;next = C, y solo entonces delete B</text></g></svg>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+    </section>
+
+    <!-- ============ IMPL: REMOVE ============ -->
+    <section>
+      <span class="kicker">Implementación · remove(x) · el caso general</span>
+      <div class="sim-particion sim-lista codigo-ancho" data-alg="lista-remove" data-lista="10,20,30,40" data-x="30"></div>
+    </section>
+
+    <section>
+      <span class="kicker">Implementación · remove</span>
+      <h2><code>remove</code> completo</h2>
+      <pre data-title="linkedlist.hpp"><code class="language-cpp" data-trim data-line-numbers="1-19|10-18|2|3-9">
+bool remove(T x) {
+    if (head == nullptr) return false;           // lista vacia
+    if (head-&gt;dato == x) {                       // x es la cabeza
+        Nodo* victima = head;
+        head = head-&gt;next;
+        delete victima;
+        count--;
+        return true;
+    }
+    Nodo* prev = head;                           // caso general:
+    while (prev-&gt;next != nullptr &amp;&amp; prev-&gt;next-&gt;dato != x)
+        prev = prev-&gt;next;
+    if (prev-&gt;next == nullptr) return false;     // x no estaba
+    Nodo* victima = prev-&gt;next;
+    prev-&gt;next = victima-&gt;next;
+    delete victima;
+    count--;
+    return true;
+}
+      </code></pre>
+    </section>
+
+    <!-- ============ QUIZ 3 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="a">
+        <p class="quiz-question">Para eliminar el nodo que sigue a <code>prev</code>, un compañero escribe: <code>delete prev-&gt;next; prev-&gt;next = prev-&gt;next-&gt;next;</code>. ¿Qué está mal?</p>
+        <button class="quiz-option" data-opt="a">La segunda línea lee memoria ya liberada: había que puentear (<code>prev-&gt;next = victima-&gt;next</code>) antes del <code>delete</code>.</button>
+        <button class="quiz-option" data-opt="b">Nada: el orden de las dos líneas no afecta el resultado, solo el estilo.</button>
+        <button class="quiz-option" data-opt="c">Falta liberar también <code>prev-&gt;next-&gt;next</code>, porque los nodos siguientes quedan huérfanos.</button>
+        <div class="quiz-explain">
+          <strong>A.</strong> Tras el <code>delete</code>, <code>prev-&gt;next</code> es un puntero colgante y
+          leerle <code>-&gt;next</code> es comportamiento indefinido — puede "funcionar" en la máquina de
+          pruebas y fallar en otra. El orden sí importa (descarta B); los nodos siguientes se conservan al
+          puentear, no hay que liberarlos (descarta C).
+        </div>
+      </div>
     </section>
 
     <!-- ============ IMPL: DESTRUCTOR SVG ============ -->
@@ -332,7 +391,7 @@ public:
     <section>
       <span class="kicker">Checkpoint</span>
       <div class="quiz" data-correct="c">
-        <p class="quiz-question">Un destructor hace: <code>while (head) { delete head; head = head-&gt;next; }</code>. ¿Cuál es el diagnóstico?</p>
+        <p class="quiz-question">Un destructor hace: <code>while (head != nullptr) { delete head; head = head-&gt;next; }</code>. ¿Cuál es el diagnóstico?</p>
         <button class="quiz-option" data-opt="a">Correcto: <code>delete</code> no borra el valor del puntero, así que <code>head-&gt;next</code> sigue disponible.</button>
         <button class="quiz-option" data-opt="b">Fuga sin más: libera solo el primer nodo y el ciclo termina.</button>
         <button class="quiz-option" data-opt="c">Use-after-free: lee <code>head-&gt;next</code> de un nodo ya liberado; puede parecer que funciona y es comportamiento indefinido.</button>
@@ -370,7 +429,7 @@ public:
 
     <!-- ============ PRÓXIMA SESIÓN ============ -->
     <section class="divider">
-      <h2>Próxima sesión:<br>Verificación y pruebas del ADT</h2>
+      <h2>Próxima sesión:<br>Pruebas: <code>assert</code> y casos límite</h2>
       <p class="muted">Arranca la Act 2.2 sobre la lista de tu equipo. Sube el reto de hoy al LMS antes de la sesión.</p>
     </section>
 
@@ -405,7 +464,7 @@ public:
           <li class="fragment"><code>.contiguous()</code> copia los datos a un bloque nuevo en el orden de la vista. Cuesta una copia completa, y se paga porque los kernels sobre memoria contigua son mucho más rápidos.</li>
         </ul>
       </div>
-      <p class="fragment muted">La decisión de diseño es la de esta sesión: contigüidad contra flexibilidad, con la caché como juez.</p>
+      <p class="fragment muted">En memoria contigua, cada carga de caché trae varios elementos a la vez.</p>
     </section>
 
     <!-- ============ CIERRE STL ============ -->
@@ -490,13 +549,13 @@ for (const auto&amp; x : miLista)
     plugins: [ RevealHighlight ]
   }).then(() => {
     CursoSlides.init({
+      ub: {
+        titulo: "Comportamiento indefinido (UB)",
+        def: "Situación en la que el estándar de C++ no impone ningún resultado: el programa puede fallar, dar resultados erróneos o <em>parecer</em> correcto. Seguir un <code>nullptr</code> con <code>-&gt;</code> es UB; lo viste en la sesión 11 con los punteros colgantes."
+      },
       nodo: {
         titulo: "Nodo",
         def: "Unidad de una estructura enlazada: guarda un dato y uno o más punteros a otros nodos (<code>next</code>, y <code>prev</code> en la lista doble). Cada nodo se reserva individualmente en el heap; el orden lógico de la lista lo definen los enlaces, no las direcciones de memoria."
-      },
-      localidad: {
-        titulo: "Localidad de referencia",
-        def: "Propiedad de un patrón de accesos a memoria: hay localidad <em>espacial</em> cuando se tocan direcciones vecinas y <em>temporal</em> cuando se repiten las mismas. Las cachés explotan ambas; por eso recorrer memoria contigua (vector) es mucho más rápido que perseguir punteros dispersos (lista), aun con la misma cota O(n)."
       },
       stride: {
         titulo: "Stride (PyTorch)",

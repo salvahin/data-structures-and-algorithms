@@ -813,6 +813,7 @@
 /* ---------- Simulador de lista enlazada ---------- */
 .reveal .sim-lista .sl-svg { width: 100%; height: 232px; display: block; }
 .reveal .sim-lista .sl-codigo { max-width: 58%; }
+.reveal .sim-lista.codigo-ancho .sl-codigo { max-width: 72%; }   /* líneas largas que no deben partirse */
 
 .reveal .sl-nodo .caja  { fill: var(--c-bg); stroke: var(--c-ink); stroke-width: 3; }
 .reveal .sl-nodo .div   { stroke: var(--c-ink); stroke-width: 2; }

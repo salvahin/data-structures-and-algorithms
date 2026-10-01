@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sesión 13 — Pruebas: assert y casos límite</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+  <script>try{if(localStorage.getItem("curso-tema")==="dark"&&!/print-pdf/i.test(location.search))document.documentElement.dataset.theme="dark"}catch(e){}</script>
+  <link rel="stylesheet" href="../css/theme-curso.css">
+</head>
+<body>
+<div class="reveal">
+  <div class="slides">
+
+    <!-- ============ PORTADA ============ -->
+    <section class="cover">
+      <span class="kicker">Estructuras de Datos y Algoritmos · Bloque 2</span>
+      <h1>Pruebas: <code>assert</code> y casos&nbsp;límite</h1>
+      <div class="cover-meta">
+        Sesión 13 · Semana 8<br>
+        Salvador Hinojosa
+      </div>
+    </section>
+
+    <!-- ============ OBJETIVO ============ -->
+    <section>
+      <span class="kicker">Objetivo de hoy</span>
+      <h2>Al salir de esta sesión podrás…</h2>
+      <ul>
+        <li class="fragment">Explicar qué demuestra una prueba que pasa y qué no demuestra.</li>
+        <li class="fragment">Usar <code>assert</code> en C++ y leer el mensaje que deja cuando falla.</li>
+        <li class="fragment">Escribir pruebas con la estructura preparar, actuar, verificar.</li>
+        <li class="fragment">Encontrar los casos límite de una operación antes de escribir sus pruebas.</li>
+      </ul>
+    </section>
+
+    <!-- ============ DIVIDER QUÉ ES UNA PRUEBA ============ -->
+    <section class="divider">
+      <h2>Qué es una prueba</h2>
+    </section>
+
+    <!-- ============ PRUEBA: MIRAR VS REVISAR ============ -->
+    <section>
+      <span class="kicker">Pruebas · La idea</span>
+      <h2>Un programa que revisa a otro programa</h2>
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-6|5|6">
+LinkedList&lt;int&gt; l;
+l.insert(10, 0);
+l.insert(20, 1);
+
+l.print();                  // 10 20   (una persona tiene que mirarlo)
+if (l.size() != 2) cout &lt;&lt; "FALLA: size" &lt;&lt; endl;   // el programa lo revisa
+      </code></pre>
+      <ul>
+        <li class="fragment">Una prueba ejecuta el código con una entrada conocida y compara el resultado contra el que debería dar.</li>
+        <li class="fragment">Si la comparación la hace el programa, la prueba se puede repetir después de cada cambio sin que nadie revise la salida a ojo.</li>
+      </ul>
+    </section>
+
+    <!-- ============ PRUEBA: QUÉ DEMUESTRA ============ -->
+    <section>
+      <span class="kicker">Pruebas · Alcance</span>
+      <h2>Qué demuestra una prueba que pasa</h2>
+      <ul>
+        <li class="fragment">Que el código dio el resultado correcto <strong>para esa entrada</strong>.</li>
+        <li class="fragment">Nada sobre las entradas que no se probaron. Una lista puede pasar cien pruebas con elementos en medio y fallar al borrar la cabeza.</li>
+        <li class="fragment">Dijkstra lo dijo en 1969: probar puede mostrar que hay errores, no que no los hay.</li>
+      </ul>
+      <p class="fragment box-key">Por eso la habilidad central es elegir los casos: pocas pruebas bien escogidas encuentran más errores que muchas pruebas parecidas.</p>
+    </section>
+
+    <!-- ============ DIVIDER ASSERT ============ -->
+    <section class="divider">
+      <h2><code>assert</code> en C++</h2>
+    </section>
+
+    <!-- ============ ASSERT: USO ============ -->
+    <section>
+      <span class="kicker">assert · Uso</span>
+      <h2>Detener el programa si una condición es falsa</h2>
+      <pre data-title="test_lista.cpp"><code class="language-cpp" data-trim data-line-numbers="1-8|1|5|6">
+#include &lt;cassert&gt;
+
+int main() {
+    LinkedList&lt;int&gt; l;
+    l.insert(10, 0);
+    assert(l.size() == 1);   // verdadero: no pasa nada y sigue
+    assert(l.size() == 5);   // falso: el programa se detiene aqui
+}
+      </code></pre>
+      <ul>
+        <li class="fragment"><code>assert</code> viene de <code>&lt;cassert&gt;</code> y recibe una condición, como un <code>if</code>.</li>
+        <li class="fragment">Si la condición es verdadera, no hace nada. Si es falsa, imprime un mensaje y termina el programa en ese momento.</li>
+      </ul>
+    </section>
+
+    <!-- ============ ASSERT: MENSAJE ============ -->
+    <section>
+      <span class="kicker">assert · Cuando falla</span>
+      <h2>El mensaje dice dónde y qué</h2>
+      <pre><code class="language-bash" data-trim data-line-numbers="1-2|4-5">
+g++ -std=c++17 -Wall -g test_lista.cpp -o test_lista
+./test_lista
+
+test_lista: test_lista.cpp:7: int main(): Assertion `l.size() == 5' failed.
+Aborted (core dumped)
+      </code></pre>
+      <table>
+        <thead><tr><th>Parte del mensaje</th><th>Qué te dice</th></tr></thead>
+        <tbody>
+          <tr class="fragment"><td><code>test_lista.cpp:7</code></td><td>Archivo y línea del <code>assert</code> que falló</td></tr>
+          <tr class="fragment"><td><code>int main()</code></td><td>La función donde estaba</td></tr>
+          <tr class="fragment"><td><code>l.size() == 5</code></td><td>La condición exacta que resultó falsa</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ============ ASSERT: POR DENTRO ============ -->
+    <section>
+      <span class="kicker">assert · Por dentro</span>
+      <h2><code>assert</code> es una macro</h2>
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-5">
+// assert(cond) equivale, aproximadamente, a esto:
+if (!(cond)) {
+    // imprime archivo, linea, funcion y el texto de cond
+    abort();              // termina el programa
+}
+      </code></pre>
+      <ul>
+        <li class="fragment"><code>assert</code> no es una función: es una <span class="term" data-term="macro">macro</span>. El preprocesador la reemplaza por ese <code>if</code> antes de compilar.</li>
+        <li class="fragment">Por eso puede mostrar el texto de la condición y el número de línea: los toma del código fuente al momento de reemplazarla.</li>
+      </ul>
+    </section>
+
+    <!-- ============ ASSERT: NDEBUG ============ -->
+    <section>
+      <span class="kicker">assert · NDEBUG</span>
+      <h2>Con <code>-DNDEBUG</code>, los <code>assert</code> desaparecen</h2>
+      <pre><code class="language-cpp" data-trim data-line-numbers="1|3-4">
+assert(l.remove(7));      // mal: con NDEBUG, remove ni siquiera se llama
+
+bool ok = l.remove(7);    // bien: la operacion corre siempre
+assert(ok);               // y solo la revision depende de NDEBUG
+      </code></pre>
+      <ul>
+        <li class="fragment">Al compilar con <code>g++ -DNDEBUG</code>, la macro se reemplaza por nada. Se usa en versiones finales para no pagar el costo de las revisiones.</li>
+        <li class="fragment">Regla: dentro de un <code>assert</code> solo va una condición que <strong>lee</strong> el estado. Nada que lo modifique.</li>
+      </ul>
+    </section>
+
+    <!-- ============ QUIZ 1 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="c">
+        <p class="quiz-question">Las pruebas pasan, pero al compilar con <code>-DNDEBUG</code> la lista termina con un elemento de más. El código tiene <code>assert(l.insert(5, 0));</code>. ¿Qué pasó?</p>
+        <button class="quiz-option" data-opt="a"><code>-DNDEBUG</code> cambia cómo se compila <code>insert</code> y le introduce un error.</button>
+        <button class="quiz-option" data-opt="b">El <code>assert</code> falló en silencio y dejó la lista en un estado inválido.</button>
+        <button class="quiz-option" data-opt="c">Con <code>-DNDEBUG</code> la línea completa desaparece, incluida la llamada a <code>insert</code>: el programa ya no hace esa inserción.</button>
+        <div class="quiz-explain">
+          <strong>C.</strong> La macro se reemplaza por nada, con todo lo que tenía adentro. Con las revisiones
+          activas la lista tenía ese 5; sin ellas, no, y el resto del programa trabaja con otra lista.
+          Es la razón de la regla: la operación se ejecuta fuera del <code>assert</code> y dentro solo se
+          revisa su resultado.
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ ASSERT: INVARIANTE ============ -->
+    <section>
+      <span class="kicker">assert · Dentro de la clase</span>
+      <h2>Revisar el <span class="term" data-term="invariante">invariante</span> desde la propia lista</h2>
+      <pre data-title="linkedlist.hpp"><code class="language-cpp" data-trim data-line-numbers="1-9|3-7|8">
+void checarInvariante() {
+    int n = 0;
+    Nodo* actual = head;
+    while (actual != nullptr) {     // el mismo recorrido de print()
+        n++;
+        actual = actual-&gt;next;
+    }
+    assert(n == count);             // count debe coincidir con los nodos
+}
+      </code></pre>
+      <ul>
+        <li class="fragment">Se llama al final de <code>insert</code> y <code>remove</code>, o desde las pruebas. Si alguna operación olvidó actualizar <code>count</code>, el error aparece en ese momento.</li>
+        <li class="fragment"><code>assert</code> es para errores del programador. Una posición inválida que manda el usuario se maneja con lo que diga el contrato: <code>insert</code> devuelve <code>false</code>.</li>
+      </ul>
+    </section>
+
+    <!-- ============ DIVIDER ANATOMÍA ============ -->
+    <section class="divider">
+      <h2>Anatomía de una prueba</h2>
+    </section>
+
+    <!-- ============ ANATOMÍA: AAA ============ -->
+    <section>
+      <span class="kicker">Pruebas · Anatomía</span>
+      <h2>Preparar, actuar, verificar</h2>
+      <pre data-title="test_lista.cpp"><code class="language-cpp" data-trim data-line-numbers="1-11|2-4|6|8-10">
+void test_remove_cabeza() {
+    LinkedList&lt;int&gt; l;              // preparar: una lista conocida
+    l.insert(10, 0);
+    l.insert(20, 1);
+
+    bool ok = l.remove(10);         // actuar: una sola operacion
+
+    assert(ok);                     // verificar todo lo que debio cambiar
+    assert(l.size() == 1);
+    assert(l.find(20) == 0);        // el 20 quedo como cabeza
+}
+      </code></pre>
+      <p class="fragment"><code>remove</code> puede devolver <code>true</code> y aun así dejar <code>size</code> mal o la cabeza sin actualizar. Se revisa el estado completo, no solo el valor de retorno.</p>
+    </section>
+
+    <!-- ============ ANATOMÍA: ORGANIZAR ============ -->
+    <section>
+      <span class="kicker">Pruebas · Organización</span>
+      <h2>Una función por caso, un nombre que lo explique</h2>
+      <pre data-title="test_lista.cpp"><code class="language-cpp" data-trim data-line-numbers="1-3|5-10|9">
+void test_lista_nueva_esta_vacia() { /* ... */ }
+void test_insert_en_lista_vacia()  { /* ... */ }
+void test_remove_cabeza()          { /* ... */ }
+
+int main() {
+    test_lista_nueva_esta_vacia();
+    test_insert_en_lista_vacia();
+    test_remove_cabeza();
+    cout &lt;&lt; "Todas las pruebas pasaron" &lt;&lt; endl;
+}
+      </code></pre>
+      <ul>
+        <li class="fragment">Si un <code>assert</code> falla, el mensaje trae el nombre de la función, que ya dice qué caso se rompió. Cada prueba crea su propia lista, así que no depende de las anteriores.</li>
+      </ul>
+    </section>
+
+    <!-- ============ DIVIDER CASOS LÍMITE ============ -->
+    <section class="divider">
+      <h2>Pensar en los casos límite</h2>
+    </section>
+
+    <!-- ============ LÍMITE: FRONTERAS ============ -->
+    <section>
+      <span class="kicker">Casos límite · Fronteras</span>
+      <h2>Los errores viven en los bordes</h2>
+      <p><code>insert(x, pos)</code> sobre una lista con <code>count = 3</code>:</p>
+      <svg viewBox="0 0 1100 250" style="width:100%; max-height:250px;">
+        <line x1="70" y1="140" x2="1030" y2="140" stroke-width="3" class="s-ink-soft"/>
+        <g class="anim-step" data-step="1">
+          <line x1="100" y1="140" x2="290" y2="140" stroke-width="12" stroke-linecap="round" class="s-err"/>
+          <circle cx="360" cy="140" r="11" class="f-accent"/>
+          <line x1="480" y1="140" x2="600" y2="140" stroke-width="12" stroke-linecap="round" class="s-ink"/>
+          <circle cx="720" cy="140" r="11" class="f-accent"/>
+          <line x1="790" y1="140" x2="1000" y2="140" stroke-width="12" stroke-linecap="round" class="s-err"/>
+          <text x="195" y="100" text-anchor="middle" style="font-size:24px; font-weight:600;" class="f-err">inválida</text>
+          <text x="360" y="100" text-anchor="middle" style="font-size:24px; font-weight:600;" class="f-accent">cabeza</text>
+          <text x="540" y="100" text-anchor="middle" style="font-size:24px; font-weight:600;" class="f-ink">en medio</text>
+          <text x="720" y="100" text-anchor="middle" style="font-size:24px; font-weight:600;" class="f-accent">al final</text>
+          <text x="895" y="100" text-anchor="middle" style="font-size:24px; font-weight:600;" class="f-err">inválida</text>
+        </g>
+        <g style="font-family:'JetBrains Mono',monospace; font-size:24px;" class="f-ink">
+          <text x="120" y="190" text-anchor="middle">-2</text>
+          <text x="240" y="190" text-anchor="middle">-1</text>
+          <text x="360" y="190" text-anchor="middle">0</text>
+          <text x="480" y="190" text-anchor="middle">1</text>
+          <text x="600" y="190" text-anchor="middle">2</text>
+          <text x="720" y="190" text-anchor="middle">3</text>
+          <text x="840" y="190" text-anchor="middle">4</text>
+          <text x="960" y="190" text-anchor="middle">5</text>
+        </g>
+        <g class="anim-step" data-step="2">
+          <circle cx="240" cy="182" r="26" fill="none" stroke-width="4" class="s-ok"/>
+          <circle cx="360" cy="182" r="26" fill="none" stroke-width="4" class="s-ok"/>
+          <circle cx="480" cy="182" r="26" fill="none" stroke-width="4" class="s-ok"/>
+          <circle cx="720" cy="182" r="26" fill="none" stroke-width="4" class="s-ok"/>
+          <circle cx="840" cy="182" r="26" fill="none" stroke-width="4" class="s-ok"/>
+          <text x="550" y="242" text-anchor="middle" style="font-size:24px; font-weight:600;" class="f-ok">se prueba un valor de cada lado de cada frontera</text>
+        </g>
+      </svg>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <p class="fragment muted">Cinco pruebas cubren las cinco zonas. Probar 1 y 2 a la vez no agrega nada: el código hace lo mismo con los dos.</p>
+    </section>
+
+    <!-- ============ LÍMITE: PREGUNTAS ============ -->
+    <section>
+      <span class="kicker">Casos límite · Cómo encontrarlos</span>
+      <h2>Las preguntas que hay que hacerle a cada operación</h2>
+      <ul>
+        <li class="fragment">¿Qué pasa si la lista está <strong>vacía</strong>?</li>
+        <li class="fragment">¿Y si tiene <strong>un solo</strong> elemento?</li>
+        <li class="fragment">¿Y si la operación toca el <strong>primero</strong>? ¿Y el <strong>último</strong>?</li>
+        <li class="fragment">¿Y si el valor <strong>no existe</strong>? ¿Y si está <strong>repetido</strong>?</li>
+        <li class="fragment">¿Y si la posición está <strong>fuera de rango</strong>?</li>
+        <li class="fragment">Después de vaciar la lista, ¿se puede <strong>volver a usar</strong>?</li>
+      </ul>
+      <p class="fragment muted">Cada respuesta se busca en el contrato de la sesión 12. Si el contrato no la dice, falta una decisión de diseño.</p>
+    </section>
+
+    <!-- ============ LÍMITE: TABLA REMOVE ============ -->
+    <section>
+      <span class="kicker">Casos límite · De las preguntas a las pruebas</span>
+      <h2>Los casos de <code>remove(x)</code></h2>
+      <table>
+        <thead><tr><th>Caso</th><th>Antes</th><th>Llamada</th><th>Esperado</th></tr></thead>
+        <tbody>
+          <tr class="fragment"><td>Vacía</td><td><code>[]</code></td><td><code>remove(5)</code></td><td><code>false</code>, <code>[]</code></td></tr>
+          <tr class="fragment"><td>Único</td><td><code>[7]</code></td><td><code>remove(7)</code></td><td><code>true</code>, <code>[]</code></td></tr>
+          <tr class="fragment"><td>Cabeza</td><td><code>[10, 20, 30]</code></td><td><code>remove(10)</code></td><td><code>true</code>, <code>[20, 30]</code></td></tr>
+          <tr class="fragment"><td>Último</td><td><code>[10, 20, 30]</code></td><td><code>remove(30)</code></td><td><code>true</code>, <code>[10, 20]</code></td></tr>
+          <tr class="fragment"><td>No existe</td><td><code>[10, 20]</code></td><td><code>remove(99)</code></td><td><code>false</code>, <code>[10, 20]</code></td></tr>
+          <tr class="fragment"><td>Repetido</td><td><code>[5, 8, 5]</code></td><td><code>remove(5)</code></td><td><code>true</code>, <code>[8, 5]</code></td></tr>
+        </tbody>
+      </table>
+      <p class="fragment muted">Cada renglón se convierte en una función de prueba. El caso "en medio" casi no hace falta: es el que siempre se prueba primero.</p>
+    </section>
+
+    <!-- ============ LÍMITE: EL ERROR ============ -->
+    <section>
+      <span class="kicker">Casos límite · Un error real</span>
+      <h2>Un <code>remove</code> que olvidó la cabeza</h2>
+      <pre data-title="linkedlist.hpp"><code class="language-cpp" data-trim data-line-numbers="1-9|2-3|4-7">
+bool remove(T x) {
+    if (head == nullptr) return false;
+    // falta: if (head-&gt;dato == x) { ... }
+    Nodo* prev = head;
+    while (prev-&gt;next != nullptr &amp;&amp; prev-&gt;next-&gt;dato != x)
+        prev = prev-&gt;next;
+    if (prev-&gt;next == nullptr) return false;
+    // ... re-enlazar, delete, count-- y return true, como en la sesion 12
+}
+      </code></pre>
+      <p class="fragment">Con este código, las pruebas de "en medio", "último", "no existe" y "vacía" pasan. El ciclo empieza comparando <code>head-&gt;next</code>, así que nunca revisa la cabeza.</p>
+    </section>
+
+    <!-- ============ LÍMITE: LA PRUEBA QUE LO ATRAPA ============ -->
+    <section>
+      <span class="kicker">Casos límite · Un error real</span>
+      <h2>La prueba de la cabeza lo atrapa</h2>
+      <pre data-title="test_lista.cpp"><code class="language-cpp" data-trim data-line-numbers="1-8|5-6">
+void test_remove_cabeza() {
+    LinkedList&lt;int&gt; l;
+    l.insert(10, 0);
+    l.insert(20, 1);
+    bool ok = l.remove(10);
+    assert(ok);
+    assert(l.size() == 1);
+}
+      </code></pre>
+      <pre class="fragment"><code class="language-bash" data-trim>
+test_lista: test_lista.cpp:6: void test_remove_cabeza(): Assertion `ok' failed.
+      </code></pre>
+      <p class="fragment">El mensaje ya localiza el problema: la función <code>test_remove_cabeza</code> dice qué caso falló, y la línea 6 dice que <code>remove</code> devolvió <code>false</code> para un valor que sí estaba.</p>
+    </section>
+
+    <!-- ============ QUIZ 2 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="b">
+        <p class="quiz-question">Una suite tiene 12 pruebas: todas insertan entre 5 y 10 elementos en posiciones intermedias y buscan valores existentes. Todas pasan. ¿Qué se puede concluir?</p>
+        <button class="quiz-option" data-opt="a">Que la lista es correcta: 12 pruebas que pasan son evidencia suficiente.</button>
+        <button class="quiz-option" data-opt="b">Poco: la suite no toca lista vacía, cabeza, último ni posiciones inválidas, que es donde fallan las listas.</button>
+        <button class="quiz-option" data-opt="c">Que faltan pruebas de rendimiento; la corrección ya quedó cubierta.</button>
+        <div class="quiz-explain">
+          <strong>B.</strong> Las 12 pruebas visitan la misma zona de casos. Los errores de una lista
+          (perder <code>head</code>, no actualizar el último enlace, leer memoria liberada) aparecen en las
+          fronteras que ninguna prueba toca. El número de pruebas no mide qué tan bien se cubren los casos.
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ QUIZ 3 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="a">
+        <p class="quiz-question">La lista tiene 4 elementos. ¿Qué conjunto de posiciones prueba mejor <code>insert(x, pos)</code>?</p>
+        <button class="quiz-option" data-opt="a"><code>-1, 0, 2, 4, 5</code></button>
+        <button class="quiz-option" data-opt="b"><code>1, 2, 3</code></button>
+        <button class="quiz-option" data-opt="c"><code>0, 10, 20, 30, 40</code></button>
+        <div class="quiz-explain">
+          <strong>A.</strong> Con <code>count = 4</code>, las posiciones válidas van de 0 a 4. La A prueba
+          una inválida a cada lado (-1 y 5), la cabeza (0), el final (4) y una en medio (2). La B solo
+          prueba el medio. La C repite el caso "inválida por arriba" cuatro veces y nunca prueba el final.
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ DIVIDER MEMORIA ============ -->
+    <section class="divider">
+      <h2>Pruebas y memoria</h2>
+    </section>
+
+    <!-- ============ MEMORIA: ASAN ============ -->
+    <section>
+      <span class="kicker">Memoria · Lo que assert no ve</span>
+      <h2>Pruebas que pasan con memoria rota</h2>
+      <pre><code class="language-bash" data-trim data-line-numbers="1-2|4-5">
+g++ -std=c++17 -g -fsanitize=address test_lista.cpp -o test_lista
+./test_lista     # corre las mismas pruebas y vigila la memoria
+
+valgrind --leak-check=full ./test_lista   # alternativa sin recompilar
+      </code></pre>
+      <ul>
+        <li class="fragment">Un <code>assert</code> revisa valores. Una fuga o un uso de memoria liberada pueden dejar todos los valores correctos.</li>
+        <li class="fragment">Compilar las pruebas con <span class="term" data-term="asan">AddressSanitizer</span> agrega esa revisión sin escribir nada nuevo: si hay un error de memoria, el programa se detiene con un reporte.</li>
+        <li class="fragment"><span class="term" data-term="valgrind">Valgrind</span> hace lo mismo sobre el ejecutable normal, más lento.</li>
+      </ul>
+    </section>
+
+    <!-- ============ MEMORIA: LEER REPORTE ============ -->
+    <section>
+      <span class="kicker">Memoria · Leer el reporte</span>
+      <h2>Un reporte de ASan se lee de arriba hacia abajo</h2>
+      <pre><code class="language-plaintext" data-trim data-line-numbers="1-2|3|5-6">
+ERROR: AddressSanitizer: heap-use-after-free
+  READ of size 8 at 0x602000000030
+  #0 LinkedList&lt;int&gt;::remove(int)   linkedlist.hpp:41
+  ...
+freed by thread T0 here:
+  #0 operator delete(void*)         linkedlist.hpp:39
+      </code></pre>
+      <ul>
+        <li class="fragment">Primera línea: el tipo de error. Después: dónde se usó la memoria inválida y dónde se había liberado.</li>
+        <li class="fragment">Aquí la línea 41 leyó lo que la 39 acababa de liberar: el <code>delete</code> quedó antes de re-enlazar, el orden que vimos en la sesión 12.</li>
+      </ul>
+    </section>
+
+    <!-- ============ PRÓXIMA SESIÓN ============ -->
+    <section class="divider">
+      <h2>Próxima sesión:<br>Pilas, filas, fila priorizada y deque</h2>
+    </section>
+
+    <!-- ============ DIVIDER MATERIAL EXTRA ============ -->
+    <section class="divider">
+      <h2>Material extra · autoestudio</h2>
+      <p class="muted">No se cubre en clase: verificar la complejidad midiendo tiempos, la STL del tema y su conexión con sistemas de IA.</p>
+    </section>
+
+    <!-- ============ COMPLEJIDAD: MÉTODO ============ -->
+    <section>
+      <span class="kicker">Complejidad · El método</span>
+      <h2>Medir, duplicar n, graficar</h2>
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-10|4-8">
+for (int n = 1000; n &lt;= 1024000; n = n * 2) {
+    LinkedList&lt;int&gt; l = construir(n);    // lista con n elementos
+
+    auto inicio = chrono::steady_clock::now();
+    int tam = l.size();                  // la operacion medida
+    auto fin = chrono::steady_clock::now();
+
+    auto ns = chrono::duration_cast&lt;chrono::nanoseconds&gt;(fin - inicio);
+    cout &lt;&lt; n &lt;&lt; " " &lt;&lt; ns.count() &lt;&lt; " " &lt;&lt; tam &lt;&lt; endl;
+}
+      </code></pre>
+      <ul>
+        <li class="fragment">Duplicar n hace legible la forma: O(1) no cambia, O(n) se duplica, O(n²) se cuadruplica.</li>
+        <li class="fragment">Compilar con <code>-O2</code> y repetir cada medición varias veces. Se imprime <code>tam</code> para que el compilador no elimine la llamada.</li>
+      </ul>
+    </section>
+
+    <!-- ============ COMPLEJIDAD: SVG ============ -->
+    <section>
+      <span class="kicker">Complejidad · La curva delata</span>
+      <h2>Qué esperábamos y qué midió el reloj</h2>
+      <svg viewBox="0 0 1100 420" style="width:100%; max-height:420px;">
+        <defs>
+          <marker id="ax13" markerWidth="10" markerHeight="10" refX="8" refY="4" orient="auto">
+            <path d="M0,0 L8,4 L0,8 z" class="f-ink"/>
+          </marker>
+        </defs>
+        <line x1="120" y1="360" x2="1030" y2="360" stroke-width="3" marker-end="url(#ax13)" class="s-ink"/>
+        <line x1="120" y1="360" x2="120" y2="40" stroke-width="3" marker-end="url(#ax13)" class="s-ink"/>
+        <text class="svg-label" x="1020" y="400" text-anchor="end" style="font-size:24px;">n (duplicándose)</text>
+        <text class="svg-label" x="60" y="60" style="font-size:24px;">tiempo</text>
+        <g class="anim-step" data-step="1">
+          <line x1="120" y1="320" x2="1000" y2="320" stroke-width="4" stroke-dasharray="16 10" class="s-accent"/>
+          <text x="1000" y="300" text-anchor="end" style="font-size:24px; font-weight:600;" class="f-accent">esperado: size() en O(1)</text>
+        </g>
+        <g class="anim-step" data-step="2">
+          <polyline points="200,338 320,308 440,272 560,232 680,188 800,140 920,88" fill="none" stroke-width="4" class="s-err"/>
+          <circle cx="200" cy="338" r="9" class="f-err"/>
+          <circle cx="320" cy="308" r="9" class="f-err"/>
+          <circle cx="440" cy="272" r="9" class="f-err"/>
+          <circle cx="560" cy="232" r="9" class="f-err"/>
+          <circle cx="680" cy="188" r="9" class="f-err"/>
+          <circle cx="800" cy="140" r="9" class="f-err"/>
+          <circle cx="920" cy="88" r="9" class="f-err"/>
+          <text x="700" y="120" style="font-size:24px; font-weight:600;" class="f-err">medido: crece con n</text>
+        </g>
+        <g class="anim-step" data-step="3">
+          <text x="180" y="70" style="font-size:26px; font-weight:700;" class="f-err">Diagnóstico: size() recorre la lista → O(n)</text>
+        </g>
+        <g class="anim-step" data-step="4">
+          <line x1="120" y1="326" x2="1000" y2="326" stroke-width="4" class="s-ok"/>
+          <text x="180" y="110" style="font-size:26px; font-weight:700;" class="f-ok">Con contador interno: plana de nuevo, O(1)</text>
+        </g>
+      </svg>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+    </section>
+
+    <!-- ============ COMPLEJIDAD: DIAGNÓSTICO ============ -->
+    <section>
+      <span class="kicker">Complejidad · Diagnóstico</span>
+      <h2>De la forma de la curva al error</h2>
+      <table>
+        <thead><tr><th>La curva observada</th><th>Sospecha en el código</th></tr></thead>
+        <tbody>
+          <tr class="fragment"><td>Lineal donde debía ser plana</td><td>La operación recorre la lista (un <code>size()</code> sin contador)</td></tr>
+          <tr class="fragment"><td>Cuadrática donde debía ser lineal</td><td>Una búsqueda desde <code>head</code> repetida dentro de un ciclo</td></tr>
+          <tr class="fragment"><td>Plana donde debía crecer</td><td>El compilador eliminó la operación medida: hay que usar el resultado</td></tr>
+          <tr class="fragment"><td>Ruido sin forma</td><td>n demasiado pequeña o una sola repetición por punto</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ============ POR QUÉ IMPORTA HOY ============ -->
+    <section>
+      <span class="kicker kicker-ai">Por qué importa hoy</span>
+      <h2>Revisar qué casos faltan en las pruebas</h2>
+      <div class="box-ai" data-label="Dónde vive esto en sistemas de IA">
+        <ul>
+          <li class="fragment">Un asistente de IA genera pruebas rápido, y suele producir diez variantes del caso que funciona y ninguna del caso que rompe.</li>
+          <li class="fragment">Revisar esas pruebas es recorrer las preguntas de hoy (vacía, uno, primero, último, no existe, fuera de rango) y buscar cuál no está.</li>
+          <li class="fragment">La misma revisión sirve para pruebas escritas por un compañero o por ti hace seis meses.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============ CIERRE STL ============ -->
+    <section>
+      <span class="kicker">STL</span>
+      <h2><code>std::vector</code> como <span class="term" data-term="oraculo">oráculo</span></h2>
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-10|5-8|10">
+LinkedList&lt;int&gt; lista;
+vector&lt;int&gt; vec;
+
+for (int i = 0; i &lt; 10000; i++) {
+    int x = rand() % 100;
+    int pos = rand() % (vec.size() + 1);
+    lista.insert(x, pos);
+    vec.insert(vec.begin() + pos, x);
+}
+assert(lista.size() == (int) vec.size());
+      </code></pre>
+      <ul>
+        <li class="fragment">La misma secuencia corre sobre tu lista y sobre el contenedor estándar; con un <code>get(pos)</code> se compara elemento por elemento.</li>
+        <li class="fragment">Prueba miles de casos al azar sin escribirlos a mano. Complementa la suite de casos límite; no la reemplaza.</li>
+      </ul>
+    </section>
+
+    <!-- ============ REFERENCIAS ============ -->
+    <section>
+      <span class="kicker">Sesión 13</span>
+      <h2>Referencias y material para profundizar</h2>
+      <div class="refs cols">
+        <div>
+          <h3>Referencias</h3>
+          <ul>
+            <li><span class="ref-type">Libro</span> McConnell, S. <em>Code Complete</em>, 2.ª ed., Microsoft Press, 2004. Cap. 22 (pruebas de desarrollador).</li>
+            <li><span class="ref-type">Libro</span> Myers, G. J. et al. <em>The Art of Software Testing</em>, 3.ª ed., Wiley, 2011. Cap. 4 (análisis de valores frontera).</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Para profundizar</h3>
+          <ul>
+            <li><span class="ref-type">Web</span> <a href="https://en.cppreference.com/w/cpp/error/assert">cppreference — assert</a> <span class="ref-nota">— definición exacta de la macro y del efecto de <code>NDEBUG</code>.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://clang.llvm.org/docs/AddressSanitizer.html">AddressSanitizer</a> <span class="ref-nota">— tipos de error que detecta y cómo leer cada reporte.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://valgrind.org/docs/manual/quick-start.html">Valgrind — Quick Start</a> <span class="ref-nota">— lo mínimo para correr <code>memcheck</code>.</span></li>
+          </ul>
+        </div>
+      </div>
+      <p class="refs-ia">Nota: estas diapositivas fueron generadas usando inteligencia artificial, específicamente Claude (Anthropic).</p>
+    </section>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script src="../js/curso-slides.js"></script>
+<script>
+  Reveal.initialize({
+    width: 1280,
+    height: 720,
+    margin: 0.06,
+    hash: true,
+    progress: true,
+    slideNumber: 'c/t',
+    controls: true,
+    transition: 'slide',
+    transitionSpeed: 'fast',
+    plugins: [ RevealHighlight ]
+  }).then(() => {
+    CursoSlides.init({
+      macro: {
+        titulo: "Macro",
+        def: "Instrucción para el preprocesador, que corre antes del compilador: reemplaza un nombre por un fragmento de código. <code>assert(cond)</code> se reemplaza por un <code>if</code> que revisa <code>cond</code>, o por nada si está definido <code>NDEBUG</code>. Por eso no conviene poner dentro de un <code>assert</code> algo que deba ejecutarse siempre."
+      },
+      invariante: {
+        titulo: "Invariante",
+        def: "Propiedad que se cumple antes y después de cada operación pública de una estructura. En la lista: <code>count</code> es igual al número de nodos y el último nodo apunta a <code>nullptr</code>. Una operación puede romperla momentáneamente, pero debe restaurarla antes de terminar."
+      },
+      asan: {
+        titulo: "AddressSanitizer (ASan)",
+        def: "Instrumentación del compilador (<code>-fsanitize=address -g</code>) que detecta en ejecución use-after-free, fugas, desbordamientos y doble liberación, y reporta dónde ocurrió el uso inválido y dónde se liberó la memoria."
+      },
+      valgrind: {
+        titulo: "Valgrind (memcheck)",
+        def: "Herramienta que ejecuta el programa sin recompilar y revisa cada acceso a memoria. <code>--leak-check=full</code> lista cada bloque fugado con el lugar donde se reservó. Es más lento que ASan (10 a 30 veces), pero no requiere cambiar la compilación."
+      },
+      oraculo: {
+        titulo: "Oráculo de pruebas",
+        def: "Implementación de referencia que se asume correcta y contra la cual se compara la que se está probando. Aquí, <code>std::vector</code>: la misma secuencia de operaciones corre en ambos y cualquier diferencia señala un error."
+      }
+    });
+  });
+</script>
+</body>
+</html>

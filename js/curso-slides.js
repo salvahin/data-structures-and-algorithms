@@ -699,7 +699,7 @@ const CursoSlides = (() => {
      5. SIMULADOR DE LISTA ENLAZADA
      <div class="sim-particion sim-lista" data-alg="lista-insert"
           data-lista="10,20,40" data-x="30" data-pos="2"></div>
-     data-alg: lista-insert · lista-insert-al-reves · lista-remove
+     data-alg: lista-print · lista-insert · lista-insert-al-reves · lista-remove
 
      Igual que los de ordenamiento, los pasos salen de ejecutar la
      operación sobre un modelo de nodos y punteros; un paso es una
@@ -707,28 +707,38 @@ const CursoSlides = (() => {
      anterior se pinta en verde: eso es la "cirugía".
      ---------------------------------------------------------- */
   const LISTA_CODIGO = {
+    'lista-print': [
+      'Nodo* actual = head;',
+      'while (actual != nullptr) {',
+      '    cout << actual->dato << " ";',
+      '    actual = actual->next;',
+      '}',
+      'cout << endl;'
+    ],
     'lista-insert': [
-      'if (pos > count) return false;',
-      'if (pos == 0) head = new Nodo{x, head};',
-      'else { Nodo* prev = head;',
-      '  for (size_t i = 0; i < pos - 1; ++i)',
+      'Nodo* nuevo = new Nodo(x);',
+      'Nodo* prev = head;',
+      'for (int i = 0; i < pos - 1; i++)',
       '    prev = prev->next;',
-      '  prev->next = new Nodo{x, prev->next}; }',
-      '++count;'
+      'nuevo->next = prev->next;',
+      'prev->next = nuevo;',
+      'count++;'
     ],
     'lista-insert-al-reves': [
-      'Nodo* nuevo = new Nodo{x, nullptr};',
-      'prev->next  = nuevo;',
+      'Nodo* nuevo = new Nodo(x);',
+      'prev->next = nuevo;',
       'nuevo->next = prev->next;'
     ],
     'lista-remove': [
-      'if (head && head->dato == x) { … }',
-      'for (Nodo* prev = head; prev; prev = prev->next)',
-      '  if (prev->next && prev->next->dato == x) {',
-      '    Nodo* victima = prev->next;',
-      '    prev->next = victima->next;',
-      '    delete victima;  --count;',
-      '    return true; }'
+      'Nodo* prev = head;',
+      'while (prev->next != nullptr && prev->next->dato != x)',
+      '    prev = prev->next;',
+      'if (prev->next == nullptr) return false;',
+      'Nodo* victima = prev->next;',
+      'prev->next = victima->next;',
+      'delete victima;',
+      'count--;',
+      'return true;'
     ]
   };
 
@@ -758,61 +768,100 @@ const CursoSlides = (() => {
     }
   }
 
+  function pasosListaPrint(vals) {
+    const M = modeloLista(vals), F = [];
+    let actual = M.head, salida = '';
+    const chips = () => [[`actual = ${actual ? 'el ' + M.nodos[actual].dato : 'nullptr'}`, 'ci'],
+                         [`salida: ${salida || '(vacía)'}`, 'cok']];
+    const ptrs = () => actual ? [['head', M.head, 'ph'], ['actual', actual, 'pp']] : [['head', M.head, 'ph']];
+    const add = o => F.push(fotoLista(M, Object.assign({ chips: chips(), ptrs: ptrs() }, o)));
+
+    actual = null;
+    add({ test: 'print()',
+      say: `Para imprimir hay que visitar cada nodo en orden. La lista no tiene índices: lo único que se conoce es <code>head</code>, y desde ahí se sigue cada <code>next</code>.` });
+
+    actual = M.head;
+    add({ code: 0, test: 'actual = head',
+      say: `<code>actual</code> es un puntero que va a recorrer la lista. Arranca en la cabeza. <code>head</code> no se mueve: si se perdiera, se perdería la lista entera.` });
+
+    for (;;) {
+      if (actual === null) break;
+      const n = M.nodos[actual];
+      n.est = 'hl';
+      add({ code: 1, test: `¿actual != nullptr?  sí`,
+        say: `<code>actual</code> apunta a un nodo (el ${n.dato}), así que se entra al ciclo.` });
+      salida += (salida ? ' ' : '') + n.dato;
+      add({ code: 2, test: `cout << ${n.dato}`,
+        say: `Se imprime el dato del nodo al que apunta <code>actual</code>: el ${n.dato}.` });
+      n.est = '';
+      const sig = n.next;
+      actual = sig;
+      add({ code: 3, test: 'actual = actual->next',
+        say: sig
+          ? `<code>actual</code> toma el valor del <code>next</code> del ${n.dato} y salta al ${M.nodos[sig].dato}.`
+          : `El <code>next</code> del ${n.dato} es <code>nullptr</code> (la diagonal), así que <code>actual</code> queda en <code>nullptr</code>.` });
+    }
+
+    add({ code: 1, test: '¿actual != nullptr?  no',
+      say: `<code>actual</code> ya no apunta a ningún nodo: se recorrió la lista completa y el ciclo termina. Este mismo patrón es el que usan <code>find</code>, el destructor y la búsqueda de <code>prev</code>.` });
+
+    add({ code: 5, test: 'cout << endl',
+      say: `Se imprimieron ${vals.length} datos con ${vals.length} saltos: recorrer la lista cuesta O(n). La lista quedó intacta.` });
+
+    return { frames: F, n: vals.length };
+  }
+
   function pasosListaInsert(vals, x, pos) {
     const M = modeloLista(vals), F = [];
     const chips = () => [[`count = ${M.count}`, ''], [`pos = ${pos}`, 'ci'], [`x = ${x}`, 'cok']];
     const antes = vals[pos - 1], despues = vals[pos];
     const add = o => F.push(fotoLista(M, Object.assign({ chips: chips() }, o)));
+    const nuevo = 'n' + vals.length;
 
     add({ ptrs: [['head', M.head, 'ph']],
       test: `insert(${x}, ${pos})`,
       say: `La lista tiene ${M.count} nodos. Queremos que el <b>${x}</b> quede en la posición ${pos}` +
-           (despues !== undefined ? `, entre el ${antes} y el ${despues}.` : `, al final, después del ${antes}.`) });
+           (despues !== undefined ? `, entre el ${antes} y el ${despues}.` : `, al final, después del ${antes}.`) +
+           ` Aquí se ve el caso general; la validación y la inserción en la cabeza vienen en el siguiente slide.` });
 
-    add({ code: 0, ptrs: [['head', M.head, 'ph']],
-      test: `¿pos > count? · ¿${pos} > ${M.count}?  no`,
-      say: `La posición existe: se puede insertar desde la 0 hasta la ${M.count}, que es "después del último".` });
-
-    add({ code: 1, ptrs: [['head', M.head, 'ph']],
-      test: `¿pos == 0?  no`,
-      say: `No es la cabeza, así que hay que caminar. El único nodo cuyo <code>next</code> va a cambiar es el que queda <b>antes</b> de la posición ${pos}, y a ése hay que llegar.` });
+    M.nodos[nuevo] = { dato: x, c: (pos - 1) + 0.5, r: 1, next: null, est: 'nuevo' };
+    add({ code: 0, ptrs: [['head', M.head, 'ph'], ['nuevo', nuevo, 'pn']],
+      test: `nuevo = new Nodo(${x})`,
+      say: `Se crea el nodo con el ${x}. El constructor deja su <code>next</code> en <code>nullptr</code>. La lista todavía no cambió: nadie apunta al ${x}.` });
 
     let prev = M.head;
-    add({ code: 2, ptrs: [['head', M.head, 'ph'], ['prev', prev, 'pp']],
+    add({ code: 1, ptrs: [['head', M.head, 'ph'], ['prev', prev, 'pp'], ['nuevo', nuevo, 'pn']],
       test: `prev = head`,
-      say: `<code>prev</code> arranca en la cabeza, el ${M.nodos[prev].dato}.` });
+      say: `Hay que llegar al nodo que queda <b>antes</b> de la posición ${pos}, porque su <code>next</code> es el que va a cambiar. <code>prev</code> arranca en la cabeza, el ${M.nodos[prev].dato}.` });
 
     for (let i = 0; ; i++) {
       const sigue = i < pos - 1;
-      add({ code: 3, ptrs: [['head', M.head, 'ph'], ['prev', prev, 'pp']],
+      add({ code: 2, ptrs: [['head', M.head, 'ph'], ['prev', prev, 'pp'], ['nuevo', nuevo, 'pn']],
         test: `i = ${i} · ¿${i} < ${pos - 1}?  ${sigue ? 'sí' : 'no'}`,
         say: sigue
           ? `Todavía no está en el nodo anterior a la posición ${pos}: avanza uno.`
-          : `<code>prev</code> se detiene en el <b>${M.nodos[prev].dato}</b>, el nodo en la posición ${pos - 1}. Desde aquí se puede tocar su <code>next</code>, que es lo único que hay que cambiar.` });
+          : `<code>prev</code> se detiene en el <b>${M.nodos[prev].dato}</b>, el nodo en la posición ${pos - 1}.` });
       if (!sigue) break;
       prev = M.nodos[prev].next;
-      add({ code: 4, ptrs: [['head', M.head, 'ph'], ['prev', prev, 'pp']],
+      add({ code: 3, ptrs: [['head', M.head, 'ph'], ['prev', prev, 'pp'], ['nuevo', nuevo, 'pn']],
         test: `prev = prev->next`,
         say: `<code>prev</code> se mueve al ${M.nodos[prev].dato}. Caminar es la única forma de llegar: la lista no tiene acceso por índice.` });
     }
 
-    // Lado derecho primero: el nodo nuevo nace ya apuntando al sucesor.
-    const nuevo = 'n' + vals.length;
-    const cp = M.nodos[prev].c;
-    M.nodos[nuevo] = { dato: x, c: cp + 0.5, r: 1, next: M.nodos[prev].next, est: 'nuevo' };
-    add({ code: 5, ptrs: [['head', M.head, 'ph'], ['prev', prev, 'pp']],
-      test: `new Nodo{${x}, prev->next}`,
-      say: `Primero se evalúa el lado derecho: <code>new Nodo{x, prev->next}</code> crea el ${x} y su <code>next</code> <b>ya apunta al ${despues !== undefined ? despues : 'nullptr'}</b>. La lista todavía no cambió: nadie apunta al ${x}.` });
+    M.nodos[nuevo].next = M.nodos[prev].next;
+    add({ code: 4, ptrs: [['head', M.head, 'ph'], ['prev', prev, 'pp'], ['nuevo', nuevo, 'pn']],
+      test: `nuevo->next = prev->next`,
+      say: `Primer enlace: el ${x} apunta ${despues !== undefined ? 'al ' + despues : 'a nullptr'}, el que hoy sigue al ${M.nodos[prev].dato}. La lista sigue intacta.` });
 
     M.nodos[prev].next = nuevo;
-    add({ code: 5, ptrs: [['head', M.head, 'ph'], ['prev', prev, 'pp']],
-      test: `prev->next = (el nodo nuevo)`,
-      say: `Ahora sí, el <code>next</code> del ${M.nodos[prev].dato} pasa al ${x}. Como el ${x} ya sabía llegar ${despues !== undefined ? 'al ' + despues : 'al final'}, <b>no se perdió nada</b>. Ése es el orden que pide el comentario del código.` });
+    add({ code: 5, ptrs: [['head', M.head, 'ph'], ['prev', prev, 'pp'], ['nuevo', nuevo, 'pn']],
+      test: `prev->next = nuevo`,
+      say: `Segundo enlace: el ${M.nodos[prev].dato} apunta al ${x}. Como el ${x} ya sabía llegar ${despues !== undefined ? 'al ' + despues : 'al final'}, <b>no se perdió nada</b>.` });
 
     M.count++;
-    add({ code: 6, ptrs: [['head', M.head, 'ph'], ['prev', prev, 'pp']],
-      test: `++count → ${M.count}`,
-      say: `El contador sube a ${M.count}. Si se olvida esta línea, <code>size()</code> sigue en O(1) pero devuelve un número falso, y el invariante del contrato se rompe sin que nada truene.` });
+    add({ code: 6, ptrs: [['head', M.head, 'ph'], ['prev', prev, 'pp'], ['nuevo', nuevo, 'pn']],
+      test: `count++ → ${M.count}`,
+      say: `El contador sube a ${M.count}. Si se olvida esta línea, <code>size()</code> devuelve un número falso y nada truena.` });
 
     M.nodos[nuevo].est = '';
     enLinea(M);
@@ -836,8 +885,8 @@ const CursoSlides = (() => {
     const nuevo = 'n' + vals.length;
     M.nodos[nuevo] = { dato: x, c: M.nodos[prev].c + 0.5, r: 1, next: null, est: 'nuevo' };
     add({ code: 0, ptrs: [['head', M.head, 'ph'], ['prev', prev, 'pp'], ['nuevo', nuevo, 'pn']],
-      test: `nuevo = new Nodo{${x}, nullptr}`,
-      say: `Se crea el ${x} con su <code>next</code> vacío. Hasta aquí no hay daño: la lista está intacta.` });
+      test: `nuevo = new Nodo(${x})`,
+      say: `Se crea el ${x}; el constructor deja su <code>next</code> en <code>nullptr</code>. Hasta aquí no hay daño: la lista está intacta.` });
 
     M.nodos[prev].next = nuevo;
     M.nodos[suc].est = 'perdido';
@@ -862,62 +911,63 @@ const CursoSlides = (() => {
     const chips = () => [[`count = ${M.count}`, ''], [`x = ${x}`, 'cj']];
     const add = o => F.push(fotoLista(M, Object.assign({ chips: chips() }, o)));
     const H = () => ['head', M.head, 'ph'];
+    const lista = () => { const o = []; let id = M.head; while (id) { o.push(M.nodos[id].dato); id = M.nodos[id].next; } return o.join(' → '); };
 
     add({ ptrs: [H()], test: `remove(${x})`,
-      say: `Hay que quitar la primera aparición del <b>${x}</b> sin perder a nadie más y sin dejar memoria sin liberar.` });
-
-    const d0 = M.nodos[M.head].dato;
-    M.nodos[M.head].est = 'hl';
-    add({ code: 0, ptrs: [H()],
-      test: `¿head->dato == x? · ¿${d0} == ${x}?  ${d0 === x ? 'sí' : 'no'}`,
-      say: `La cabeza se revisa aparte: si fuera ella, lo que cambia es <code>head</code>, no el <code>next</code> de ningún nodo. No es, así que sigue el caso general.` });
-    M.nodos[M.head].est = '';
+      say: `Hay que quitar el <b>${x}</b> sin perder a nadie más y sin dejar memoria sin liberar. La lista vacía y el caso en que el ${x} es la cabeza se revisan antes de este código; están en el siguiente slide.` });
 
     let prev = M.head;
-    add({ code: 1, ptrs: [H(), ['prev', prev, 'pp']],
+    add({ code: 0, ptrs: [H(), ['prev', prev, 'pp']],
       test: `prev = head`,
-      say: `<code>prev</code> arranca en la cabeza. Se va a mirar siempre <b>un nodo adelante</b> de donde está parado.` });
+      say: `<code>prev</code> arranca en la cabeza. Siempre se mira <b>un nodo adelante</b> de donde está parado, porque para sacar un nodo hay que estar en el anterior.` });
 
     for (;;) {
       const sig = M.nodos[prev].next;
       const es = M.nodos[sig].dato === x;
       M.nodos[sig].est = 'hl';
-      add({ code: 2, ptrs: [H(), ['prev', prev, 'pp']],
-        test: `¿prev->next->dato == x? · ¿${M.nodos[sig].dato} == ${x}?  ${es ? 'sí' : 'no'}`,
+      add({ code: 1, ptrs: [H(), ['prev', prev, 'pp']],
+        test: `¿hay siguiente? sí (el ${M.nodos[sig].dato}) · ¿${M.nodos[sig].dato} != ${x}?  ${es ? 'no' : 'sí'}`,
         say: es
-          ? `Lo encontró, y <code>prev</code> quedó <b>justo antes</b>. Por eso se compara el siguiente y no el propio: para sacar un nodo de la cadena hay que estar parado en el anterior.`
-          : `Se compara el dato del <b>siguiente</b>, no el de <code>prev</code>. No es, así que avanza.` });
+          ? `Hay siguiente y su dato es el ${x}: la condición es falsa y el ciclo termina. <code>prev</code> quedó <b>justo antes</b> del nodo que se va.`
+          : `Primero se pregunta si hay siguiente; solo si lo hay se lee su dato. No es el ${x}, así que el ciclo sigue.` });
       M.nodos[sig].est = '';
       if (es) break;
       prev = sig;
-      add({ code: 1, ptrs: [H(), ['prev', prev, 'pp']],
+      add({ code: 2, ptrs: [H(), ['prev', prev, 'pp']],
         test: `prev = prev->next`,
         say: `<code>prev</code> avanza al ${M.nodos[prev].dato}.` });
     }
 
     const vic = M.nodos[prev].next;
-    add({ code: 3, ptrs: [H(), ['prev', prev, 'pp'], ['victima', vic, 'pv']],
+    add({ code: 3, ptrs: [H(), ['prev', prev, 'pp']],
+      test: `¿prev->next == nullptr?  no`,
+      say: `El ciclo pudo terminar por dos razones: se acabó la lista o se encontró el ${x}. Esta línea distingue cuál. Si no hay siguiente, el ${x} no estaba y se devuelve <code>false</code>. Aquí sí lo hay.` });
+
+    add({ code: 4, ptrs: [H(), ['prev', prev, 'pp'], ['victima', vic, 'pv']],
       test: `victima = prev->next`,
       say: `Se guarda la dirección del ${x} en <code>victima</code>. Hace falta: en la línea siguiente <code>prev->next</code> se sobrescribe, y sin esta copia ya no habría forma de liberarlo.` });
 
     M.nodos[prev].next = M.nodos[vic].next;
-    M.nodos[vic].r = 1;
     const sucDato = M.nodos[vic].next ? M.nodos[M.nodos[vic].next].dato : 'nullptr';
-    add({ code: 4, ptrs: [H(), ['prev', prev, 'pp'], ['victima', vic, 'pv']],
+    add({ code: 5, ptrs: [H(), ['prev', prev, 'pp'], ['victima', vic, 'pv']],
       test: `prev->next = victima->next`,
-      say: `El ${M.nodos[prev].dato} salta por encima del ${x} y apunta al ${sucDato}. El ${x} ya está <b>fuera de la cadena</b>, pero sigue existiendo en memoria: su <code>next</code> todavía apunta al ${sucDato}.` });
+      say: `El <code>next</code> del ${M.nodos[prev].dato} ahora apunta al ${sucDato}: la curva rodea al ${x}. El ${x} ya está <b>fuera de la cadena</b>, pero sigue existiendo en memoria.` });
 
     M.nodos[vic].est = 'liberado';
-    M.count--;
-    add({ code: 5, ptrs: [H(), ['prev', prev, 'pp'], ['victima', vic, 'pv']],
-      test: `delete victima · --count → ${M.count}`,
-      say: `Se libera. <code>victima</code> <b>sigue guardando la dirección</b> de una memoria que ya no es tuya: es un puntero colgante. Aquí no causa daño porque la función regresa en la línea siguiente.` });
+    add({ code: 6, ptrs: [H(), ['prev', prev, 'pp'], ['victima', vic, 'pv']],
+      test: `delete victima`,
+      say: `Se libera. Re-enlazar primero y liberar después evita leer <code>victima->next</code> de memoria ya liberada.` });
 
+    M.count--;
     delete M.nodos[vic];
     enLinea(M);
-    add({ code: 6, ptrs: [H()],
-      test: 'lista: ' + (() => { const o = []; let id = M.head; while (id) { o.push(M.nodos[id].dato); id = M.nodos[id].next; } return o.join(' → '); })(),
-      say: `Re-enlazar primero, liberar después: con ese orden no se pierde ningún nodo ni queda memoria sin liberar. Si se invierte, <code>victima->next</code> se lee de memoria ya liberada.` });
+    add({ code: 7, ptrs: [H(), ['prev', prev, 'pp']],
+      test: `count-- → ${M.count}`,
+      say: `El contador baja a ${M.count} para que <code>size()</code> siga diciendo la verdad.` });
+
+    add({ code: 8, ptrs: [H()],
+      test: `return true · lista: ${lista()}`,
+      say: `Se cambió un solo puntero y se liberó un nodo. Lo caro fue caminar hasta <code>prev</code>.` });
 
     return { frames: F, n: vals.length };
   }
@@ -930,7 +980,8 @@ const CursoSlides = (() => {
     const vals = (cont.dataset.lista || '10,20,40').split(',').map(s => Number(s.trim()));
     const x = Number(cont.dataset.x || 30);
     const pos = Number(cont.dataset.pos || 2);
-    const run = alg === 'lista-remove' ? pasosListaRemove(vals, x)
+    const run = alg === 'lista-print' ? pasosListaPrint(vals)
+              : alg === 'lista-remove' ? pasosListaRemove(vals, x)
               : alg === 'lista-insert-al-reves' ? pasosListaInsertAlReves(vals, x, pos)
               : pasosListaInsert(vals, x, pos);
     const uid = 'sl' + (++simListaUid);
@@ -1022,6 +1073,12 @@ const CursoSlides = (() => {
           continue;
         }
         let tx = q.x - 2, ty = q.y + H / 2;
+        if (t.r === n.r && t.c - n.c > 1.01) {     // salta nodos del mismo renglón: curva por debajo
+          const ex = q.x + 30, ey = q.y + H + 2, baja = p.y + H + 62;
+          const d = `M ${sx} ${sy} C ${sx + 30} ${baja}, ${ex} ${baja}, ${ex} ${ey}`;
+          capa.appendChild(el('path', { d, class: cls, 'marker-end': mk }));
+          continue;
+        }
         if (t.r !== n.r) {                         // cambia de renglón: entra por arriba o abajo
           tx = q.x + 30;
           ty = t.r > n.r ? q.y - 2 : q.y + H + 2;
@@ -1041,7 +1098,9 @@ const CursoSlides = (() => {
           g.appendChild(el('line', { x1: p.x + 108, y1: p.y + H - 8, x2: p.x + W - 8, y2: p.y + 8, class: 'sl-nulo' }));
         const etq = n.est === 'liberado' ? 'liberado' : n.est === 'perdido' ? 'inalcanzable' : '';
         if (etq) g.appendChild(n.r === 0
-          ? el('text', { x: p.x + W / 2, y: p.y - 10, class: 'sl-etq' }, etq)
+          ? el('text', { x: p.x + W / 2,
+              y: f.ptrs.some(pt => pt[1] === id) ? p.y + H + 22 : p.y - 10,   // si arriba hay un puntero, abajo
+              class: 'sl-etq' }, etq)
           : el('text', { x: p.x + W + 14, y: p.y + H / 2 + 5, class: 'sl-etq izq' }, etq));
         capa.appendChild(g);
       }
