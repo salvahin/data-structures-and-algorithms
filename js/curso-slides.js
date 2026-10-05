@@ -138,10 +138,15 @@ const CursoSlides = (() => {
       // Prefijo de letra en cada opción
       options.forEach(btn => {
         if (!btn.querySelector('.opt-letter')) {
+          // El texto de la opción va en un solo bloque: el botón es flex y, sin
+          // envoltura, cada fragmento de texto y cada <code> sería una columna.
+          const texto = document.createElement('span');
+          texto.className = 'opt-texto';
+          while (btn.firstChild) texto.appendChild(btn.firstChild);
           const tag = document.createElement('span');
           tag.className = 'opt-letter';
           tag.textContent = btn.dataset.opt.toUpperCase();
-          btn.prepend(tag);
+          btn.append(tag, texto);
         }
         btn.addEventListener('click', () => {
           if (quiz.classList.contains('answered')) return;
@@ -699,7 +704,7 @@ const CursoSlides = (() => {
      5. SIMULADOR DE LISTA ENLAZADA
      <div class="sim-particion sim-lista" data-alg="lista-insert"
           data-lista="10,20,40" data-x="30" data-pos="2"></div>
-     data-alg: lista-print · lista-insert · lista-insert-al-reves · lista-remove
+     data-alg: pila-ops · fila-ops · lista-print · lista-insert · lista-insert-al-reves · lista-remove
 
      Igual que los de ordenamiento, los pasos salen de ejecutar la
      operación sobre un modelo de nodos y punteros; un paso es una
@@ -707,6 +712,23 @@ const CursoSlides = (() => {
      anterior se pinta en verde: eso es la "cirugía".
      ---------------------------------------------------------- */
   const LISTA_CODIGO = {
+    'pila-ops': [
+      'Pila<int> p;',
+      'p.push(10);',
+      'p.push(20);',
+      'p.push(30);',
+      'cout << p.pop();',
+      'cout << p.pop();'
+    ],
+    'fila-ops': [
+      'Fila<int> f;',
+      'f.enqueue(10);',
+      'f.enqueue(20);',
+      'f.enqueue(30);',
+      'cout << f.dequeue();',
+      'f.enqueue(40);',
+      'cout << f.dequeue();'
+    ],
     'lista-print': [
       'Nodo* actual = head;',
       'while (actual != nullptr) {',
@@ -766,6 +788,114 @@ const CursoSlides = (() => {
       Object.assign(M.nodos[id], { c: c++, r: 0 });
       id = M.nodos[id].next;
     }
+  }
+
+  // Pila y fila como listas ligadas con restricciones: solo se toca el tope,
+  // o se entra por el final y se sale por el frente.
+  function pasosPila() {
+    const M = { nodos: {}, head: null, count: 0 }, F = [];
+    let salida = '', sig = 0, ptrExtra = null;
+    const chips = () => [[`tope = ${M.head ? 'el ' + M.nodos[M.head].dato : 'nullptr'}`, 'ci'],
+                         [`salida: ${salida || '(nada)'}`, 'cok']];
+    const ptrs = () => { const o = []; if (M.head) o.push(['tope', M.head, 'pp']); if (ptrExtra) o.push(ptrExtra); return o; };
+    const add = o => F.push(fotoLista(M, Object.assign({ chips: chips(), ptrs: ptrs() }, o)));
+    const limpiar = () => { for (const id in M.nodos) if (M.nodos[id].est === 'liberado') delete M.nodos[id];
+                            for (const id in M.nodos) M.nodos[id].est = ''; ptrExtra = null; };   // los nodos no se mueven
+
+    add({ code: 0, test: 'pila vacía',
+      say: `La pila es una lista ligada que solo guarda la dirección de su <b>tope</b>. Vacía, <code>tope</code> vale <code>nullptr</code>: el bote está vacío.` });
+
+    [10, 20, 30].forEach((v, k) => {
+      limpiar();
+      const id = 'n' + (sig++);
+      M.nodos[id] = { dato: v, c: 2 - k, r: 0, next: M.head, est: 'nuevo' };   // nace a la izquierda del tope, en su lugar final
+      ptrExtra = ['nuevo', id, 'pn'];
+      add({ code: k + 1, test: `nuevo = new Nodo(${v}); nuevo->next = tope`,
+        say: M.head
+          ? `El ${v} se crea y su <code>next</code> apunta al tope actual, el ${M.nodos[M.head].dato}. Es el <code>insert</code> en la cabeza de la sesión 12.`
+          : `El ${v} se crea; como la pila está vacía, su <code>next</code> queda en <code>nullptr</code>.` });
+      M.head = id; M.count++; ptrExtra = null; M.nodos[id].est = '';
+      add({ code: k + 1, test: `tope = nuevo`,
+        say: `El ${v} queda arriba de todo. Los demás no se movieron: solo cambió <code>tope</code>.` });
+    });
+
+    [4, 5].forEach(line => {
+      limpiar();
+      M.nodos[M.head].est = 'hl';
+      add({ code: line, test: `if (empty())  →  no`,
+        say: `Antes de sacar, <code>pop</code> revisa que la pila no esté vacía. Hay un tope, el ${M.nodos[M.head].dato}, así que sigue.` });
+      M.nodos[M.head].est = '';
+      const vic = M.head, v = M.nodos[vic].dato;
+      M.head = M.nodos[vic].next; M.count--;
+      M.nodos[vic].est = 'liberado';
+      salida += (salida ? ' ' : '') + v;
+      add({ code: line, test: `pop() → ${v}`,
+        say: `Sale el ${v}, el de arriba: <code>tope</code> pasa a su <code>next</code> y el nodo se libera. No hay manera de pedir otro: la interfaz solo ofrece el tope.` });
+    });
+
+    limpiar();
+    add({ code: -1, test: `salida: ${salida}`,
+      say: `Entraron 10, 20, 30 y salieron 30 y 20: en orden inverso. El 10 sigue en el fondo y solo saldrá cuando no quede nada arriba.` });
+    return { frames: F, n: 3 };
+  }
+
+  function pasosFila() {
+    const M = { nodos: {}, head: null, count: 0 }, F = [];
+    let salida = '', sig = 0, final = null, ptrExtra = null;
+    const chips = () => [[`frente = ${M.head ? 'el ' + M.nodos[M.head].dato : 'nullptr'}`, 'ci'],
+                         [`final = ${final ? 'el ' + M.nodos[final].dato : 'nullptr'}`, ''],
+                         [`salida: ${salida || '(nada)'}`, 'cok']];
+    const ptrs = () => { const o = []; if (M.head) o.push(['frente', M.head, 'pp']); if (final) o.push(['final', final, 'ph']); if (ptrExtra) o.push(ptrExtra); return o; };
+    const add = o => F.push(fotoLista(M, Object.assign({ chips: chips(), ptrs: ptrs() }, o)));
+    const limpiar = () => { for (const id in M.nodos) if (M.nodos[id].est === 'liberado') delete M.nodos[id];
+                            for (const id in M.nodos) M.nodos[id].est = ''; ptrExtra = null; };   // los nodos no se mueven
+
+    add({ code: 0, test: 'fila vacía',
+      say: `La fila es una lista ligada con <b>dos</b> punteros: <code>frente</code>, por donde se atiende, y <code>final</code>, donde se forma el que llega. Vacía, los dos valen <code>nullptr</code>.` });
+
+    const enqueue = (v, line) => {
+      limpiar();
+      const id = 'n' + (sig++);
+      M.nodos[id] = { dato: v, c: sig - 1, r: 0, next: null, est: 'nuevo' };   // nace a la derecha del final, en su lugar
+      ptrExtra = ['nuevo', id, 'pn'];
+      add({ code: line, test: `nuevo = new Nodo(${v})`,
+        say: `Llega el ${v}. Su <code>next</code> queda en <code>nullptr</code> porque va a ser el último.` });
+      if (final) {
+        M.nodos[final].next = id;
+        add({ code: line, test: `final->next = nuevo`,
+          say: `El último de la fila, el ${M.nodos[final].dato}, ahora apunta al ${v}. Gracias a <code>final</code> no hubo que recorrer la fila para llegar al último.` });
+      } else {
+        M.head = id;
+        add({ code: line, test: `frente = nuevo`,
+          say: `La fila estaba vacía: el ${v} es al mismo tiempo el primero y el último.` });
+      }
+      final = id; M.count++; ptrExtra = null; M.nodos[id].est = '';
+      add({ code: line, test: `final = nuevo`,
+        say: `<code>final</code> pasa al ${v}. Entró por atrás, sin tocar a nadie de en medio.` });
+    };
+    const dequeue = line => {
+      limpiar();
+      M.nodos[M.head].est = 'hl';
+      add({ code: line, test: `if (empty())  →  no`,
+        say: `Antes de atender, <code>dequeue</code> revisa que haya alguien formado. Está el ${M.nodos[M.head].dato}, así que sigue.` });
+      M.nodos[M.head].est = '';
+      const vic = M.head, v = M.nodos[vic].dato;
+      M.head = M.nodos[vic].next; M.count--;
+      if (!M.head) final = null;
+      M.nodos[vic].est = 'liberado';
+      salida += (salida ? ' ' : '') + v;
+      add({ code: line, test: `dequeue() → ${v}`,
+        say: `Se atiende al ${v}, el que llegó primero: <code>frente</code> pasa a su <code>next</code> y el nodo se libera. <code>final</code> no cambia.` });
+    };
+
+    enqueue(10, 1); enqueue(20, 2); enqueue(30, 3);
+    dequeue(4);
+    enqueue(40, 5);
+    dequeue(6);
+    limpiar();
+    add({ code: -1, test: `salida: ${salida}`,
+      say: `Salieron 10 y 20, en el mismo orden en que llegaron. Se entró siempre por <code>final</code> y se salió siempre por <code>frente</code>: nadie se metió en medio.` });
+    return { frames: F, n: 4 };
   }
 
   function pasosListaPrint(vals) {
@@ -980,7 +1110,9 @@ const CursoSlides = (() => {
     const vals = (cont.dataset.lista || '10,20,40').split(',').map(s => Number(s.trim()));
     const x = Number(cont.dataset.x || 30);
     const pos = Number(cont.dataset.pos || 2);
-    const run = alg === 'lista-print' ? pasosListaPrint(vals)
+    const run = alg === 'pila-ops' ? pasosPila()
+              : alg === 'fila-ops' ? pasosFila()
+              : alg === 'lista-print' ? pasosListaPrint(vals)
               : alg === 'lista-remove' ? pasosListaRemove(vals, x)
               : alg === 'lista-insert-al-reves' ? pasosListaInsertAlReves(vals, x, pos)
               : pasosListaInsert(vals, x, pos);
@@ -2111,7 +2243,7 @@ const CursoSlides = (() => {
     if (cont.dataset.alg === 'mem-alias') return construirAlias(cont);
     if (cont.dataset.alg === 'mem-mapa') return construirMapa(cont);
     if (cont.dataset.alg === 'mem-carga') return construirCarga(cont);
-    if ((cont.dataset.alg || '').startsWith('lista-')) return construirLista(cont);
+    if (/^(lista-|pila-|fila-)/.test(cont.dataset.alg || '')) return construirLista(cont);
     const alg = ['lomuto', 'hoare', 'quickselect', 'seleccion'].includes(cont.dataset.alg)
       ? cont.dataset.alg : 'hoare';
     const arreglo = (cont.dataset.array || '7,8,5,2,1,6')

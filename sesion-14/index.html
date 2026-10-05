@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sesión 14 — Pilas y filas: listas con restricciones</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+  <script>try{if(localStorage.getItem("curso-tema")==="dark"&&!/print-pdf/i.test(location.search))document.documentElement.dataset.theme="dark"}catch(e){}</script>
+  <link rel="stylesheet" href="../css/theme-curso.css">
+</head>
+<body>
+<div class="reveal">
+  <div class="slides">
+
+    <!-- ============ PORTADA ============ -->
+    <section class="cover">
+      <span class="kicker">Estructuras de Datos y Algoritmos · Bloque 2</span>
+      <h1>Pilas y filas: listas con&nbsp;restricciones</h1>
+      <div class="cover-meta">
+        Sesión 14 · Semana 8<br>
+        Salvador Hinojosa
+      </div>
+    </section>
+
+    <!-- ============ OBJETIVO ============ -->
+    <section>
+      <span class="kicker">Objetivo de hoy</span>
+      <h2>Al salir de esta sesión podrás…</h2>
+      <ul>
+        <li class="fragment">Explicar una pila y una fila como una lista ligada a la que se le quitan operaciones.</li>
+        <li class="fragment">Implementar las dos en C++ sobre una lista ligada y señalar en el código dónde queda cada restricción.</li>
+        <li class="fragment">Distinguir fila circular, fila priorizada y deque por dónde entran y salen los elementos.</li>
+        <li class="fragment">Elegir la estructura según el orden en que el problema necesita atender los datos.</li>
+      </ul>
+    </section>
+
+    <!-- ============ DIVIDER IDEA ============ -->
+    <section class="divider">
+      <h2>La idea: restringir una lista</h2>
+    </section>
+
+    <!-- ============ IDEA: MENOS OPERACIONES ============ -->
+    <section>
+      <span class="kicker">La idea</span>
+      <h2>La misma lista, con menos puertas</h2>
+      <div class="cols">
+        <div>
+          <pre><code class="language-cpp" data-trim>
+// LinkedList: se llega a cualquier nodo
+insert(x, pos);
+remove(x);
+find(x);
+print();
+          </code></pre>
+        </div>
+        <div class="fragment">
+          <pre><code class="language-cpp" data-trim>
+// Pila: solo se llega al de arriba
+push(x);
+pop();
+top();
+empty();
+          </code></pre>
+        </div>
+      </div>
+      <ul>
+        <li class="fragment">Por dentro, una pila es la lista de la sesión 12: nodos, <code>next</code> y un puntero al primero.</li>
+        <li class="fragment">Lo que cambia es la parte <code>public</code>. Al quitar operaciones, la clase garantiza un orden de salida que la lista no garantiza.</li>
+      </ul>
+    </section>
+
+    <!-- ============ DIVIDER 7.2 ============ -->
+    <section class="divider">
+      <h2>7.2 Pilas (Stack)</h2>
+    </section>
+
+    <!-- ============ 7.2 BOTE ============ -->
+    <section>
+      <span class="kicker">7.2 · Pilas</span>
+      <h2>Un bote de papas</h2>
+      <svg viewBox="0 0 1100 430" style="width:100%; max-height:430px;">
+        <defs>
+          <marker id="pb-a" markerUnits="userSpaceOnUse" markerWidth="16" markerHeight="14" refX="14" refY="7" orient="auto"><path d="M0,0 L15,7 L0,14 z" class="f-accent"/></marker>
+          <marker id="pb-k" markerUnits="userSpaceOnUse" markerWidth="16" markerHeight="14" refX="14" refY="7" orient="auto"><path d="M0,0 L15,7 L0,14 z" class="f-ok"/></marker>
+        </defs>
+        <!-- el bote: abierto arriba -->
+        <path d="M 180 100 L 180 380 Q 180 410 210 410 L 390 410 Q 420 410 420 380 L 420 100" fill="none" stroke-width="6" class="s-ink"/>
+        <ellipse cx="300" cy="100" rx="120" ry="16" fill="none" stroke-width="3" stroke-dasharray="8 6" class="s-ink-soft"/>
+        <!-- papas -->
+        <g class="anim-step" data-step="1">
+          <ellipse cx="300" cy="370" rx="100" ry="22" stroke-width="3" class="f-accent-bg s-accent"/>
+          <text x="300" y="379" text-anchor="middle" style="font-size:24px; font-weight:700;" class="f-ink">1</text>
+          <ellipse cx="300" cy="320" rx="100" ry="22" stroke-width="3" class="f-accent-bg s-accent"/>
+          <text x="300" y="329" text-anchor="middle" style="font-size:24px; font-weight:700;" class="f-ink">2</text>
+          <ellipse cx="300" cy="270" rx="100" ry="22" stroke-width="3" class="f-accent-bg s-accent"/>
+          <text x="300" y="279" text-anchor="middle" style="font-size:24px; font-weight:700;" class="f-ink">3</text>
+        </g>
+        <g class="anim-step" data-step="1" data-step-off="3">
+          <ellipse cx="300" cy="220" rx="100" ry="22" stroke-width="3" class="f-accent-bg s-accent"/>
+          <text x="300" y="229" text-anchor="middle" style="font-size:24px; font-weight:700;" class="f-ink">4</text>
+        </g>
+        <g class="anim-step" data-step="1" data-step-off="2">
+          <line x1="300" y1="20" x2="300" y2="185" stroke-width="5" class="s-accent" marker-end="url(#pb-a)"/>
+          <text x="470" y="80" style="font-size:26px; font-weight:600;" class="f-accent">push: cada papa nueva queda arriba</text>
+        </g>
+        <!-- paso 2: solo se alcanza la de arriba -->
+        <g class="anim-step" data-step="2" data-step-off="3">
+          <text x="470" y="80" style="font-size:26px; font-weight:600;" class="f-ink">top: solo se ve la de arriba</text>
+          <rect x="190" y="194" width="220" height="52" rx="26" fill="none" stroke-width="4" class="s-ok"/>
+        </g>
+        <!-- paso 3: sale la 4 -->
+        <g class="anim-step" data-step="3">
+          <ellipse cx="300" cy="40" rx="100" ry="22" stroke-width="3" class="f-ok-bg s-ok"/>
+          <text x="300" y="49" text-anchor="middle" style="font-size:24px; font-weight:700;" class="f-ink">4</text>
+          <line x1="300" y1="215" x2="300" y2="70" stroke-width="5" class="s-ok" marker-end="url(#pb-k)"/>
+          <text x="470" y="80" style="font-size:26px; font-weight:600;" class="f-ok">pop: sale la última que entró</text>
+        </g>
+        <!-- paso 4: la del fondo no se alcanza -->
+        <g class="anim-step" data-step="4">
+          <text x="470" y="320" style="font-size:26px; font-weight:600;" class="f-err">la 1 no se alcanza sin sacar 3 y 2 antes:</text>
+          <text x="470" y="356" style="font-size:26px; font-weight:600;" class="f-err">las paredes del bote no dejan meter la mano</text>
+        </g>
+      </svg>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+    </section>
+
+    <!-- ============ 7.2 LIFO ============ -->
+    <section>
+      <span class="kicker">7.2 · Pilas</span>
+      <h2><span class="term" data-term="lifo">LIFO</span>: el último en entrar es el primero en salir</h2>
+      <table>
+        <thead><tr><th>Operación</th><th>En el bote</th><th>Costo</th></tr></thead>
+        <tbody>
+          <tr class="fragment"><td><code>push(x)</code></td><td>Meter una papa por arriba</td><td>O(1)</td></tr>
+          <tr class="fragment"><td><code>pop()</code></td><td>Sacar la de arriba y devolverla</td><td>O(1)</td></tr>
+          <tr class="fragment"><td><code>top()</code></td><td>Ver la de arriba sin sacarla</td><td>O(1)</td></tr>
+          <tr class="fragment"><td><code>empty()</code></td><td>¿Queda alguna?</td><td>O(1)</td></tr>
+        </tbody>
+      </table>
+      <p class="fragment">No existe una operación para leer la papa 2 o sacar la del fondo. Esa ausencia es la que asegura el orden de salida.</p>
+    </section>
+
+    <!-- ============ 7.2 RESTRICCIÓN EN CÓDIGO ============ -->
+    <section>
+      <span class="kicker">7.2 · Pilas</span>
+      <h2>La restricción, en el código</h2>
+      <pre data-title="pila.hpp"><code class="language-cpp" data-trim data-line-numbers="1-12|3-4|5-11">
+template &lt;typename T&gt;
+class Pila {
+    // struct Nodo: el mismo de LinkedList en la sesion 12
+    Nodo* tope;                   // privado: nadie lo toca desde fuera
+public:
+    Pila() { tope = nullptr; }
+    void push(T x);
+    T    pop();
+    T    top()   { return tope-&gt;dato; }
+    bool empty() { return tope == nullptr; }
+    // no hay insert(x, pos), remove(x) ni find(x)
+};
+      </code></pre>
+      <p class="fragment">Las paredes del bote son <code>private</code>: desde fuera de la clase no se puede escribir <code>p.tope-&gt;next</code>. El compilador rechaza el código que intente llegar al fondo.</p>
+    </section>
+
+    <!-- ============ 7.2 PUSH POP ============ -->
+    <section>
+      <span class="kicker">7.2 · Pilas</span>
+      <h2><code>push</code> y <code>pop</code> ya los escribiste</h2>
+      <div class="cols">
+        <div>
+          <pre><code class="language-cpp" data-trim>
+void push(T x) {
+    Nodo* nuevo = new Nodo(x);
+    nuevo-&gt;next = tope;
+    tope = nuevo;
+}
+          </code></pre>
+          <p class="muted">Es <code>insert(x, 0)</code>: el caso de la cabeza.</p>
+        </div>
+        <div>
+          <pre><code class="language-cpp" data-trim>
+T pop() {
+    if (empty()) return T();   // vacia
+    Nodo* victima = tope;
+    T x = victima-&gt;dato;
+    tope = tope-&gt;next;
+    delete victima;
+    return x;
+}
+          </code></pre>
+          <p class="muted">Es <code>remove</code> de la cabeza, más devolver el dato.</p>
+        </div>
+      </div>
+      <p class="fragment">El <code>if</code> evita leer <code>tope-&gt;dato</code> de un <code>nullptr</code>. <code>T()</code> es el valor por omisión: 0 para <code>int</code>.</p>
+    </section>
+
+    <!-- ============ 7.2 ANIMACIÓN ============ -->
+    <section>
+      <span class="kicker">7.2 · Pilas</span>
+      <h2>La pila, nodo por nodo</h2>
+      <div class="sim-particion sim-lista" data-alg="pila-ops"></div>
+    </section>
+
+    <!-- ============ QUIZ 1 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="a">
+        <p class="quiz-question">Sobre una pila vacía: <code>push(1); push(2); push(3); pop(); push(4); pop(); pop();</code> ¿En qué orden salieron los elementos?</p>
+        <button class="quiz-option" data-opt="a">3, 4, 2</button>
+        <button class="quiz-option" data-opt="b">1, 2, 3</button>
+        <button class="quiz-option" data-opt="c">3, 4, 1</button>
+        <div class="quiz-explain">
+          <strong>A.</strong> Después de los tres <code>push</code>, arriba está el 3: sale. Entra el 4 encima
+          del 2 y sale el 4. Queda el 2 encima del 1: sale el 2. La B es el orden de una fila. La C olvida
+          que el 2 sigue encima del 1.
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 7.2 APLICACIONES ============ -->
+    <section>
+      <span class="kicker">7.2 · Pilas</span>
+      <h2>Dónde aparece una pila</h2>
+      <ul>
+        <li class="fragment"><strong>Deshacer:</strong> la última acción es la primera que se revierte.</li>
+        <li class="fragment"><strong>Balanceo de símbolos:</strong> cada <code>(</code> se apila; cada <code>)</code> debe cerrar la que está arriba.</li>
+        <li class="fragment"><strong>Evaluación de expresiones:</strong> los operandos esperan en la pila hasta que llega su operador.</li>
+        <li class="fragment"><strong>La pila de llamadas:</strong> cada llamada recursiva de la sesión 2 apila su marco y lo saca al regresar.</li>
+      </ul>
+      <p class="fragment muted">En todos hay tareas anidadas, y siempre se resuelve primero la más reciente.</p>
+    </section>
+
+    <!-- ============ DIVIDER 7.3 ============ -->
+    <section class="divider">
+      <h2>7.3 Filas (Queue)</h2>
+    </section>
+
+    <!-- ============ 7.3 TORTILLAS ============ -->
+    <section>
+      <span class="kicker">7.3 · Filas</span>
+      <h2>La fila de las tortillas</h2>
+      <svg viewBox="0 0 1100 400" style="width:100%; max-height:400px;">
+        <defs>
+          <marker id="ft-k" markerUnits="userSpaceOnUse" markerWidth="16" markerHeight="14" refX="14" refY="7" orient="auto"><path d="M0,0 L15,7 L0,14 z" class="f-ok"/></marker>
+          <marker id="ft-a" markerUnits="userSpaceOnUse" markerWidth="16" markerHeight="14" refX="14" refY="7" orient="auto"><path d="M0,0 L15,7 L0,14 z" class="f-accent"/></marker>
+        </defs>
+        <!-- mostrador -->
+        <rect x="30" y="140" width="110" height="150" rx="10" stroke-width="3" class="f-surface-2 s-ink"/>
+        <text x="85" y="320" text-anchor="middle" style="font-size:22px; font-weight:600;" class="f-ink">mostrador</text>
+        <!-- personas -->
+        <g class="anim-step" data-step="1" data-step-off="3">
+          <circle cx="230" cy="215" r="38" stroke-width="3" class="f-accent-bg s-accent"/>
+          <text x="230" y="224" text-anchor="middle" style="font-size:26px; font-weight:700;" class="f-ink">A</text>
+        </g>
+        <g class="anim-step" data-step="1">
+          <circle cx="350" cy="215" r="38" stroke-width="3" class="f-accent-bg s-accent"/>
+          <text x="350" y="224" text-anchor="middle" style="font-size:26px; font-weight:700;" class="f-ink">B</text>
+          <circle cx="470" cy="215" r="38" stroke-width="3" class="f-accent-bg s-accent"/>
+          <text x="470" y="224" text-anchor="middle" style="font-size:26px; font-weight:700;" class="f-ink">C</text>
+          <circle cx="590" cy="215" r="38" stroke-width="3" class="f-accent-bg s-accent"/>
+          <text x="590" y="224" text-anchor="middle" style="font-size:26px; font-weight:700;" class="f-ink">D</text>
+        </g>
+        <g class="anim-step" data-step="1" data-step-off="3">
+          <text x="230" y="150" text-anchor="middle" style="font-size:22px; font-weight:700;" class="f-accent">frente</text>
+        </g>
+        <g class="anim-step" data-step="1" data-step-off="2">
+          <text x="590" y="150" text-anchor="middle" style="font-size:22px; font-weight:700;" class="f-ink">final</text>
+        </g>
+        <!-- paso 2: llega E al final -->
+        <g class="anim-step" data-step="2">
+          <circle cx="710" cy="215" r="38" stroke-width="3" class="f-ok-bg s-ok"/>
+          <text x="710" y="224" text-anchor="middle" style="font-size:26px; font-weight:700;" class="f-ink">E</text>
+          <text x="710" y="150" text-anchor="middle" style="font-size:22px; font-weight:700;" class="f-ink">final</text>
+        </g>
+        <g class="anim-step" data-step="2" data-step-off="3">
+          <line x1="900" y1="215" x2="760" y2="215" stroke-width="5" class="s-ok" marker-end="url(#ft-k)"/>
+          <text x="820" y="300" text-anchor="middle" style="font-size:24px; font-weight:600;" class="f-ok">enqueue: se forma al final</text>
+        </g>
+        <!-- paso 3: atienden a A -->
+        <g class="anim-step" data-step="3">
+          <line x1="220" y1="215" x2="148" y2="215" stroke-width="5" class="s-accent" marker-end="url(#ft-a)"/>
+          <text x="30" y="385" style="font-size:24px; font-weight:600;" class="f-accent">dequeue: atienden a A, el que llegó primero</text>
+          <text x="350" y="150" text-anchor="middle" style="font-size:22px; font-weight:700;" class="f-accent">frente</text>
+        </g>
+        <!-- paso 4: nadie se mete en medio -->
+        <g class="anim-step" data-step="4">
+          <circle cx="530" cy="320" r="34" fill="none" stroke-width="3" stroke-dasharray="8 6" class="s-err"/>
+          <text x="530" y="329" text-anchor="middle" style="font-size:24px; font-weight:700;" class="f-err">X</text>
+          <text x="590" y="320" style="font-size:24px; font-weight:600;" class="f-err">nadie se mete en medio: no existe insert(x, pos)</text>
+        </g>
+      </svg>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+    </section>
+
+    <!-- ============ 7.3 FIFO ============ -->
+    <section>
+      <span class="kicker">7.3 · Filas</span>
+      <h2><span class="term" data-term="fifo">FIFO</span>: el primero en llegar es el primero en salir</h2>
+      <table>
+        <thead><tr><th>Operación</th><th>En la tortillería</th><th>Costo</th></tr></thead>
+        <tbody>
+          <tr class="fragment"><td><code>enqueue(x)</code></td><td>Formarse al final</td><td>O(1)</td></tr>
+          <tr class="fragment"><td><code>dequeue()</code></td><td>Atender al de adelante</td><td>O(1)</td></tr>
+          <tr class="fragment"><td><code>front()</code></td><td>Ver a quién le toca</td><td>O(1)</td></tr>
+          <tr class="fragment"><td><code>empty()</code></td><td>¿Queda alguien?</td><td>O(1)</td></tr>
+        </tbody>
+      </table>
+      <p class="fragment">La pila usa un extremo; la fila usa dos: se entra por uno y se sale por el otro. El orden de salida es el mismo de llegada.</p>
+    </section>
+
+    <!-- ============ 7.3 CLASE ============ -->
+    <section>
+      <span class="kicker">7.3 · Filas</span>
+      <h2>Un puntero más: <code>final</code></h2>
+      <pre data-title="fila.hpp"><code class="language-cpp" data-trim data-line-numbers="1-12|4-5|6-11">
+template &lt;typename T&gt;
+class Fila {
+    // struct Nodo: el mismo de la pila
+    Nodo* frente;                 // por aqui se atiende
+    Nodo* final;                  // aqui se forma el que llega
+public:
+    Fila() { frente = nullptr; final = nullptr; }
+    void enqueue(T x);
+    T    dequeue();
+    T    front() { return frente-&gt;dato; }
+    bool empty() { return frente == nullptr; }
+};
+      </code></pre>
+      <ul>
+        <li class="fragment">Con solo <code>frente</code>, formarse al final obliga a recorrer toda la fila: O(n). Con <code>final</code> es O(1), a cambio de mantener un puntero más al día.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 7.3 ENQUEUE ============ -->
+    <section>
+      <span class="kicker">7.3 · Filas</span>
+      <h2><code>enqueue</code>: formarse al final</h2>
+      <pre data-title="fila.hpp"><code class="language-cpp" data-trim data-line-numbers="1-9|3-4|5-6|8">
+void enqueue(T x) {
+    Nodo* nuevo = new Nodo(x);
+    if (final == nullptr) {       // fila vacia: es el primero y el ultimo
+        frente = nuevo;
+    } else {
+        final-&gt;next = nuevo;      // el ultimo apunta al que llega
+    }
+    final = nuevo;
+}
+      </code></pre>
+      <p class="fragment">Si la fila está vacía, <code>final-&gt;next</code> leería un <code>nullptr</code>. Por eso el primer elemento se trata aparte: tiene que quedar como frente y como final.</p>
+    </section>
+
+    <!-- ============ 7.3 DEQUEUE ============ -->
+    <section>
+      <span class="kicker">7.3 · Filas</span>
+      <h2><code>dequeue</code>: atender al de adelante</h2>
+      <pre data-title="fila.hpp"><code class="language-cpp" data-trim data-line-numbers="1-11|5|6-8">
+T dequeue() {
+    if (empty()) return T();      // nadie formado
+    Nodo* victima = frente;
+    T x = victima-&gt;dato;
+    frente = frente-&gt;next;
+    if (frente == nullptr) {      // se fue el ultimo de la fila
+        final = nullptr;
+    }
+    delete victima;
+    return x;
+}
+      </code></pre>
+      <p class="fragment">Es el <code>pop</code> de la pila con una línea más: si la fila quedó vacía, <code>final</code> todavía apunta al nodo que se va a liberar.</p>
+    </section>
+
+    <!-- ============ 7.3 ANIMACIÓN ============ -->
+    <section>
+      <span class="kicker">7.3 · Filas</span>
+      <h2>La fila, nodo por nodo</h2>
+      <div class="sim-particion sim-lista" data-alg="fila-ops"></div>
+    </section>
+
+    <!-- ============ QUIZ 2 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="b">
+        <p class="quiz-question">Un equipo quitó de <code>dequeue</code> las líneas <code>if (frente == nullptr) final = nullptr;</code>. ¿Qué secuencia lo hace fallar?</p>
+        <button class="quiz-option" data-opt="a"><code>enqueue(1); enqueue(2); dequeue();</code></button>
+        <button class="quiz-option" data-opt="b"><code>enqueue(1); dequeue(); enqueue(2);</code></button>
+        <button class="quiz-option" data-opt="c"><code>enqueue(1); enqueue(2); enqueue(3);</code></button>
+        <div class="quiz-explain">
+          <strong>B.</strong> Al sacar el 1 la fila queda vacía, pero <code>final</code> sigue apuntando al nodo
+          liberado. El siguiente <code>enqueue</code> ve <code>final != nullptr</code> y escribe
+          <code>final-&gt;next</code> en memoria liberada; además <code>frente</code> se queda en
+          <code>nullptr</code> y el 2 nunca se atiende. En la A y la C la fila nunca se vacía. Es el caso
+          límite "vaciar y volver a usar" de la sesión 13.
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ DIVIDER VARIANTES ============ -->
+    <section class="divider">
+      <h2>Otras variantes</h2>
+    </section>
+
+    <!-- ============ VARIANTES: FILA CIRCULAR PROBLEMA ============ -->
+    <section>
+      <span class="kicker">7.3 · Fila circular</span>
+      <h2>La fila sobre un arreglo</h2>
+      <ul>
+        <li class="fragment">Sin nodos: los elementos van en un arreglo y dos índices marcan el frente y el final.</li>
+        <li class="fragment">Si <code>dequeue</code> recorre a todos una casilla hacia adelante, cada salida cuesta O(n).</li>
+        <li class="fragment">Si solo avanza el índice del frente, las casillas del principio quedan vacías y sin usar: la fila "se llena" con espacio libre.</li>
+      </ul>
+      <p class="fragment box-key">La solución es dejar que los índices den la vuelta: al pasar de la última casilla regresan a la 0. El arreglo se usa como un anillo.</p>
+    </section>
+
+    <!-- ============ VARIANTES: ANILLO ============ -->
+    <section>
+      <span class="kicker">7.3 · Fila circular</span>
+      <h2>Los índices giran, los datos no se mueven</h2>
+      <svg viewBox="0 0 1100 420" style="width:100%; max-height:420px;">
+        <g class="anim-step" data-step="1">
+          <text class="svg-label" x="30" y="70" style="font-size:22px;">1. enqueue A, B, C</text>
+        </g>
+        <g class="anim-step" data-step="2">
+          <text class="svg-label" x="30" y="110" style="font-size:22px;">2. dequeue → sale A</text>
+        </g>
+        <g class="anim-step" data-step="3">
+          <text class="svg-label" x="30" y="150" style="font-size:22px;">3. fin da la vuelta: (fin + 1) % 8</text>
+        </g>
+        <g class="anim-step" data-step="4">
+          <text class="svg-label" x="30" y="190" style="font-size:22px;">4. la celda de A se reutiliza</text>
+        </g>
+        <rect class="svg-node" x="665" y="185" width="70" height="50" rx="8"/>
+        <text class="svg-label" x="673" y="203" style="font-size:16px;">0</text>
+        <rect class="svg-node" x="621" y="291" width="70" height="50" rx="8"/>
+        <text class="svg-label" x="629" y="309" style="font-size:16px;">1</text>
+        <rect class="svg-node" x="515" y="335" width="70" height="50" rx="8"/>
+        <text class="svg-label" x="523" y="353" style="font-size:16px;">2</text>
+        <rect class="svg-node" x="409" y="291" width="70" height="50" rx="8"/>
+        <text class="svg-label" x="417" y="309" style="font-size:16px;">3</text>
+        <rect class="svg-node" x="365" y="185" width="70" height="50" rx="8"/>
+        <text class="svg-label" x="373" y="203" style="font-size:16px;">4</text>
+        <rect class="svg-node" x="409" y="79" width="70" height="50" rx="8"/>
+        <text class="svg-label" x="417" y="97" style="font-size:16px;">5</text>
+        <rect class="svg-node" x="515" y="35" width="70" height="50" rx="8"/>
+        <text class="svg-label" x="523" y="53" style="font-size:16px;">6</text>
+        <rect class="svg-node" x="621" y="79" width="70" height="50" rx="8"/>
+        <text class="svg-label" x="629" y="97" style="font-size:16px;">7</text>
+        <g class="anim-step" data-step="1" data-step-off="2">
+          <text class="svg-label" x="700" y="218" text-anchor="middle" style="font-weight:700;">A</text>
+        </g>
+        <g class="anim-step" data-step="1">
+          <text class="svg-label" x="656" y="324" text-anchor="middle" style="font-weight:700;">B</text>
+          <text class="svg-label" x="550" y="368" text-anchor="middle" style="font-weight:700;">C</text>
+        </g>
+        <g class="anim-step" data-step="1" data-step-off="2">
+          <text x="633" y="216" text-anchor="middle" style="font-size:20px; font-weight:700;" class="f-accent">frente</text>
+        </g>
+        <g class="anim-step" data-step="1" data-step-off="3">
+          <text x="487" y="282" text-anchor="middle" style="font-size:20px; font-weight:700;" class="f-ink">fin</text>
+        </g>
+        <g class="anim-step" data-step="2">
+          <text x="617" y="282" text-anchor="middle" style="font-size:20px; font-weight:700;" class="f-accent">frente</text>
+        </g>
+        <g class="anim-step" data-step="3">
+          <text class="svg-label" x="444" y="324" text-anchor="middle" style="font-weight:700;">D</text>
+          <text class="svg-label" x="400" y="218" text-anchor="middle" style="font-weight:700;">E</text>
+          <text class="svg-label" x="444" y="112" text-anchor="middle" style="font-weight:700;">F</text>
+          <text class="svg-label" x="550" y="68" text-anchor="middle" style="font-weight:700;">G</text>
+          <text class="svg-label" x="656" y="112" text-anchor="middle" style="font-weight:700;">H</text>
+        </g>
+        <g class="anim-step" data-step="3" data-step-off="4">
+          <text x="633" y="216" text-anchor="middle" style="font-size:20px; font-weight:700;" class="f-ink">fin</text>
+        </g>
+        <g class="anim-step" data-step="4">
+          <rect class="svg-node-hl" x="665" y="185" width="70" height="50" rx="8"/>
+          <text class="svg-label" x="700" y="218" text-anchor="middle" style="font-weight:700;">I</text>
+          <text x="614" y="252" text-anchor="middle" style="font-size:20px; font-weight:700;" class="f-ink">fin</text>
+        </g>
+        <text x="800" y="360" style="font-size:22px; font-family:'JetBrains Mono',monospace;" class="f-ink-soft">posicion = indice % 8</text>
+      </svg>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+    </section>
+
+    <!-- ============ VARIANTES: CÓDIGO CIRCULAR ============ -->
+    <section>
+      <span class="kicker">7.3 · Fila circular</span>
+      <h2>La vuelta es un <code>%</code></h2>
+      <pre data-title="fila_circular.hpp"><code class="language-cpp" data-trim data-line-numbers="1-13|1-3|4-8|9-13">
+T   datos[8];
+int frente;                         // indice del primero
+int n;                              // cuantos hay: distingue vacia de llena
+void enqueue(T x) {                 // pre: n &lt; 8
+    int fin = (frente + n) % 8;     // la casilla libre, dando la vuelta
+    datos[fin] = x;
+    n++;
+}
+T dequeue() {                       // pre: n &gt; 0
+    T x = datos[frente];
+    frente = (frente + 1) % 8;
+    n--;
+    return x;
+}
+      </code></pre>
+    </section>
+
+    <!-- ============ VARIANTES: PRIORIZADA ============ -->
+    <section>
+      <span class="kicker">7.4 · Fila priorizada</span>
+      <h2>Urgencias: no pasa el que llegó primero</h2>
+      <ul>
+        <li class="fragment">En urgencias de un hospital, alguien con un infarto pasa antes que quien llegó hace una hora con un esguince.</li>
+        <li class="fragment">Cada elemento entra con una <strong>prioridad</strong>. <code>insert(x, prioridad)</code> agrega; <code>extractMax()</code> saca al de mayor prioridad, sin importar cuándo llegó.</li>
+        <li class="fragment">Con empates, lo usual es atender por orden de llegada.</li>
+      </ul>
+      <p class="fragment muted">Riesgo nuevo: si siempre llega algo más urgente, un elemento de prioridad baja puede no salir nunca.</p>
+    </section>
+
+    <!-- ============ VARIANTES: PRIORIZADA COSTOS ============ -->
+    <section>
+      <span class="kicker">7.4 · Fila priorizada</span>
+      <h2>Con listas, una de las dos operaciones cuesta</h2>
+      <table>
+        <thead><tr><th>Implementación</th><th><code>insert</code></th><th><code>extractMax</code></th></tr></thead>
+        <tbody>
+          <tr class="fragment"><td>Lista sin orden</td><td>O(1): al frente</td><td>O(n): buscar el mayor</td></tr>
+          <tr class="fragment"><td>Lista ordenada por prioridad</td><td>O(n): buscar su lugar</td><td>O(1): está al frente</td></tr>
+          <tr class="fragment"><td><span class="term" data-term="heap">Heap</span> binario</td><td>O(log n)</td><td>O(log n)</td></tr>
+        </tbody>
+      </table>
+      <p class="fragment">La lista ordenada es la variante de la sesión 12: cada inserción camina hasta su lugar. El heap reparte el costo entre las dos operaciones; se implementa en la sesión 18.</p>
+    </section>
+
+    <!-- ============ QUIZ 3 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="c">
+        <p class="quiz-question">Implementas la fila priorizada como lista ordenada. Un compañero dice: "las dos operaciones son O(1): insertar al frente y sacar del frente". ¿Qué está mal?</p>
+        <button class="quiz-option" data-opt="a">Nada: con la lista ordenada las dos son O(1).</button>
+        <button class="quiz-option" data-opt="b">Sacar del frente de una lista es O(n), porque hay que recorrer a los demás.</button>
+        <button class="quiz-option" data-opt="c">Insertar al frente rompe el orden: hay que caminar hasta el lugar que le corresponde, y eso es O(n).</button>
+        <div class="quiz-explain">
+          <strong>C.</strong> Sacar el mayor es O(1) porque la lista está ordenada, y mantenerla ordenada
+          obliga a buscar el lugar de cada elemento nuevo. La B confunde lista con arreglo: quitar la cabeza
+          de una lista es cambiar un puntero.
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ VARIANTES: DEQUE ============ -->
+    <section>
+      <span class="kicker">7.5 · Deque</span>
+      <h2>Deque: los dos extremos abiertos</h2>
+      <ul>
+        <li class="fragment"><code>pushFront</code>, <code>pushBack</code>, <code>popFront</code> y <code>popBack</code>: se entra y se sale por los dos lados.</li>
+        <li class="fragment">Con la lista simple de la fila, <code>popBack</code> no es O(1): para quitar el último hay que encontrar al penúltimo, y eso obliga a recorrer.</li>
+        <li class="fragment">Con la <strong>lista doble</strong> de la sesión 12, el último conoce a su anterior por <code>prev</code>. Las cuatro operaciones quedan en O(1).</li>
+      </ul>
+      <p class="fragment muted">Un <span class="term" data-term="deque">deque</span> es la versión menos restringida: si solo se usa un extremo se comporta como pila, y si se entra por uno y se sale por el otro, como fila.</p>
+    </section>
+
+    <!-- ============ RESUMEN ============ -->
+    <section>
+      <span class="kicker">Resumen</span>
+      <h2>Una lista, distintas reglas</h2>
+      <table>
+        <thead><tr><th>Estructura</th><th>Entra por</th><th>Sale por</th><th>Sobre qué lista</th></tr></thead>
+        <tbody>
+          <tr class="fragment"><td>Pila</td><td>arriba</td><td>arriba</td><td>simple, solo <code>tope</code></td></tr>
+          <tr class="fragment"><td>Fila</td><td>el final</td><td>el frente</td><td>simple, <code>frente</code> y <code>final</code></td></tr>
+          <tr class="fragment"><td>Deque</td><td>los dos lados</td><td>los dos lados</td><td>doble</td></tr>
+          <tr class="fragment"><td>Fila priorizada</td><td>según su prioridad</td><td>el más prioritario</td><td>ordenada (o heap)</td></tr>
+        </tbody>
+      </table>
+      <p class="fragment">Para elegir, se pregunta en qué orden necesita el problema atender los datos: el más reciente, el más antiguo o el más importante.</p>
+    </section>
+
+    <!-- ============ RETO EN PAREJAS ============ -->
+    <section>
+      <span class="kicker">Reto en parejas</span>
+      <h2>Pila monotónica y deque</h2>
+      <div class="cols">
+        <div>
+          <h3>Media</h3>
+          <p><a href="https://leetcode.com/problems/daily-temperatures/">LC 739 — Daily Temperatures</a></p>
+          <p class="muted">Introduce la <span class="term" data-term="monotonica">pila monotónica</span>: cada elemento entra y sale a lo más una vez.</p>
+        </div>
+        <div>
+          <h3>Alta</h3>
+          <p><a href="https://leetcode.com/problems/sliding-window-maximum/">LC 239 — Sliding Window Maximum</a></p>
+          <p class="muted">Un deque que guarda candidatos a máximo: los vencidos salen por adelante y los que ya no pueden ganar, por atrás.</p>
+        </div>
+      </div>
+      <ul>
+        <li class="fragment">Driver y navigator; los roles rotan entre problemas.</li>
+        <li class="fragment">Casos de prueba en el enunciado; se corren localmente.</li>
+      </ul>
+    </section>
+
+    <!-- ============ PRÓXIMA SESIÓN ============ -->
+    <section class="divider">
+      <h2>Próxima sesión:<br>Act 2.3 — Integradora del bloque</h2>
+      <p class="muted">Laboratorio sin internet: enunciado y entrega por USB, documentación offline y apuntes en papel permitidos.</p>
+    </section>
+
+    <!-- ============ DIVIDER MATERIAL EXTRA ============ -->
+    <section class="divider">
+      <h2>Material extra · autoestudio</h2>
+      <p class="muted">No se cubre en clase: la STL del tema y su conexión con sistemas de IA.</p>
+    </section>
+
+    <!-- ============ POR QUÉ IMPORTA HOY ============ -->
+    <section>
+      <span class="kicker kicker-ai">Por qué importa hoy</span>
+      <h2>Un servidor de inferencia es un problema de filas</h2>
+      <div class="box-ai" data-label="Dónde vive esto en sistemas de IA">
+        <ul>
+          <li class="fragment">Las peticiones a un LLM entran a una fila y se agrupan en lotes para aprovechar la GPU.</li>
+          <li class="fragment">Una petición de chat de 20 ms que queda detrás de un trabajo por lotes de una hora espera una hora. Por eso las interactivas van en una fila priorizada.</li>
+          <li class="fragment">La caché KV del modelo se vacía con una política, FIFO o LRU, que es una decisión de estructura de datos con efecto directo en la latencia.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============ STL ADAPTADORES ============ -->
+    <section>
+      <span class="kicker">STL</span>
+      <h2><code>stack</code>, <code>queue</code> y <code>priority_queue</code> son adaptadores</h2>
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-3|5-6">
+stack&lt;int&gt; s;            // push, pop, top, empty
+queue&lt;int&gt; q;            // push, pop, front, back, empty
+priority_queue&lt;int&gt; pq;  // push, pop, top: sale el mayor
+
+stack&lt;int, vector&lt;int&gt;&gt; s2;   // la misma pila, guardada
+                              // en un vector por dentro
+      </code></pre>
+      <ul>
+        <li class="fragment">Un <span class="term" data-term="adaptador">adaptador</span> no guarda nada por sí mismo: envuelve a otro contenedor (por defecto <code>deque</code>) y solo deja visibles las operaciones de su disciplina.</li>
+        <li class="fragment">Es la idea de hoy hecha biblioteca: la restricción va afuera y el almacenamiento de adentro se puede cambiar.</li>
+      </ul>
+    </section>
+
+    <!-- ============ STL DEQUE ============ -->
+    <section>
+      <span class="kicker">STL</span>
+      <h2><code>std::deque</code> sí es un <span class="term" data-term="contenedor">contenedor</span></h2>
+      <ul>
+        <li class="fragment">Guarda los datos en bloques de tamaño fijo más un índice de bloques.</li>
+        <li class="fragment">Permite <code>d[i]</code> en O(1), y agregar o quitar en los dos extremos en O(1) <span class="term" data-term="amortizado">amortizado</span>.</li>
+        <li class="fragment">Agregar por los extremos no mueve los elementos que ya estaban, a diferencia de <code>vector</code> cuando crece.</li>
+      </ul>
+      <p class="fragment muted">Por eso es el contenedor por defecto de <code>stack</code> y <code>queue</code>.</p>
+    </section>
+
+    <!-- ============ QUIZ 4 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="b">
+        <p class="quiz-question">¿Qué es <code>std::stack</code> en la STL?</p>
+        <button class="quiz-option" data-opt="a">Un contenedor con su propio arreglo, optimizado para LIFO.</button>
+        <button class="quiz-option" data-opt="b">Un adaptador: guarda los datos en otro contenedor (por defecto <code>deque</code>) y solo restringe la interfaz.</button>
+        <button class="quiz-option" data-opt="c">Otro nombre de <code>std::vector</code> con los métodos renombrados.</button>
+        <div class="quiz-explain">
+          <strong>B.</strong> <code>std::stack</code> envuelve un contenedor y expone solo <code>push</code>,
+          <code>pop</code> y <code>top</code>, como la clase <code>Pila</code> de hoy. Por eso se puede montar
+          sobre <code>vector</code>, <code>deque</code> o <code>list</code> sin cambiar el código que la usa.
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ REFERENCIAS ============ -->
+    <section>
+      <span class="kicker">Sesión 14</span>
+      <h2>Referencias y material para profundizar</h2>
+      <div class="refs cols">
+        <div>
+          <h3>Referencias</h3>
+          <ul>
+            <li><span class="ref-type">Libro</span> Weiss, M. A. <em>Data Structures and Algorithm Analysis in C++</em>, 4.ª ed., Pearson, 2014. Cap. 3 (pilas y filas).</li>
+            <li><span class="ref-type">Libro</span> Cormen, T. et al. <em>Introduction to Algorithms</em>, 4.ª ed., MIT Press, 2022. Cap. 10.</li>
+            <li><span class="ref-type">Libro</span> Sedgewick, R. y Wayne, K. <em>Algorithms</em>, 4.ª ed., Addison-Wesley, 2011. Sección 1.3.</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Para profundizar</h3>
+          <ul>
+            <li><span class="ref-type">Web</span> <a href="https://en.cppreference.com/w/cpp/container/stack">cppreference — std::stack</a> <span class="ref-nota">— el adaptador y su contenedor por defecto.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://en.cppreference.com/w/cpp/container/deque">cppreference — std::deque</a> <span class="ref-nota">— garantías de complejidad.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://en.cppreference.com/w/cpp/container/priority_queue">cppreference — std::priority_queue</a> <span class="ref-nota">— con comparador.</span></li>
+          </ul>
+        </div>
+      </div>
+      <p class="refs-ia">Nota: estas diapositivas fueron generadas usando inteligencia artificial, específicamente Claude (Anthropic).</p>
+    </section>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script src="../js/curso-slides.js"></script>
+<script>
+  Reveal.initialize({
+    width: 1280,
+    height: 720,
+    margin: 0.06,
+    hash: true,
+    progress: true,
+    slideNumber: 'c/t',
+    controls: true,
+    transition: 'slide',
+    transitionSpeed: 'fast',
+    plugins: [ RevealHighlight ]
+  }).then(() => {
+    CursoSlides.init({
+      lifo: {
+        titulo: "LIFO — Last In, First Out",
+        def: "Disciplina de acceso de la pila: el último elemento en entrar es el primero en salir. Solo el tope es visible; los demás esperan en orden inverso de llegada."
+      },
+      fifo: {
+        titulo: "FIFO — First In, First Out",
+        def: "Disciplina de acceso de la fila: el primero en entrar es el primero en salir. Los elementos salen en el mismo orden en que llegaron."
+      },
+      heap: {
+        titulo: "Heap binario (montículo)",
+        def: "Estructura que implementa la fila priorizada con <code>insert</code> y <code>extractMax</code> en O(log n). Se guarda en un arreglo y se organiza como un árbol; los árboles se estudian en la sesión 16 y el heap en la sesión 18. No confundir con el heap de memoria dinámica de la sesión 11."
+      },
+      deque: {
+        titulo: "Deque — double-ended queue",
+        def: "Estructura lineal en la que se puede agregar y quitar en los dos extremos en O(1): <code>pushFront</code>, <code>pushBack</code>, <code>popFront</code>, <code>popBack</code>. Con una lista doble, cada extremo conoce a su vecino."
+      },
+      monotonica: {
+        titulo: "Pila monotónica",
+        def: "Pila que mantiene sus elementos en orden creciente o decreciente: antes de apilar, se sacan los que romperían el orden. Cada elemento entra y sale a lo más una vez, así que procesar n elementos cuesta O(n) en total."
+      },
+      adaptador: {
+        titulo: "Adaptador de contenedor",
+        def: "Clase que no guarda elementos por sí misma: envuelve a otro contenedor y restringe su interfaz a una disciplina de acceso. <code>stack</code>, <code>queue</code> y <code>priority_queue</code> son adaptadores; <code>vector</code>, <code>list</code> y <code>deque</code> son contenedores."
+      },
+      contenedor: {
+        titulo: "Contenedor",
+        def: "Clase de la STL que guarda elementos y administra su memoria: los crea, los almacena y los libera. <code>vector</code>, <code>list</code> y <code>deque</code> son contenedores. Un adaptador como <code>stack</code> no guarda nada por sí mismo: usa un contenedor por dentro y solo deja visibles algunas de sus operaciones."
+      },
+      amortizado: {
+        titulo: "Costo amortizado",
+        def: "Promedio del costo por operación sobre una secuencia larga: una operación aislada puede ser cara (cuando el deque agrega un bloque nuevo), pero el promedio sobre n operaciones queda en O(1)."
+      }
+    });
+  });
+</script>
+</body>
+</html>

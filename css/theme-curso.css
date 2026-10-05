@@ -373,6 +373,10 @@
 }
 .reveal .quiz-option:hover:not(:disabled) { border-color: var(--c-accent); }
 
+.reveal .quiz-option .opt-texto { flex: 1 1 auto; min-width: 0; line-height: 1.4; }
+/* El código del quiz no se parte: el navegador corta "->" en el guion. */
+.reveal .quiz code { white-space: nowrap; }
+
 .reveal .quiz-option .opt-letter {
   flex: none;
   width: 1.6em; height: 1.6em;
@@ -1054,4 +1058,13 @@
   .reveal .solucion-toggle { display: none; }
   .reveal .sim-ctrl { display: none; }
   .theme-toggle { display: none; }
+}
+
+/* ---------- Código sin ligaduras ----------
+   JetBrains Mono dibuja "->" como una sola flecha. En un curso que enseña el
+   operador -> eso confunde, así que se ve siempre como dos caracteres. */
+.reveal code, .reveal pre, .reveal .sim-codigo, .reveal .sim-test, .reveal .sim-chip,
+.reveal .sim-dice code, .glossary-card code, .reveal svg text {
+  font-variant-ligatures: none;
+  font-feature-settings: "liga" 0, "calt" 0;
 }

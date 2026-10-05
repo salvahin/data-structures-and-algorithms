@@ -24,6 +24,7 @@ Cada deck es un `index.html` autocontenido hecho con [reveal.js](https://revealj
 | `sesion-11/` | S11 — Memoria dinámica y apuntadores |
 | `sesion-12/` | S12 — Listas encadenadas y el ADT LinkedList |
 | `sesion-13/` | S13 — Pruebas: assert y casos límite |
+| `sesion-14/` | S14 — Pilas y filas: listas con restricciones |
 | `taller-01-two-pointers/` | T1 — Patrones de LeetCode: two pointers |
 
 El resto de las sesiones se publica conforme avanza el semestre.
