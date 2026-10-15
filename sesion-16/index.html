@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sesión 16 — Árboles binarios de búsqueda y AVL</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+  <script>try{if(localStorage.getItem("curso-tema")==="dark"&&!/print-pdf/i.test(location.search))document.documentElement.dataset.theme="dark"}catch(e){}</script>
+  <link rel="stylesheet" href="../css/theme-curso.css">
+</head>
+<body>
+<div class="reveal">
+  <div class="slides">
+
+    <!-- ============ PORTADA ============ -->
+    <section class="cover">
+      <span class="kicker">Estructuras de Datos y Algoritmos · Bloque 3</span>
+      <h1>Árboles binarios de búsqueda y&nbsp;AVL</h1>
+      <div class="cover-meta">
+        Sesión 16 · Semana 9<br>
+        Salvador Hinojosa
+      </div>
+    </section>
+
+    <!-- ============ OBJETIVO ============ -->
+    <section>
+      <span class="kicker">Objetivo de hoy</span>
+      <h2>Al salir de esta sesión podrás…</h2>
+      <ul>
+        <li class="fragment">Usar la terminología de árboles (raíz, hoja, altura, profundidad, grado) y relacionar la altura con el número de nodos.</li>
+        <li class="fragment">Implementar <code>add</code>, <code>search</code> y <code>erase</code> en un <span class="term" data-term="bst">BST</span> y justificar su costo O(h).</li>
+        <li class="fragment">Explicar por qué el recorrido inorden de un BST produce las claves ordenadas.</li>
+        <li class="fragment">Reconocer el BST degenerado y explicar cómo las rotaciones del <span class="term" data-term="avl">AVL</span> garantizan O(log n).</li>
+      </ul>
+    </section>
+
+    <!-- ============ DIVIDER 8.1 ============ -->
+    <section class="divider">
+      <h2>8.1 Árboles:<br>terminología</h2>
+    </section>
+
+    <!-- ============ 8.1 TERMINOLOGÍA ============ -->
+    <section>
+      <span class="kicker">8.1 · Terminología</span>
+      <h2>Las palabras del bloque</h2>
+      <div class="cols">
+        <ul style="font-size:0.85em;">
+          <li><strong>Raíz</strong>: el único nodo sin padre.</li>
+          <li><strong>Hoja</strong>: nodo sin hijos.</li>
+          <li><strong>Grado</strong>: número de hijos de un nodo (en un árbol binario, a lo más 2).</li>
+          <li><strong>Profundidad</strong> de un nodo: aristas desde la raíz hasta él.</li>
+          <li><strong>Altura</strong> del árbol: profundidad máxima de sus hojas.</li>
+        </ul>
+        <svg viewBox="0 0 460 360" style="width:100%; max-height:360px;">
+          <path class="svg-edge" d="M 230 60 L 130 170"/>
+          <path class="svg-edge" d="M 230 60 L 330 170"/>
+          <path class="svg-edge" d="M 130 170 L 80 280"/>
+          <path class="svg-edge" d="M 130 170 L 180 280"/>
+          <circle class="svg-node" cx="230" cy="60" r="30"/>
+          <circle class="svg-node" cx="130" cy="170" r="30"/>
+          <circle class="svg-node" cx="330" cy="170" r="30"/>
+          <circle class="svg-node" cx="80" cy="280" r="30"/>
+          <circle class="svg-node" cx="180" cy="280" r="30"/>
+          <text class="svg-label" x="300" y="45">raíz · prof. 0</text>
+          <text class="svg-label" x="370" y="175" style="font-size:22px;">hoja · prof. 1</text>
+          <text class="svg-label" x="220" y="290" style="font-size:22px;">hojas · prof. 2</text>
+          <text class="svg-label" x="20" y="340" style="font-size:22px;">altura del árbol: 2</text>
+        </svg>
+      </div>
+    </section>
+
+    <!-- ============ 8.1 ALTURA VS NODOS ============ -->
+    <section>
+      <span class="kicker">8.1 · Altura y número de nodos</span>
+      <h2>Cuánto cabe en una altura h</h2>
+      <ul>
+        <li class="fragment">Un árbol binario de altura h tiene a lo más <strong>2<sup>h+1</sup> − 1</strong> nodos: cada nivel duplica al anterior.</li>
+        <li class="fragment">Al revés: para guardar n nodos se necesita altura al menos <strong>⌈log₂(n+1)⌉ − 1</strong>.</li>
+        <li class="fragment">Con un millón de nodos: altura mínima <strong>19</strong> si el árbol está lleno; altura <strong>999&nbsp;999</strong> si es una cadena.</li>
+      </ul>
+      <p class="fragment box-key">Las operaciones de hoy cuestan O(h). Todo el bloque consiste en mantener h cerca de log n.</p>
+    </section>
+
+    <!-- ============ QUIZ 1 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="b">
+        <p class="quiz-question">Un árbol binario lleno (todos los niveles completos) tiene 1023 nodos. ¿Cuál es su altura?</p>
+        <button class="quiz-option" data-opt="a">10, porque 2¹⁰ = 1024 y sobra un nodo.</button>
+        <button class="quiz-option" data-opt="b">9, porque 2¹⁰ − 1 = 1023: los niveles 0 a 9 están completos.</button>
+        <button class="quiz-option" data-opt="c">1022, porque en el peor caso el árbol es una cadena.</button>
+        <div class="quiz-explain">
+          <strong>B.</strong> Un árbol lleno de altura h tiene 2<sup>h+1</sup> − 1 nodos; con h = 9 son exactamente 1023.
+          La opción C describe el árbol degenerado, que existe, pero el enunciado dice que los niveles están completos.
+          Esta cuenta es la razón de que "balanceado" signifique "operaciones en O(log n)".
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ DIVIDER 8.1.1 ============ -->
+    <section class="divider">
+      <h2>8.1.1 Árbol binario<br>de búsqueda</h2>
+    </section>
+
+    <!-- ============ 8.1.1 INVARIANTE ============ -->
+    <section>
+      <span class="kicker">8.1.1 · BST</span>
+      <h2>El invariante de orden</h2>
+      <p>Un <span class="term" data-term="bst">BST</span> es un árbol binario donde, para <strong>cada</strong> nodo:</p>
+      <p class="box-key"><strong>Todas</strong> las claves del subárbol izquierdo &lt; clave del nodo &lt; <strong>todas</strong> las claves del subárbol derecho.</p>
+      <ul>
+        <li class="fragment">La condición abarca los descendientes completos, no solo a los dos hijos.</li>
+        <li class="fragment">El invariante permite buscar descartando un subárbol completo por comparación: el mismo principio de la búsqueda binaria de la sesión 6.</li>
+      </ul>
+      <p class="fragment muted">En la sesión 17 veremos un árbol que cumple la comparación con sus hijos y aun así viola el invariante.</p>
+    </section>
+
+    <!-- ============ 8.1.1 NODO EN C++ ============ -->
+    <section>
+      <span class="kicker">8.1.1.1 · Representación con nodos</span>
+      <h2>El nodo y la clase</h2>
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-14|1-6|8-14">
+template &lt;typename T&gt;
+struct Nodo {
+    T     dato;
+    Nodo* izq = nullptr;
+    Nodo* der = nullptr;
+};
+
+template &lt;typename T&gt;
+class BST {
+public:
+    void add(const T&amp; x) { raiz = add(raiz, x); }
+    bool search(const T&amp; x) const;
+private:
+    Nodo&lt;T&gt;* raiz = nullptr;
+};
+      </code></pre>
+      <p class="muted">La misma memoria dinámica de las listas encadenadas (sesión 11), con dos apuntadores por nodo en lugar de uno.</p>
+    </section>
+
+    <!-- ============ 8.1.1 SVG INSERTAR Y BUSCAR ============ -->
+    <section>
+      <span class="kicker">8.1.1.2 · Operaciones</span>
+      <h2>Insertar seis claves, buscar una</h2>
+      <svg viewBox="0 0 1100 420" style="width:100%; max-height:420px;">
+        <!-- nodos que aparecen por pasos -->
+        <g class="anim-step" data-step="1">
+          <circle class="svg-node" cx="550" cy="60" r="32"/>
+          <text class="svg-label" x="550" y="70" text-anchor="middle">50</text>
+        </g>
+        <g class="anim-step" data-step="2">
+          <path class="svg-edge" d="M 550 60 L 350 165"/>
+          <circle class="svg-node" cx="350" cy="165" r="32"/>
+          <text class="svg-label" x="350" y="175" text-anchor="middle">30</text>
+        </g>
+        <g class="anim-step" data-step="3">
+          <path class="svg-edge" d="M 550 60 L 750 165"/>
+          <circle class="svg-node" cx="750" cy="165" r="32"/>
+          <text class="svg-label" x="750" y="175" text-anchor="middle">70</text>
+        </g>
+        <g class="anim-step" data-step="4">
+          <path class="svg-edge" d="M 350 165 L 240 285"/>
+          <circle class="svg-node" cx="240" cy="285" r="32"/>
+          <text class="svg-label" x="240" y="295" text-anchor="middle">20</text>
+        </g>
+        <g class="anim-step" data-step="5">
+          <path class="svg-edge" d="M 750 165 L 650 285"/>
+          <circle class="svg-node" cx="650" cy="285" r="32"/>
+          <text class="svg-label" x="650" y="295" text-anchor="middle">60</text>
+        </g>
+        <g class="anim-step" data-step="6">
+          <path class="svg-edge" d="M 750 165 L 860 285"/>
+          <circle class="svg-node" cx="860" cy="285" r="32"/>
+          <text class="svg-label" x="860" y="295" text-anchor="middle">80</text>
+        </g>
+        <!-- búsqueda: camino resaltado -->
+        <g class="anim-step" data-step="7">
+          <circle class="svg-node-hl" cx="550" cy="60" r="32"/>
+          <text class="svg-label" x="550" y="70" text-anchor="middle">50</text>
+        </g>
+        <g class="anim-step" data-step="8">
+          <path d="M 550 60 L 750 165" stroke-width="7" fill="none" class="s-accent"/>
+          <circle class="svg-node-hl" cx="750" cy="165" r="32"/>
+          <text class="svg-label" x="750" y="175" text-anchor="middle">70</text>
+        </g>
+        <g class="anim-step" data-step="9">
+          <path d="M 750 165 L 650 285" stroke-width="7" fill="none" class="s-accent"/>
+          <circle class="svg-node-hl" cx="650" cy="285" r="32"/>
+          <text class="svg-label" x="650" y="295" text-anchor="middle">60</text>
+        </g>
+        <!-- anotaciones (una a la vez) -->
+        <g class="anim-step" data-step="1" data-step-off="2"><text class="svg-label" x="30" y="400">insert(50): árbol vacío → raíz</text></g>
+        <g class="anim-step" data-step="2" data-step-off="3"><text class="svg-label" x="30" y="400">insert(30): 30 &lt; 50 → izquierda</text></g>
+        <g class="anim-step" data-step="3" data-step-off="4"><text class="svg-label" x="30" y="400">insert(70): 70 &gt; 50 → derecha</text></g>
+        <g class="anim-step" data-step="4" data-step-off="5"><text class="svg-label" x="30" y="400">insert(20): 20 &lt; 50 → izq · 20 &lt; 30 → izq</text></g>
+        <g class="anim-step" data-step="5" data-step-off="6"><text class="svg-label" x="30" y="400">insert(60): 60 &gt; 50 → der · 60 &lt; 70 → izq</text></g>
+        <g class="anim-step" data-step="6" data-step-off="7"><text class="svg-label" x="30" y="400">insert(80): 80 &gt; 50 → der · 80 &gt; 70 → der</text></g>
+        <g class="anim-step" data-step="7" data-step-off="8"><text class="svg-label" x="30" y="400" style="fill:var(--c-accent);">search(60): 60 &gt; 50 → derecha</text></g>
+        <g class="anim-step" data-step="8" data-step-off="9"><text class="svg-label" x="30" y="400" style="fill:var(--c-accent);">search(60): 60 &lt; 70 → izquierda</text></g>
+        <g class="anim-step" data-step="9"><text class="svg-label" x="30" y="400" style="fill:var(--c-accent);">encontrado: 3 comparaciones = altura + 1</text></g>
+      </svg>
+      <span class="fragment" data-fragment-index="1"></span>
+      <span class="fragment" data-fragment-index="2"></span>
+      <span class="fragment" data-fragment-index="3"></span>
+      <span class="fragment" data-fragment-index="4"></span>
+      <span class="fragment" data-fragment-index="5"></span>
+      <span class="fragment" data-fragment-index="6"></span>
+      <span class="fragment" data-fragment-index="7"></span>
+      <span class="fragment" data-fragment-index="8"></span>
+      <span class="fragment" data-fragment-index="9"></span>
+    </section>
+
+    <!-- ============ 8.1.1 CÓDIGO ADD / SEARCH ============ -->
+    <section>
+      <span class="kicker">8.1.1.2 · Operaciones</span>
+      <h2><code>add</code> y <code>search</code> en código</h2>
+      <pre data-title="bst.hpp"><code class="language-cpp" data-trim data-line-numbers="1-17|1-7|9-17">
+Nodo&lt;T&gt;* add(Nodo&lt;T&gt;* n, const T&amp; x) {
+    if (!n) return new Nodo&lt;T&gt;{x};
+    if      (x &lt; n-&gt;dato) n-&gt;izq = add(n-&gt;izq, x);
+    else if (n-&gt;dato &lt; x) n-&gt;der = add(n-&gt;der, x);
+    return n;                     // duplicado: no se inserta
+}
+
+bool search(const T&amp; x) const {
+    Nodo&lt;T&gt;* n = raiz;
+    while (n) {
+        if      (x &lt; n-&gt;dato) n = n-&gt;izq;
+        else if (n-&gt;dato &lt; x) n = n-&gt;der;
+        else return true;         // ni menor ni mayor: es x
+    }
+    return false;
+}
+      </code></pre>
+      <p class="muted">Ambas siguen un solo camino raíz→hoja: a lo más h + 1 comparaciones.</p>
+    </section>
+
+    <!-- ============ QUIZ 2 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="b">
+        <p class="quiz-question">En un árbol binario, cada nodo es mayor que su hijo izquierdo y menor que su hijo derecho. ¿Es necesariamente un BST?</p>
+        <button class="quiz-option" data-opt="a">Sí: esa es exactamente la definición de BST.</button>
+        <button class="quiz-option" data-opt="b">No: el invariante exige la condición sobre todos los descendientes, y un nieto puede violar la cota de un ancestro.</button>
+        <button class="quiz-option" data-opt="c">Sí, siempre que además el árbol esté balanceado.</button>
+        <div class="quiz-explain">
+          <strong>B.</strong> Comparar solo con los hijos es el "check ingenuo": un nodo puede cumplirlo y tener,
+          por ejemplo, un 50 dentro del subárbol izquierdo de un 40. El balanceo (opción C) es independiente
+          del invariante de orden. En la sesión 17 construiremos el contraejemplo exacto.
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 8.1.1 ELIMINAR: TRES CASOS ============ -->
+    <section>
+      <span class="kicker">8.1.1.2 · Operaciones</span>
+      <h2>Eliminar: los tres casos</h2>
+      <ul>
+        <li class="fragment"><strong>Hoja.</strong> Se elimina el nodo y el padre apunta a <code>nullptr</code>.</li>
+        <li class="fragment"><strong>Un hijo.</strong> El hijo toma el lugar del nodo eliminado; el invariante se conserva porque todo el subárbol ya estaba del lado correcto.</li>
+        <li class="fragment"><strong>Dos hijos.</strong> Se copia en el nodo el <span class="term" data-term="sucesor">sucesor inorden</span> (el mínimo del subárbol derecho) y se elimina el sucesor de su posición original.</li>
+      </ul>
+      <p class="fragment muted">El sucesor no tiene hijo izquierdo (si lo tuviera, habría alguien menor), así que eliminarlo cae en los casos 1 o 2. La recursión termina.</p>
+    </section>
+
+    <!-- ============ 8.1.1 CÓDIGO ERASE ============ -->
+    <section>
+      <span class="kicker">8.1.1.2 · Operaciones</span>
+      <h2><code>erase</code> en código</h2>
+      <pre data-title="bst.hpp"><code class="language-cpp" data-trim data-line-numbers="1-16|6-10|11-14">
+Nodo&lt;T&gt;* erase(Nodo&lt;T&gt;* n, const T&amp; x) {
+    if (!n) return nullptr;
+    if      (x &lt; n-&gt;dato) n-&gt;izq = erase(n-&gt;izq, x);
+    else if (n-&gt;dato &lt; x) n-&gt;der = erase(n-&gt;der, x);
+    else {
+        if (!n-&gt;izq || !n-&gt;der) {        // hoja o un hijo
+            Nodo&lt;T&gt;* hijo = n-&gt;izq ? n-&gt;izq : n-&gt;der;
+            delete n;
+            return hijo;
+        }
+        Nodo&lt;T&gt;* s = minimo(n-&gt;der);     // dos hijos:
+        n-&gt;dato = s-&gt;dato;               // copiar el sucesor
+        n-&gt;der  = erase(n-&gt;der, s-&gt;dato);
+    }
+    return n;
+}
+      </code></pre>
+    </section>
+
+    <!-- ============ 8.1.1 COMPLEJIDAD ============ -->
+    <section>
+      <span class="kicker">8.1.1.2 · Complejidad</span>
+      <h2>Todo cuesta O(h)</h2>
+      <table>
+        <thead><tr><th>Operación</th><th>Costo</th><th>Por qué</th></tr></thead>
+        <tbody>
+          <tr class="fragment"><td><code>search</code></td><td>O(h)</td><td>un camino raíz→hoja</td></tr>
+          <tr class="fragment"><td><code>add</code></td><td>O(h)</td><td>baja hasta un <code>nullptr</code></td></tr>
+          <tr class="fragment"><td><code>erase</code></td><td>O(h)</td><td>camino + búsqueda del sucesor</td></tr>
+        </tbody>
+      </table>
+      <ul>
+        <li class="fragment">Árbol balanceado: h ≈ log₂ n → operaciones logarítmicas.</li>
+        <li class="fragment">Árbol degenerado: h = n − 1 → operaciones lineales, como en una lista.</li>
+      </ul>
+    </section>
+
+    <!-- ============ DIVIDER 8.1.1.3 ============ -->
+    <section class="divider">
+      <h2>8.1.1.3 Recorridos</h2>
+    </section>
+
+    <!-- ============ RECORRIDOS ============ -->
+    <section>
+      <span class="kicker">8.1.1.3 · Recorridos</span>
+      <h2>Cuatro maneras de visitar todo</h2>
+      <ul>
+        <li class="fragment"><strong>Preorden</strong> (raíz, izq, der): serializar o copiar el árbol — la raíz sale primero y al reconstruir llega primero.</li>
+        <li class="fragment"><strong><span class="term" data-term="inorden">Inorden</span></strong> (izq, raíz, der): en un BST produce las claves en orden ascendente.</li>
+        <li class="fragment"><strong>Postorden</strong> (izq, der, raíz): liberar memoria — los hijos se destruyen antes que el padre.</li>
+        <li class="fragment"><strong>Por niveles</strong>: una fila (sesión 14) en lugar de recursión; visita nivel por nivel.</li>
+      </ul>
+      <pre class="fragment"><code class="language-cpp" data-trim>
+void inorden(Nodo&lt;T&gt;* n) {
+    if (!n) return;
+    inorden(n-&gt;izq);   visitar(n-&gt;dato);   inorden(n-&gt;der);
+}
+      </code></pre>
+    </section>
+
+    <!-- ============ INORDEN ORDENADO ============ -->
+    <section>
+      <span class="kicker">8.1.1.3 · Recorridos</span>
+      <h2>Por qué el inorden de un BST sale ordenado</h2>
+      <ul>
+        <li class="fragment">Argumento por inducción sobre el tamaño del árbol: supongamos que el inorden de todo BST más pequeño sale ordenado.</li>
+        <li class="fragment">El inorden imprime: subárbol izquierdo (ordenado, y todas sus claves &lt; raíz), luego la raíz, luego el derecho (ordenado, y todas &gt; raíz).</li>
+        <li class="fragment">La concatenación de esos tres bloques queda ordenada. El paso usa el invariante completo — con la versión "solo hijos" el argumento se cae.</li>
+      </ul>
+      <p class="fragment muted">En un árbol binario sin invariante de orden, el inorden es una secuencia cualquiera.</p>
+    </section>
+
+    <!-- ============ QUIZ 3 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="b">
+        <p class="quiz-question">Vas a liberar con <code>delete</code> todos los nodos de un árbol. ¿Qué recorrido usas?</p>
+        <button class="quiz-option" data-opt="a">Preorden: la raíz se libera primero y el resto en cascada.</button>
+        <button class="quiz-option" data-opt="b">Postorden: cada nodo se libera después de sus dos hijos.</button>
+        <button class="quiz-option" data-opt="c">Inorden: al salir ordenado, garantiza no saltarse ningún nodo.</button>
+        <div class="quiz-explain">
+          <strong>B.</strong> Si liberas la raíz primero (preorden), pierdes los apuntadores <code>izq</code> y
+          <code>der</code> y ya no puedes llegar a los hijos: uso de memoria liberada. El postorden visita a los
+          hijos antes que al padre, que es el orden seguro de destrucción. Los tres recorridos visitan todos
+          los nodos; lo que cambia es el momento en que tocan cada uno.
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ DIVIDER 8.1.2 ============ -->
+    <section class="divider">
+      <h2>8.1.2 Árboles AVL</h2>
+    </section>
+
+    <!-- ============ DEGENERADO ============ -->
+    <section>
+      <span class="kicker">8.1.2 · El problema</span>
+      <h2>El BST degenerado</h2>
+      <div class="cols">
+        <ul style="font-size:0.9em;">
+          <li class="fragment">Insertar 10, 20, 30, 40… (claves ya ordenadas): cada nueva clave es la mayor y siempre va a la derecha.</li>
+          <li class="fragment">Resultado: una cadena de altura n − 1. <code>search</code> cuesta O(n), igual que en una lista.</li>
+          <li class="fragment">Es la respuesta a la pregunta de la sesión 1: 1000 valores ordenados → altura 999.</li>
+        </ul>
+        <svg viewBox="0 0 420 360" style="width:100%; max-height:360px;">
+          <path class="svg-edge" d="M 90 50 L 170 140"/>
+          <path class="svg-edge" d="M 170 140 L 250 230"/>
+          <path class="svg-edge" d="M 250 230 L 330 320"/>
+          <circle class="svg-node" cx="90" cy="50" r="30"/>
+          <circle class="svg-node" cx="170" cy="140" r="30"/>
+          <circle class="svg-node" cx="250" cy="230" r="30"/>
+          <circle class="svg-node" cx="330" cy="320" r="30"/>
+          <text class="svg-label" x="90" y="60" text-anchor="middle">10</text>
+          <text class="svg-label" x="170" y="150" text-anchor="middle">20</text>
+          <text class="svg-label" x="250" y="240" text-anchor="middle">30</text>
+          <text class="svg-label" x="330" y="330" text-anchor="middle">40</text>
+        </svg>
+      </div>
+    </section>
+
+    <!-- ============ FACTOR DE BALANCE ============ -->
+    <section>
+      <span class="kicker">8.1.2 · Árboles AVL</span>
+      <h2>Factor de balance</h2>
+      <ul>
+        <li class="fragment">FB(nodo) = altura(subárbol izquierdo) − altura(subárbol derecho).</li>
+        <li class="fragment">Un <span class="term" data-term="avl">AVL</span> mantiene |FB| ≤ 1 en <strong>todos</strong> los nodos, tras cada inserción y eliminación.</li>
+        <li class="fragment">Si una inserción deja algún FB en ±2, se restaura con una o dos rotaciones locales sobre el primer nodo desbalanceado del camino.</li>
+        <li class="fragment">Con esa regla, la altura queda acotada: h ≈ 1.44·log₂ n. Las operaciones O(h) pasan a ser O(log n) garantizado.</li>
+      </ul>
+    </section>
+
+    <!-- ============ SVG ROTACIÓN ============ -->
+    <section>
+      <span class="kicker">8.1.2 · Rotaciones</span>
+      <h2>Rotación simple, paso a paso</h2>
+      <svg viewBox="0 0 1100 420" style="width:100%; max-height:420px;">
+        <!-- árbol antes (siempre visible) -->
+        <path class="svg-edge" d="M 300 80 L 190 200"/>
+        <path class="svg-edge" d="M 190 200 L 80 320"/>
+        <circle class="svg-node" cx="300" cy="80" r="32"/>
+        <circle class="svg-node" cx="190" cy="200" r="32"/>
+        <circle class="svg-node" cx="80" cy="320" r="32"/>
+        <text class="svg-label" x="300" y="90" text-anchor="middle">30</text>
+        <text class="svg-label" x="190" y="210" text-anchor="middle">20</text>
+        <text class="svg-label" x="80" y="330" text-anchor="middle">10</text>
+        <!-- paso 1: factores de balance -->
+        <g class="anim-step" data-step="1">
+          <text class="svg-label" x="345" y="70" style="fill:var(--c-err);">FB = +2</text>
+          <text class="svg-label" x="235" y="190" style="fill:var(--c-ink-soft);">FB = +1</text>
+          <text class="svg-label" x="125" y="310" style="fill:var(--c-ink-soft);">FB = 0</text>
+        </g>
+        <!-- paso 2: nodo desbalanceado -->
+        <g class="anim-step" data-step="2">
+          <circle cx="300" cy="80" r="42" fill="none" stroke-width="5" class="s-err"/>
+          <text class="svg-label" x="30" y="400" style="fill:var(--c-err);">insert(10) desbalancea a 30: caso izquierda-izquierda</text>
+        </g>
+        <!-- paso 3: resultado -->
+        <g class="anim-step" data-step="3">
+          <path class="svg-edge" d="M 480 200 L 610 200" marker-end="url(#flecha16)"/>
+          <path class="svg-edge" d="M 810 110 L 700 230"/>
+          <path class="svg-edge" d="M 810 110 L 920 230"/>
+          <circle class="svg-node-hl" cx="810" cy="110" r="32"/>
+          <circle class="svg-node" cx="700" cy="230" r="32"/>
+          <circle class="svg-node" cx="920" cy="230" r="32"/>
+          <text class="svg-label" x="810" y="120" text-anchor="middle">20</text>
+          <text class="svg-label" x="700" y="240" text-anchor="middle">10</text>
+          <text class="svg-label" x="920" y="240" text-anchor="middle">30</text>
+          <text class="svg-label" x="655" y="300" style="fill:var(--c-ink-soft);">FB = 0 en los tres nodos</text>
+          <text class="svg-label" x="480" y="180" style="fill:var(--c-ink-soft);">rotación a la derecha</text>
+        </g>
+        <defs>
+          <marker id="flecha16" markerWidth="10" markerHeight="10" refX="8" refY="4" orient="auto">
+            <path d="M0,0 L8,4 L0,8 z" class="f-ink"/>
+          </marker>
+        </defs>
+      </svg>
+      <span class="fragment" data-fragment-index="1"></span>
+      <span class="fragment" data-fragment-index="2"></span>
+      <span class="fragment" data-fragment-index="3"></span>
+      <p class="fragment muted">La rotación conserva el inorden (10, 20, 30 antes y después) y reduce la altura en 1.</p>
+    </section>
+
+    <!-- ============ CUATRO CASOS ============ -->
+    <section>
+      <span class="kicker">8.1.2 · Rotaciones</span>
+      <h2>Los cuatro casos de desbalance</h2>
+      <table>
+        <thead><tr><th>Caso</th><th>Dónde quedó el peso</th><th>Arreglo</th></tr></thead>
+        <tbody>
+          <tr class="fragment"><td>II</td><td>izquierda-izquierda</td><td>rotación simple a la derecha</td></tr>
+          <tr class="fragment"><td>DD</td><td>derecha-derecha</td><td>rotación simple a la izquierda</td></tr>
+          <tr class="fragment"><td>ID</td><td>izquierda-derecha</td><td>doble: izquierda sobre el hijo, luego derecha</td></tr>
+          <tr class="fragment"><td>DI</td><td>derecha-izquierda</td><td>doble: derecha sobre el hijo, luego izquierda</td></tr>
+        </tbody>
+      </table>
+      <p class="fragment">Los casos dobles (el "zig-zag" de la demo de la sesión 1) aparecen cuando una rotación simple dejaría el peso del mismo lado: la primera rotación convierte el caso en II o DD.</p>
+    </section>
+
+    <!-- ============ QUIZ 4 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="b">
+        <p class="quiz-question">¿Cuánto cuesta <code>search</code> en un BST de n nodos, en el peor caso?</p>
+        <button class="quiz-option" data-opt="a">O(log n): cada comparación descarta la mitad de las claves.</button>
+        <button class="quiz-option" data-opt="b">O(n): el costo real es O(h), y en un árbol degenerado h = n − 1.</button>
+        <button class="quiz-option" data-opt="c">O(1) en promedio, porque las claves se reparten entre dos subárboles.</button>
+        <div class="quiz-explain">
+          <strong>B.</strong> "Cada comparación descarta la mitad" solo vale si los subárboles tienen tamaños
+          parecidos, y el invariante BST no lo garantiza: insertar claves ordenadas produce una cadena.
+          La cota honesta es O(h). El AVL existe precisamente para forzar h = O(log n) y volver cierta la opción A.
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ RETO EN PAREJAS ============ -->
+    <section>
+      <span class="kicker">Reto en parejas · Cierre</span>
+      <h2>Para el cierre de hoy</h2>
+      <ul>
+        <li class="fragment"><strong>LC 98 — Validate Binary Search Tree</strong> [Media]. El check que parece obvio está mal; el quiz de hoy es la pista completa.</li>
+        <li class="fragment"><strong>LC 297 — Serialize and Deserialize Binary Tree</strong> [Alta]. Hay que elegir un recorrido y sostenerlo en las dos direcciones.</li>
+        <li class="fragment">Casos de prueba incluidos en el enunciado. Entrega al LMS antes de la sesión 17; se registra completado / no completado.</li>
+      </ul>
+    </section>
+
+    <!-- ============ PRÓXIMA SESIÓN ============ -->
+    <section class="divider">
+      <h2>Próxima sesión:<br>Act 3.1 — Operaciones avanzadas en un BST</h2>
+      <p class="muted">Trabajo individual en clase sobre el BST de hoy. Recuerda subir el reto (LC 98 / LC 297) al LMS antes de la sesión.</p>
+    </section>
+
+    <!-- ============ DIVIDER MATERIAL EXTRA ============ -->
+    <section class="divider">
+      <h2>Material extra · autoestudio</h2>
+      <p class="muted">No se cubre en clase: la STL del tema y su conexión con sistemas de IA.</p>
+    </section>
+
+    <!-- ============ POR QUÉ IMPORTA HOY ============ -->
+    <section>
+      <span class="kicker kicker-ai">Por qué importa hoy</span>
+      <h2>Árboles en los sistemas que usas</h2>
+      <div class="box-ai" data-label="Dónde vive esto en sistemas de IA">
+        <ul>
+          <li class="fragment">Los <strong>árboles de decisión</strong> y los bosques aleatorios siguen siendo la referencia difícil de batir en datos tabulares (Grinsztajn et al., 2022). Tienen forma de árbol binario, pero sin invariante de orden sobre una clave: cada nodo divide por un atributo distinto aprendido de los datos.</li>
+          <li class="fragment">Los índices de las bases de datos son <span class="term" data-term="btree">B-trees</span>: árboles de búsqueda balanceados, emparentados con el <span class="term" data-term="rojonegro">rojo-negro</span> más que con el AVL.</li>
+          <li class="fragment">Cuando filtras por rango en una base vectorial ("solo documentos de 2024 en adelante"), esa parte de la consulta corre sobre un árbol ordenado.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============ CIERRE STL 1 ============ -->
+    <section>
+      <span class="kicker">STL</span>
+      <h2><code>std::map</code> y <code>std::set</code>: árboles balanceados</h2>
+      <table>
+        <thead><tr><th>Qué</th><th>Garantía</th></tr></thead>
+        <tbody>
+          <tr class="fragment"><td><code>insert</code> / <code>find</code> / <code>erase</code></td><td>O(log n) garantizado por el estándar</td></tr>
+          <tr class="fragment"><td>Recorrer el contenedor</td><td>claves en orden, sin costo extra</td></tr>
+          <tr class="fragment"><td><code>lower_bound</code> / <code>upper_bound</code></td><td>consultas por rango en O(log n)</td></tr>
+          <tr class="fragment"><td><code>std::multimap</code> / <code>multiset</code></td><td>claves repetidas</td></tr>
+        </tbody>
+      </table>
+      <p class="fragment">La implementación típica es un árbol <span class="term" data-term="rojonegro">rojo-negro</span>. Contraste del curso: <code>std::map</code> mantiene orden; <code>std::unordered_map</code> es más rápido en promedio y no lo mantiene.</p>
+    </section>
+
+    <!-- ============ CIERRE STL 2 ============ -->
+    <section>
+      <span class="kicker">STL</span>
+      <h2>El mismo BST, en tres líneas</h2>
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-10|1-2|4-5|7-8|10">
+std::map&lt;std::string, int&gt; edad;
+edad["luis"] = 22;  edad["ana"] = 20;  edad["bea"] = 21;
+
+for (const auto&amp; [nombre, e] : edad)
+    std::cout &lt;&lt; nombre &lt;&lt; ' ';     // ana bea luis: en orden
+
+std::set&lt;int&gt; s = {50, 30, 70};
+s.insert(60);                        // O(log n) garantizado
+
+auto it = edad.lower_bound("b");     // primera clave &gt;= "b"
+      </code></pre>
+      <p class="muted">Todo lo implementado hoy a mano, con las garantías escritas en el estándar.</p>
+    </section>
+
+    <!-- ============ REFERENCIAS ============ -->
+    <section>
+      <span class="kicker">Sesión 16</span>
+      <h2>Referencias y material para profundizar</h2>
+      <div class="refs cols">
+        <div>
+          <h3>Referencias</h3>
+          <ul>
+            <li><span class="ref-type">Libro</span> Weiss, M. A. <em>Data Structures and Algorithm Analysis in C++</em>, 4.ª ed., Pearson, 2014. Cap. 4 (árboles, BST y AVL).</li>
+            <li><span class="ref-type">Libro</span> Cormen, T. et al. <em>Introduction to Algorithms</em>, 4.ª ed., MIT Press, 2022. Caps. 12 (BST) y 13 (árboles balanceados).</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Para profundizar</h3>
+          <ul>
+            <li><span class="ref-type">Web</span> <a href="https://visualgo.net/en/bst">VisuAlgo — BST / AVL</a> <span class="ref-nota">— la animación de hoy, interactiva: inserta 1..n ordenados y mira las dos alturas.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://en.cppreference.com/w/cpp/container/map">cppreference — std::map</a> <span class="ref-nota">— las garantías O(log n) del cierre STL, tal como las redacta el estándar.</span></li>
+            <li><span class="ref-type">Paper</span> Grinsztajn et al., <a href="https://arxiv.org/abs/2207.08815">Why do tree-based models still outperform deep learning on tabular data?</a> (arXiv:2207.08815) <span class="ref-nota">— el dato detrás del "por qué importa hoy".</span></li>
+          </ul>
+        </div>
+      </div>
+      <p class="refs-ia">Nota: estas diapositivas fueron generadas usando inteligencia artificial, específicamente Claude (Anthropic).</p>
+    </section>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script src="../js/curso-slides.js"></script>
+<script>
+  Reveal.initialize({
+    width: 1280,
+    height: 720,
+    margin: 0.06,
+    hash: true,
+    progress: true,
+    slideNumber: 'c/t',
+    controls: true,
+    transition: 'slide',
+    transitionSpeed: 'fast',
+    plugins: [ RevealHighlight ]
+  }).then(() => {
+    CursoSlides.init({
+      monotonica: {
+        titulo: "Pila monotónica",
+        def: "Pila cuyos elementos se mantienen en orden creciente o decreciente: antes de apilar, se desapilan los que romperían el orden. Cada elemento entra y sale a lo más una vez, así que procesar n elementos cuesta O(n) en total. Es el patrón del LC 739."
+      },
+      bst: {
+        titulo: "BST — Binary Search Tree",
+        def: "Árbol binario de búsqueda: para cada nodo, <em>todas</em> las claves del subárbol izquierdo son menores que la suya y todas las del derecho, mayores. El invariante permite buscar descartando un subárbol completo en cada comparación, con costo O(h)."
+      },
+      avl: {
+        titulo: "Árbol AVL",
+        def: "BST que se mantiene balanceado (Adelson-Velskii y Landis, 1962): tras cada inserción o eliminación restaura con rotaciones la propiedad de que las alturas de los dos subárboles de cada nodo difieren a lo más en 1. Garantiza altura O(log n)."
+      },
+      sucesor: {
+        titulo: "Sucesor inorden",
+        def: "El nodo con la menor clave mayor que la del nodo dado: el mínimo del subárbol derecho (un paso a la derecha y luego todo a la izquierda). Se usa al eliminar un nodo con dos hijos porque puede copiarse sin romper el invariante y no tiene hijo izquierdo."
+      },
+      inorden: {
+        titulo: "Recorrido inorden",
+        def: "Visita el subárbol izquierdo, luego el nodo, luego el derecho. Sobre un BST produce las claves en orden ascendente; sobre un árbol binario sin invariante de orden, no garantiza nada."
+      },
+      rojonegro: {
+        titulo: "Árbol rojo-negro",
+        def: "BST balanceado que colorea sus nodos y garantiza que el camino más largo hasta una hoja mide a lo más el doble que el más corto: altura O(log n) con menos rotaciones que el AVL. Es la implementación típica de <code>std::map</code> y <code>std::set</code>."
+      },
+      btree: {
+        titulo: "B-tree",
+        def: "Árbol de búsqueda balanceado donde cada nodo guarda decenas o cientos de claves, diseñado para minimizar lecturas de disco. Es la estructura estándar de los índices de bases de datos; está emparentado con los árboles 2-3-4 y el rojo-negro."
+      }
+    });
+  });
+</script>
+</body>
+</html>

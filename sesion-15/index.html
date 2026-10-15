@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sesión 15 — Act 2.3 Integradora de estructuras lineales</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+  <script>try{if(localStorage.getItem("curso-tema")==="dark"&&!/print-pdf/i.test(location.search))document.documentElement.dataset.theme="dark"}catch(e){}</script>
+  <link rel="stylesheet" href="../css/theme-curso.css">
+</head>
+<body>
+<div class="reveal">
+  <div class="slides">
+
+    <!-- ============ PORTADA ============ -->
+    <section class="cover">
+      <span class="kicker">Estructuras de Datos y Algoritmos · Bloque 2</span>
+      <h1>Act 2.3 — Integradora de estructuras&nbsp;lineales</h1>
+      <div class="cover-meta">
+        Sesión 15 · Semana 9<br>
+        Salvador Hinojosa
+      </div>
+    </section>
+
+    <!-- ============ QUÉ ES HOY ============ -->
+    <section>
+      <span class="kicker">Act 2.3 · Qué se juega hoy</span>
+      <h2>Evidencia de competencia: 12 puntos, individual</h2>
+      <ul>
+        <li class="fragment">Integra todo el bloque de estructuras lineales: listas, pilas, filas, fila priorizada y <span class="term" data-term="deque">deque</span>.</li>
+        <li class="fragment">El problema se conoce al abrir el paquete; será un simulador con disciplinas de acceso mixtas — del estilo del servidor con peticiones priorizadas que vimos en la sesión 14.</li>
+        <li class="fragment">La decisión central que se califica: <strong>qué estructura usar en cada parte, y por qué</strong>.</li>
+      </ul>
+    </section>
+
+    <!-- ============ CONDICIONES ============ -->
+    <section>
+      <span class="kicker">Act 2.3 · Condiciones de aplicación</span>
+      <h2>Laboratorio sin internet</h2>
+      <div class="cols">
+        <div>
+          <h3>No disponible</h3>
+          <ul>
+            <li class="fragment">Acceso a internet</li>
+            <li class="fragment">Asistentes de IA</li>
+            <li class="fragment">Repositorios externos</li>
+            <li class="fragment">Dispositivos personales conectados</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Permitido</h3>
+          <ul>
+            <li class="fragment">Documentación offline en los equipos (referencia de C++/<span class="term" data-term="stl">STL</span>)</li>
+            <li class="fragment">Tus apuntes en papel</li>
+            <li class="fragment">Las implementaciones de referencia incluidas en el paquete</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ LOGÍSTICA USB ============ -->
+    <section>
+      <span class="kicker">Act 2.3 · Logística</span>
+      <h2>USB de entrada, USB de salida</h2>
+      <ul>
+        <li class="fragment"><strong>Al inicio:</strong> recibes la USB, copias el paquete completo a tu equipo de laboratorio y la regresas a circulación.</li>
+        <li class="fragment"><strong>Al cierre:</strong> depositas tu solución en la misma USB, dentro de la carpeta con <strong>tu matrícula</strong>, antes de salir del laboratorio.</li>
+        <li class="fragment"><strong>Mismo día:</strong> registras la entrega en el LMS antes de las 23:59 — es solo confirmación; no puede modificar lo que quedó en la USB.</li>
+      </ul>
+      <p class="fragment muted">Sin carpeta de matrícula no hay forma de acreditar la entrega: verifica el nombre antes de devolver la USB.</p>
+    </section>
+
+    <!-- ============ EL PAQUETE ============ -->
+    <section>
+      <span class="kicker">Act 2.3 · El paquete</span>
+      <h2>Qué encontrarás en la USB</h2>
+      <ul>
+        <li class="fragment"><strong>Enunciado</strong> del problema, con los formatos de entrada y salida.</li>
+        <li class="fragment"><strong>Casos de prueba</strong> — normales y límite — para correr localmente.</li>
+        <li class="fragment"><strong>Esqueleto de código</strong> con el archivo <code>DECISIONES.md</code> a completar.</li>
+        <li class="fragment"><strong>Implementaciones de referencia</strong> del bloque: puedes usarlas, usar la <span class="term" data-term="stl">STL</span>, o tus propias estructuras de las Act 2.1 y 2.2.</li>
+      </ul>
+    </section>
+
+    <!-- ============ RÚBRICA ============ -->
+    <section>
+      <span class="kicker">Act 2.3 · Qué se evalúa</span>
+      <h2>Rúbrica: 12 puntos</h2>
+      <table>
+        <thead><tr><th>Criterio</th><th>Puntos</th></tr></thead>
+        <tbody>
+          <tr class="fragment"><td>Funcionalidad: pasa los casos de prueba</td><td>5.0</td></tr>
+          <tr class="fragment"><td>Elección de estructuras justificada con complejidad</td><td>4.0</td></tr>
+          <tr class="fragment"><td>Manejo de casos límite</td><td>2.0</td></tr>
+          <tr class="fragment"><td>Calidad del código</td><td>1.0</td></tr>
+        </tbody>
+      </table>
+      <p class="fragment">7 de los 12 puntos (justificación + casos límite) se ganan con criterio, no con velocidad de tecleo: reparte el tiempo en consecuencia.</p>
+    </section>
+
+    <!-- ============ DECISIONES.MD ============ -->
+    <section>
+      <span class="kicker">Act 2.3 · DECISIONES.md</span>
+      <h2>La justificación vale 4 puntos</h2>
+      <p>Por cada estructura elegida, el archivo pide tres líneas:</p>
+      <ul>
+        <li class="fragment"><strong>Qué elegiste</strong> y para qué parte del problema.</li>
+        <li class="fragment"><strong>La complejidad</strong> de las operaciones que dominan tu solución.</li>
+        <li class="fragment"><strong>La alternativa que descartaste</strong> y qué costaría con ella la operación dominante.</li>
+      </ul>
+      <pre class="fragment"><code class="language-plaintext" data-trim>
+Fila de llegada: std::queue (FIFO).
+  enqueue/dequeue O(1); preserva orden de llegada.
+  Descartada std::priority_queue: aqui no hay prioridad
+  y pagaria O(log n) por operacion sin ganar nada.
+      </code></pre>
+    </section>
+
+    <!-- ============ TABLA DE DECISIÓN ============ -->
+    <section>
+      <span class="kicker">Act 2.3 · Repaso en una página</span>
+      <h2>La tabla de decisión del bloque</h2>
+      <table style="font-size:0.82em;">
+        <thead><tr><th>Estructura</th><th>Fuerte en</th><th>Costo clave</th></tr></thead>
+        <tbody>
+          <tr class="fragment"><td><code>vector</code></td><td>Acceso por índice, recorridos</td><td><code>push_back</code> O(1) <span class="term" data-term="amortizado">amortizado</span>; insertar al inicio O(n)</td></tr>
+          <tr class="fragment"><td><code>list</code></td><td>Insertar/eliminar con iterador estable</td><td>O(1) dado el nodo; localizar O(n)</td></tr>
+          <tr class="fragment"><td><code>deque</code></td><td>Ambos extremos + acceso por índice</td><td>O(1) amortizado en extremos</td></tr>
+          <tr class="fragment"><td><code>stack</code></td><td>Disciplina LIFO</td><td>push/pop/top O(1)</td></tr>
+          <tr class="fragment"><td><code>queue</code></td><td>Disciplina FIFO</td><td>enqueue/dequeue O(1)</td></tr>
+          <tr class="fragment"><td><code>priority_queue</code></td><td>Sale el más urgente</td><td>insert/extract O(log n)</td></tr>
+        </tbody>
+      </table>
+      <p class="fragment muted"><code>stack</code>, <code>queue</code> y <code>priority_queue</code> son <span class="term" data-term="adaptador">adaptadores</span>; elige por la disciplina de acceso que exige cada parte del problema.</p>
+    </section>
+
+    <!-- ============ CONSEJOS ============ -->
+    <section>
+      <span class="kicker">Act 2.3 · Consejos de administración</span>
+      <h2>Cómo gastar 75 minutos</h2>
+      <ul>
+        <li class="fragment"><strong>~10 min:</strong> leer el enunciado completo y elegir estructuras por escrito, antes de codificar. Cambiar de estructura al minuto 50 es lo más caro que te puede pasar.</li>
+        <li class="fragment"><strong>~45 min:</strong> implementar por partes, compilando y corriendo los casos de prueba desde el primer bloque funcional — sin dejar la compilación para el final.</li>
+        <li class="fragment"><strong>~15 min:</strong> casos límite (valen 2 puntos explícitos) y completar <code>DECISIONES.md</code>.</li>
+        <li class="fragment"><strong>~5 min:</strong> entrega en la carpeta de matrícula y verificación de que copió.</li>
+      </ul>
+    </section>
+
+    <!-- ============ DEFENSA ============ -->
+    <section>
+      <span class="kicker">Act 2.3 · Defensa breve</span>
+      <h2>Los últimos 20 minutos</h2>
+      <ul>
+        <li class="fragment">Pasadas al azar: explicas en un minuto por qué elegiste esa estructura y no otra para una parte del problema.</li>
+        <li class="fragment">Preguntas esperables: ¿qué operación domina tu solución?, ¿qué costaría con la alternativa?, ¿qué caso límite te preocupó?</li>
+        <li class="fragment">Si <code>DECISIONES.md</code> quedó bien escrito, la defensa ya está preparada.</li>
+      </ul>
+    </section>
+
+    <!-- ============ PRÓXIMA SESIÓN ============ -->
+    <section class="divider">
+      <h2>Próxima sesión:<br>Árboles binarios de búsqueda y AVL</h2>
+      <p class="muted">Arranca la segunda mitad del bloque. Registra hoy tu entrega en el LMS antes de las 23:59.</p>
+    </section>
+
+    <!-- ============ REFERENCIAS ============ -->
+    <section>
+      <span class="kicker">Sesión 15</span>
+      <h2>Referencias y material para profundizar</h2>
+      <div class="refs cols">
+        <div>
+          <h3>Referencias</h3>
+          <ul>
+            <li><span class="ref-type">Libro</span> Weiss, M. A. <em>Data Structures and Algorithm Analysis in C++</em>, 4.ª ed., Pearson, 2014. Cap. 3 — el repaso del bloque completo.</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Para profundizar</h3>
+          <ul>
+            <li><span class="ref-type">Web</span> <a href="https://en.cppreference.com/w/cpp/container">cppreference — Containers library</a> <span class="ref-nota">— la misma referencia que estará cargada offline en el laboratorio.</span></li>
+          </ul>
+        </div>
+      </div>
+      <p class="refs-ia">Nota: estas diapositivas fueron generadas usando inteligencia artificial, específicamente Claude (Anthropic).</p>
+    </section>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script src="../js/curso-slides.js"></script>
+<script>
+  Reveal.initialize({
+    width: 1280,
+    height: 720,
+    margin: 0.06,
+    hash: true,
+    progress: true,
+    slideNumber: 'c/t',
+    controls: true,
+    transition: 'slide',
+    transitionSpeed: 'fast',
+    plugins: [ RevealHighlight ]
+  }).then(() => {
+    CursoSlides.init({
+      deque: {
+        titulo: "Deque — double-ended queue",
+        def: "Estructura lineal con inserción y eliminación O(1) en ambos extremos. Pila y fila son restricciones de un deque. En la STL, <code>std::deque</code> es un contenedor real (bloques + índice de bloques) con acceso aleatorio."
+      },
+      stl: {
+        titulo: "STL — Standard Template Library",
+        def: "La biblioteca estándar de contenedores, iteradores y algoritmos de C++ (<code>vector</code>, <code>list</code>, <code>deque</code>, <code>stack</code>, <code>queue</code>, <code>priority_queue</code>, <code>&lt;algorithm&gt;</code>). En la integradora puedes usarla libremente; lo que se evalúa es elegir la pieza correcta y justificarlo."
+      },
+      amortizado: {
+        titulo: "Costo amortizado",
+        def: "Promedio del costo por operación sobre una secuencia larga: una operación aislada puede ser cara (p. ej. la realocación de un <code>push_back</code>), pero el promedio sobre n operaciones queda en O(1). Úsalo con ese matiz al justificar complejidades en <code>DECISIONES.md</code>."
+      },
+      adaptador: {
+        titulo: "Adaptador de contenedor",
+        def: "Clase que envuelve a otro contenedor y restringe su interfaz a una disciplina de acceso: <code>std::stack</code> (LIFO), <code>std::queue</code> (FIFO) y <code>std::priority_queue</code> (por prioridad). No almacenan nada por sí mismos; por defecto delegan en <code>std::deque</code> (los dos primeros) o <code>std::vector</code> (la priorizada)."
+      }
+    });
+  });
+</script>
+</body>
+</html>
