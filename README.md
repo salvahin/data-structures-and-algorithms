@@ -25,7 +25,6 @@ Cada deck es un `index.html` autocontenido hecho con [reveal.js](https://revealj
 | `sesion-12/` | S12 — Listas encadenadas y el ADT LinkedList |
 | `sesion-13/` | S13 — Pruebas: assert y casos límite |
 | `sesion-14/` | S14 — Pilas y filas: listas con restricciones |
-| `sesion-15/` | S15 — Act 2.3 Integradora de estructuras lineales |
 | `sesion-16/` | S16 — Árboles binarios de búsqueda y AVL |
 | `taller-01-two-pointers/` | T1 — Patrones de LeetCode: two pointers |
 
