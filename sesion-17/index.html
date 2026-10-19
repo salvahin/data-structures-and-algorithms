@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sesión 17 — Operaciones avanzadas en un BST (Act 3.1)</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+  <script>try{if(localStorage.getItem("curso-tema")==="dark"&&!/print-pdf/i.test(location.search))document.documentElement.dataset.theme="dark"}catch(e){}</script>
+  <link rel="stylesheet" href="../css/theme-curso.css">
+  <link rel="stylesheet" href="../css/sim-arboles.css">
+</head>
+<body>
+<div class="reveal">
+  <div class="slides">
+
+    <!-- ============ PORTADA ============ -->
+    <section class="cover">
+      <span class="kicker">Estructuras de Datos y Algoritmos · Bloque 3</span>
+      <h1>Operaciones avanzadas en un BST<br>· Act 3.1</h1>
+      <div class="cover-meta">
+        Sesión 17 · Semana 10<br>
+        Salvador Hinojosa
+      </div>
+    </section>
+
+    <!-- ============ OBJETIVO ============ -->
+    <section>
+      <span class="kicker">Objetivo de hoy</span>
+      <h2>Al salir de esta sesión podrás…</h2>
+      <ul>
+        <li class="fragment">Validar la propiedad BST con cotas propagadas y explicar por qué el check local falla.</li>
+        <li class="fragment">Implementar k-ésimo menor y ancestro común más bajo en O(h + k) y O(h).</li>
+        <li class="fragment">Responder consultas por rango [a, b] podando subárboles completos, en O(k + h).</li>
+        <li class="fragment">Justificar la complejidad de cada operación en los comentarios de tu entrega.</li>
+      </ul>
+    </section>
+
+    <!-- ============ DIVIDER REPASO ============ -->
+    <section class="divider">
+      <h2>Repaso:<br>las cinco operaciones</h2>
+    </section>
+
+    <!-- ============ ALTURA: SIMULACIÓN ============ -->
+    <section>
+      <span class="kicker">Repaso · Altura</span>
+      <h2>Altura: cada llamada espera a sus dos hijos</h2>
+      <div class="sim-bst" data-alg="altura" data-arbol="50,30,70,20,40,60,80"></div>
+    </section>
+
+    <!-- ============ ALTURA: CÓDIGO ============ -->
+    <section>
+      <span class="kicker">Repaso · Altura</span>
+      <h2>Altura: la recursión modelo</h2>
+      <pre><code class="language-cpp" data-trim>
+int altura(Nodo* n) {
+    if (n == nullptr) return -1;
+    int hIzq = altura(n-&gt;izq);
+    int hDer = altura(n-&gt;der);
+    if (hIzq &gt; hDer) return hIzq + 1;
+    return hDer + 1;
+}
+      </code></pre>
+      <ul>
+        <li class="fragment">Visita cada nodo una vez: O(n). No hay forma de conocer la altura sin mirar todas las ramas.</li>
+        <li class="fragment">El patrón — resolver en los hijos, combinar en el padre — es la plantilla de casi todo lo demás de hoy.</li>
+      </ul>
+    </section>
+
+    <!-- ============ CHECK INGENUO: SIMULACIÓN ============ -->
+    <section>
+      <span class="kicker">Repaso · Validación</span>
+      <h2>El check que solo mira a los hijos</h2>
+      <div class="sim-bst" data-alg="ingenuo" data-arbol="40,20,60,10,50"></div>
+    </section>
+
+    <!-- ============ CHECK CORRECTO: SIMULACIÓN ============ -->
+    <section>
+      <span class="kicker">Repaso · Validación</span>
+      <h2>El check correcto, línea por línea</h2>
+      <div class="sim-bst" data-alg="validar" data-arbol="40,20,60,10,50"></div>
+    </section>
+
+    <!-- ============ CHECK CORRECTO: CÓDIGO ============ -->
+    <section>
+      <span class="kicker">Repaso · Validación</span>
+      <h2>El check correcto: cotas que se heredan</h2>
+      <pre><code class="language-cpp" data-trim>
+bool esBST(Nodo* n, Nodo* piso, Nodo* techo) {
+    if (n == nullptr) return true;
+    int x = n-&gt;dato;
+    if (piso != nullptr &amp;&amp; x &lt;= piso-&gt;dato)
+        return false;
+    if (techo != nullptr &amp;&amp; x &gt;= techo-&gt;dato)
+        return false;
+    if (!esBST(n-&gt;izq, piso, n)) return false;
+    return esBST(n-&gt;der, n, techo);
+}
+      </code></pre>
+      <p class="fragment">El hijo izquierdo hereda techo = n y el derecho hereda piso = n. Llamada inicial: <code>esBST(raiz, nullptr, nullptr)</code>. Cada nodo se revisa una vez: O(n).</p>
+    </section>
+
+    <!-- ============ QUIZ 1 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="c">
+        <p class="quiz-question">¿Por qué falla el check que compara cada nodo solo con sus dos hijos?</p>
+        <button class="quiz-option" data-opt="a">Porque cuesta O(n²) y con árboles grandes no termina.</button>
+        <button class="quiz-option" data-opt="b">No falla: si todos los pares padre-hijo están bien, el árbol es un BST.</button>
+        <button class="quiz-option" data-opt="c">Porque el invariante acota a todos los descendientes, y un nieto puede violar la cota de un ancestro sin violar la de su padre.</button>
+        <div class="quiz-explain">
+          <strong>C.</strong> En el contraejemplo, 50 cumple con su padre (50 &gt; 20) pero rompe la cota que le
+          impone 40 desde dos niveles arriba. El check local es O(n) igual que el correcto (la opción A no es
+          el problema); lo que le falta es propagar el intervalo válido hacia abajo.
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ============ K-ÉSIMO: SIMULACIÓN ============ -->
+    <section>
+      <span class="kicker">Repaso · K-ésimo menor</span>
+      <h2>K-ésimo menor: inorden con contador</h2>
+      <div class="sim-bst" data-alg="kesimo" data-arbol="50,30,70,20,40,60,80" data-k="3"></div>
+    </section>
+
+    <!-- ============ K-ÉSIMO: CÓDIGO ============ -->
+    <section>
+      <span class="kicker">Repaso · K-ésimo menor</span>
+      <h2>K-ésimo menor en código</h2>
+      <pre><code class="language-cpp" data-trim>
+Nodo* kesimo(Nodo* n, int k, int&amp; vistos) {
+    if (n == nullptr) return nullptr;
+    Nodo* izq = kesimo(n-&gt;izq, k, vistos);
+    if (izq != nullptr) return izq;
+    vistos = vistos + 1;
+    if (vistos == k) return n;
+    return kesimo(n-&gt;der, k, vistos);
+}
+      </code></pre>
+      <p class="fragment">Llamada inicial: <code>int vistos = 0;</code> y <code>kesimo(raiz, k, vistos)</code>. Costo O(h + k): bajar hasta el mínimo y contar k nodos.</p>
+    </section>
+
+    <!-- ============ LCA: SIMULACIÓN ============ -->
+    <section>
+      <span class="kicker">Repaso · Ancestro común más bajo</span>
+      <h2><span class="term" data-term="lca">LCA</span> del 20 y el 40, línea por línea</h2>
+      <div class="sim-bst" data-alg="lca" data-arbol="50,30,70,20,40,60,80" data-a="20" data-b="40"></div>
+    </section>
+
+    <!-- ============ LCA: CÓDIGO ============ -->
+    <section>
+      <span class="kicker">Repaso · Ancestro común más bajo</span>
+      <h2><span class="term" data-term="lca">LCA</span>: donde los caminos se separan</h2>
+      <pre><code class="language-cpp" data-trim>
+Nodo* lca(Nodo* n, int a, int b) {
+    while (n != nullptr) {
+        int x = n-&gt;dato;
+        if (a &lt; x &amp;&amp; b &lt; x)
+            n = n-&gt;izq;
+        else if (a &gt; x &amp;&amp; b &gt; x)
+            n = n-&gt;der;
+        else
+            return n;
+    }
+    return nullptr;
+}
+      </code></pre>
+      <p class="fragment">Un solo camino desde la raíz: O(h). Supone que las dos claves están en el árbol.</p>
+    </section>
+
+    <!-- ============ RANGO: SIMULACIÓN ============ -->
+    <section>
+      <span class="kicker">Repaso · Consulta por rango</span>
+      <h2>Rango [35, 65]: podar sin mirar</h2>
+      <div class="sim-bst" data-alg="rango" data-arbol="50,30,70,20,40,60,80" data-a="35" data-b="65"></div>
+    </section>
+
+    <!-- ============ RANGO: CÓDIGO ============ -->
+    <section>
+      <span class="kicker">Repaso · Consulta por rango</span>
+      <h2>Rango en código: dos podas y una visita</h2>
+      <pre><code class="language-cpp" data-trim>
+void rango(Nodo* n, int a, int b,
+           std::vector&lt;int&gt;&amp; salida) {
+    if (n == nullptr) return;
+    if (a &lt; n-&gt;dato)
+        rango(n-&gt;izq, a, b, salida);
+    if (a &lt;= n-&gt;dato &amp;&amp; n-&gt;dato &lt;= b)
+        salida.push_back(n-&gt;dato);
+    if (n-&gt;dato &lt; b)
+        rango(n-&gt;der, a, b, salida);
+}
+      </code></pre>
+      <p class="fragment">Costo O(k + h): k nodos reportados más los nodos frontera donde el camino entra y sale del rango. Ese análisis va documentado en tu entrega.</p>
+    </section>
+
+    <!-- ============ QUIZ 2 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="b">
+        <p class="quiz-question">Un BST balanceado tiene un millón de claves y la consulta rango(a, b) devuelve 12 elementos. ¿Cuántos nodos visita, aproximadamente?</p>
+        <button class="quiz-option" data-opt="a">Un millón: para no perder ninguno hay que revisar todo el árbol.</button>
+        <button class="quiz-option" data-opt="b">Unas decenas: los 12 reportados más los ~20 del camino frontera — O(k + h).</button>
+        <button class="quiz-option" data-opt="c">Unos 20: O(log n), sin importar cuántos elementos caigan en el rango.</button>
+        <div class="quiz-explain">
+          <strong>B.</strong> La poda descarta subárboles completos fuera del rango, así que el costo depende
+          de lo que sí se reporta (k) más la frontera (O(h) ≈ 20 aquí). La opción C ignora que reportar k
+          elementos obliga a visitarlos: si el rango cubriera medio árbol, la consulta costaría medio millón
+          de visitas aunque h siga siendo 20.
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ============ DIVIDER ACT 3.1 ============ -->
+    <section class="divider">
+      <h2>Act 3.1:<br>manos al código</h2>
+    </section>
+
+    <!-- ============ ENCUADRE ============ -->
+    <section>
+      <span class="kicker">Act 3.1 · Encuadre</span>
+      <h2>Qué es y cuándo se entrega</h2>
+      <ul>
+        <li class="fragment"><strong>Individual</strong>, 4 puntos, formativa. Inicia hoy en clase y se termina como tarea.</li>
+        <li class="fragment">Sobre el BST del material de la sesión 16 se agregan las operaciones que acabamos de repasar.</li>
+        <li class="fragment"><strong>Entrega:</strong> LMS, domingo 18 de octubre, 23:59.</li>
+        <li class="fragment">ZIP con: código <code>.cpp</code>/<code>.h</code> (compila con <code>g++ -std=c++17 -Wall</code> sin warnings), <code>README.md</code> con el análisis de complejidad, y la declaración de uso de herramientas.</li>
+      </ul>
+    </section>
+
+    <!-- ============ ESPECIFICACIÓN ============ -->
+    <section>
+      <span class="kicker">Act 3.1 · Especificación</span>
+      <h2>Las cuatro piezas del programa</h2>
+      <ul>
+        <li class="fragment"><strong>1.</strong> Altura y validación de la propiedad BST — debe rechazar el contraejemplo del check ingenuo.</li>
+        <li class="fragment"><strong>2.</strong> K-ésimo menor elemento.</li>
+        <li class="fragment"><strong>3.</strong> <span class="term" data-term="lca">LCA</span> de dos claves.</li>
+        <li class="fragment"><strong>4.</strong> Consulta por rango [a, b] en orden, con poda, y el análisis O(k + h) documentado.</li>
+      </ul>
+      <p class="fragment box-key">Tu <code>bst.cpp</code> lee el árbol en representación explícita — así podemos evaluarlo con árboles que <strong>no</strong> son BST válidos.</p>
+    </section>
+
+    <!-- ============ FORMATO Y CRITERIOS ============ -->
+    <section>
+      <span class="kicker">Act 3.1 · Formato y criterios</span>
+      <h2>Formato estandarizado y puntos</h2>
+      <ul>
+        <li class="fragment">El paquete incluye <code>FORMATO.md</code> (entrada/salida exacta) y <code>casos/*.in</code> con su salida esperada. La corrección se verifica de forma automática: un formato distinto cuenta como caso fallido.</li>
+        <li class="fragment">Verifica localmente contra los casos antes de subir.</li>
+      </ul>
+      <table class="fragment">
+        <thead><tr><th>Criterio</th><th>Puntos</th></tr></thead>
+        <tbody>
+          <tr><td>Validación correcta (rechaza el contraejemplo)</td><td>1.0</td></tr>
+          <tr><td>K-ésimo y LCA correctos</td><td>1.5</td></tr>
+          <tr><td>Rango con poda y análisis O(k + h)</td><td>1.5</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ============ PLAN DE HOY ============ -->
+    <section>
+      <span class="kicker">Act 3.1 · Hoy en clase</span>
+      <h2>Cómo se reparte la sesión</h2>
+      <table>
+        <tbody>
+          <tr><td>~20 min</td><td>Repaso (lo que acabamos de ver)</td></tr>
+          <tr><td>~70 min</td><td>Trabajo individual con el paquete de la actividad</td></tr>
+          <tr><td>~20 min</td><td>Revisión conjunta del check ingenuo y dudas de formato</td></tr>
+        </tbody>
+      </table>
+      <ul>
+        <li class="fragment">Orden sugerido: altura → validación → k-ésimo → LCA → rango. La validación primero: sus casos de prueba te sirven para el resto.</li>
+        <li class="fragment"><strong>Política de IA:</strong> permitida como apoyo; declara qué usaste y para qué, y debes poder defender cada línea. Código que no puedes explicar cuenta como falta de integridad.</li>
+      </ul>
+    </section>
+
+    <!-- ============ PRÓXIMA SESIÓN ============ -->
+    <section class="divider">
+      <h2>Próxima sesión:<br>Heaps</h2>
+      <p class="muted">Recuerda: la Act 3.1 se entrega al LMS el domingo 18 de octubre, 23:59. Verifica tus casos antes de subir.</p>
+    </section>
+
+    <!-- ============ DIVIDER MATERIAL EXTRA ============ -->
+    <section class="divider">
+      <h2>Material extra · autoestudio</h2>
+      <p class="muted">No se cubre en clase: la STL del tema y su conexión con sistemas de IA.</p>
+    </section>
+
+    <!-- ============ POR QUÉ IMPORTA HOY ============ -->
+    <section>
+      <span class="kicker kicker-ai">Por qué importa hoy</span>
+      <h2>Consultas por rango en búsqueda vectorial</h2>
+      <div class="box-ai" data-label="Dónde vive esto en sistemas de IA">
+        <ul>
+          <li class="fragment">Una búsqueda semántica devuelve los documentos cuyos embeddings quedan más cerca de la consulta. Casi siempre lleva además un filtro sobre metadatos: "solo los publicados desde 2024".</li>
+          <li class="fragment">Ese filtro es una consulta por rango sobre un campo ordenado y se resuelve con un índice de árbol, sin tocar los embeddings. En PostgreSQL con la extensión pgvector, la fecha se indexa con un <span class="term" data-term="btree">B-tree</span>.</li>
+          <li class="fragment">Si el filtro se aplica después de la búsqueda de vecinos, puede dejar menos de k resultados. Por eso los motores deciden si filtran antes o después según cuántos documentos pasan el filtro.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============ CIERRE STL ============ -->
+    <section>
+      <span class="kicker">STL</span>
+      <h2>Rangos sobre <code>std::map</code></h2>
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-8|2-3|4-5|7-8">
+std::map&lt;int, std::string&gt; m = /* ... */;
+auto ini = m.lower_bound(35);     // primera clave &gt;= 35
+auto fin = m.upper_bound(65);     // primera clave &gt;  65
+for (auto it = ini; it != fin; ++it)
+    procesar(*it);                // [35, 65] en orden: O(k + log n)
+
+std::distance(ini, fin);          // ¡O(n)! iteradores bidireccionales:
+                                  // contar exige caminar uno a uno
+      </code></pre>
+      <ul>
+        <li class="fragment"><span class="term" data-term="lowerbound">lower_bound</span> / <code>upper_bound</code> son la versión de biblioteca de tu consulta por rango.</li>
+        <li class="fragment"><code>std::distance</code> sobre un <code>map</code> recorre elemento por elemento: el árbol no guarda tamaños de subárbol, así que contar un rango cuesta O(n) y no O(1).</li>
+      </ul>
+    </section>
+
+    <!-- ============ REFERENCIAS ============ -->
+    <section>
+      <span class="kicker">Sesión 17</span>
+      <h2>Referencias y material para profundizar</h2>
+      <div class="refs cols">
+        <div>
+          <h3>Referencias</h3>
+          <ul>
+            <li><span class="ref-type">Libro</span> Weiss, M. A. <em>Data Structures and Algorithm Analysis in C++</em>, 4.ª ed., Pearson, 2014. Cap. 4.</li>
+            <li><span class="ref-type">Libro</span> Cormen, T. et al. <em>Introduction to Algorithms</em>, 4.ª ed., MIT Press, 2022. Cap. 12.</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Para profundizar</h3>
+          <ul>
+            <li><span class="ref-type">Web</span> <a href="https://en.cppreference.com/w/cpp/container/map/lower_bound">cppreference — map::lower_bound</a> <span class="ref-nota">— la firma exacta y sus garantías, para el cierre STL.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://leetcode.com/problems/validate-binary-search-tree/">LC 98 — Validate BST</a> <span class="ref-nota">— si el reto quedó pendiente, hoy tienes todas las piezas.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://github.com/pgvector/pgvector">pgvector</a> <span class="ref-nota">— la sección de filtrado explica cuándo conviene un índice B-tree sobre el campo filtrado.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://visualgo.net/en/bst">VisuAlgo — BST</a> <span class="ref-nota">— para generar árboles de prueba y verificar tu k-ésimo y tu LCA a mano.</span></li>
+          </ul>
+        </div>
+      </div>
+      <p class="refs-ia">Nota: estas diapositivas fueron generadas usando inteligencia artificial, específicamente Claude (Anthropic).</p>
+    </section>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script src="../js/curso-slides.js"></script>
+<script src="../js/sim-arboles.js"></script>
+<script>
+  Reveal.initialize({
+    width: 1280,
+    height: 720,
+    margin: 0.06,
+    hash: true,
+    progress: true,
+    slideNumber: 'c/t',
+    controls: true,
+    transition: 'slide',
+    transitionSpeed: 'fast',
+    plugins: [ RevealHighlight ]
+  }).then(() => {
+    CursoSlides.init({
+      lca: {
+        titulo: "LCA — Lowest Common Ancestor",
+        def: "Ancestro común más bajo: el nodo más profundo que contiene a las dos claves en su subárbol. En un BST se localiza bajando desde la raíz hasta el primer nodo donde las dos claves se separan (una queda a cada lado, o una coincide con el nodo): O(h)."
+      },
+      btree: {
+        titulo: "B-tree",
+        def: "Árbol de búsqueda balanceado donde cada nodo guarda decenas o cientos de claves, diseñado para minimizar lecturas de disco. Es la estructura estándar de los índices de bases de datos."
+      },
+      lowerbound: {
+        titulo: "lower_bound / upper_bound",
+        def: "<code>lower_bound(x)</code> devuelve el primer elemento que no es menor que x; <code>upper_bound(x)</code>, el primero mayor que x. Sobre <code>std::map</code> y <code>std::set</code> corren en O(log n) y juntos delimitan una consulta por rango [a, b]."
+      }
+    });
+    SimArboles.init();
+  });
+</script>
+</body>
+</html>

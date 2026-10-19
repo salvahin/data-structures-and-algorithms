@@ -1,0 +1,98 @@
+/* ============================================================
+   SIM-ARBOLES — estilos del simulador de operaciones sobre BST
+   Se carga después de theme-curso.css. Solo usa tokens del tema:
+   el modo oscuro funciona sin reglas propias.
+   La barra, el panel de código y la explicación reutilizan las
+   clases .sim-* del tema.
+   ============================================================ */
+
+.reveal .sim-bst {
+  display: flex;
+  flex-direction: column;
+  gap: 0.22em;
+  font-size: 1em;
+}
+
+/* Código y explicación a la izquierda; árbol y pila a la derecha */
+.reveal .sb-cuerpo { display: flex; gap: 0.45em; align-items: flex-start; }
+.reveal .sb-izq { flex: 0 0 59%; min-width: 0; display: flex; flex-direction: column; gap: 0.3em; }
+.reveal .sb-der { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: 0.25em; }
+
+.reveal .sim-bst .sb-codigo { max-width: none; width: 100%; line-height: 1.32; }
+.reveal .sim-bst .sb-dice { font-size: 0.6em; min-height: 3.6em; flex: none; }
+
+/* ---------- Árbol ---------- */
+.reveal .sb-svg { width: 100%; display: block; }
+.reveal .sb-arista { stroke: var(--c-ink); stroke-width: 3; }
+.reveal .sb-arista.camino { stroke: var(--c-accent); stroke-width: 5; }
+.reveal .sb-arista.tenue { stroke: var(--c-ink-faint); stroke-dasharray: 6 6; }
+.reveal .sb-arista.ok { stroke: var(--c-ok); stroke-width: 5; }
+.reveal .sb-arista.err { stroke: var(--c-err); stroke-width: 5; }
+
+.reveal .sb-nodo circle { fill: var(--c-bg); stroke: var(--c-ink); stroke-width: 3; transition: fill .2s, stroke .2s; }
+.reveal .sb-dato { font-family: var(--font-sans); font-size: 20px; font-weight: 700; fill: var(--c-ink); text-anchor: middle; }
+.reveal .sb-etq { font-family: var(--font-mono); font-size: 16px; font-weight: 700; fill: var(--c-ink-soft); }
+.reveal .sb-etq.acc { fill: var(--c-accent); }
+.reveal .sb-etq.ok  { fill: var(--c-ok); }
+.reveal .sb-etq.err { fill: var(--c-err); }
+
+/* llamada abierta, esperando a otra */
+.reveal .sb-nodo.pila circle { stroke: var(--c-accent); stroke-width: 4; }
+/* llamada en curso */
+.reveal .sb-nodo.activo circle { fill: var(--c-accent-bg); stroke: var(--c-accent); stroke-width: 6; }
+/* llamada terminada */
+.reveal .sb-nodo.listo circle { fill: var(--c-surface-2); }
+/* reportado, encontrado o respuesta */
+.reveal .sb-nodo.sale circle { fill: var(--c-ok-bg); stroke: var(--c-ok); stroke-width: 5; }
+.reveal .sb-nodo.sale .sb-dato { fill: var(--c-ok); }
+/* viola el invariante */
+.reveal .sb-nodo.error circle { fill: var(--c-err-bg); stroke: var(--c-err); stroke-width: 5; }
+.reveal .sb-nodo.error .sb-dato { fill: var(--c-err); }
+/* descartado sin visitarlo, o nunca tocado */
+.reveal .sb-nodo.podado circle,
+.reveal .sb-nodo.nunca circle { fill: var(--c-surface-1); stroke: var(--c-ink-faint); stroke-dasharray: 6 5; }
+.reveal .sb-nodo.podado .sb-dato,
+.reveal .sb-nodo.nunca .sb-dato { fill: var(--c-ink-faint); }
+
+/* par ancestro-descendiente que el check local nunca compara */
+.reveal .sb-par { fill: none; stroke: var(--c-err); stroke-width: 4; stroke-dasharray: 12 8; }
+.reveal .sb-punta-err { fill: var(--c-err); }
+.reveal .sb-aro-err { fill: none; stroke: var(--c-err); stroke-width: 4; }
+
+/* ---------- Pila de llamadas ---------- */
+.reveal .sb-pila {
+  font-family: var(--font-mono);
+  font-size: 0.5em;
+  line-height: 1.3;
+  border: 2px solid var(--c-line);
+  border-radius: var(--radius);
+  padding: 0.35em 0.5em 0.45em;
+}
+.reveal .sb-pila-tit {
+  font-family: var(--font-sans);
+  font-size: 0.85em; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--c-ink-soft);
+  margin-bottom: 0.25em;
+}
+.reveal .sb-marco {
+  display: flex; justify-content: space-between; gap: 0.6em;
+  border-left: 5px solid var(--c-line);
+  padding: 0.12em 0.45em;
+  margin-top: 0.18em;
+  color: var(--c-ink-soft);
+}
+.reveal .sb-marco .fn { font-weight: 700; white-space: nowrap; }
+.reveal .sb-marco .info { text-align: right; }
+.reveal .sb-marco.activo { border-left-color: var(--c-accent); background: var(--c-accent-bg); color: var(--c-ink); }
+.reveal .sb-marco.activo .fn { color: var(--c-accent); }
+.reveal .sb-marco.vacio { border-left-color: transparent; font-style: italic; }
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal .sb-nodo circle { transition: none; }
+}
+
+@media (max-width: 760px) {
+  .reveal .sb-cuerpo { flex-direction: column; }
+  .reveal .sb-izq { flex-basis: auto; width: 100%; }
+}

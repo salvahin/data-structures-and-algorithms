@@ -26,6 +26,7 @@ Cada deck es un `index.html` autocontenido hecho con [reveal.js](https://revealj
 | `sesion-13/` | S13 — Pruebas: assert y casos límite |
 | `sesion-14/` | S14 — Pilas y filas: listas con restricciones |
 | `sesion-16/` | S16 — Árboles binarios de búsqueda y AVL |
+| `sesion-17/` | S17 — Operaciones avanzadas en un BST |
 | `taller-01-two-pointers/` | T1 — Patrones de LeetCode: two pointers |
 
 El resto de las sesiones se publica conforme avanza el semestre.
