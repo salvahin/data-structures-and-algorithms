@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
   <script>try{if(localStorage.getItem("curso-tema")==="dark"&&!/print-pdf/i.test(location.search))document.documentElement.dataset.theme="dark"}catch(e){}</script>
   <link rel="stylesheet" href="../css/theme-curso.css">
+  <link rel="stylesheet" href="../css/sim-pilas-filas.css">
 </head>
 <body>
 <div class="reveal">
@@ -223,6 +224,20 @@ T pop() {
       </div>
     </section>
 
+    <!-- ============ 7.2 DOS LADOS ============ -->
+    <section>
+      <span class="kicker">7.2 · Pilas</span>
+      <h2>¿Y si el tope fuera el último nodo?</h2>
+      <div class="sim-pf" data-alg="pila-lados"></div>
+    </section>
+
+    <!-- ============ 7.2 POPBACK ============ -->
+    <section>
+      <span class="kicker">7.2 · Pilas</span>
+      <h2>Quitar el último nodo, línea por línea</h2>
+      <div class="sim-pf" data-alg="pop-back"></div>
+    </section>
+
     <!-- ============ 7.2 APLICACIONES ============ -->
     <section>
       <span class="kicker">7.2 · Pilas</span>
@@ -403,6 +418,46 @@ T dequeue() {
       </div>
     </section>
 
+    <!-- ============ 7.3 DOS LADOS ============ -->
+    <section>
+      <span class="kicker">7.3 · Filas</span>
+      <h2>¿Y si la fila entrara por head?</h2>
+      <div class="sim-pf" data-alg="fila-lados"></div>
+    </section>
+
+    <!-- ============ 7.3 QUÉ EXTREMO ============ -->
+    <section>
+      <span class="kicker">7.3 · Filas</span>
+      <h2>Qué extremo de la lista usar</h2>
+      <table>
+        <thead><tr><th>Sobre una lista simple</th><th>Entra por</th><th>Sale por</th><th>Entrar</th><th>Salir</th></tr></thead>
+        <tbody>
+          <tr class="fragment"><td>Pila, tope en head</td><td>head</td><td>head</td><td>O(1)</td><td>O(1)</td></tr>
+          <tr class="fragment"><td>Pila, tope en tail</td><td>tail</td><td>tail</td><td>O(1)</td><td style="color: var(--c-err); font-weight: 700;">O(n)</td></tr>
+          <tr class="fragment"><td>Fila, entra por tail</td><td>tail</td><td>head</td><td>O(1)</td><td>O(1)</td></tr>
+          <tr class="fragment"><td>Fila, entra por head</td><td>head</td><td>tail</td><td>O(1)</td><td style="color: var(--c-err); font-weight: 700;">O(n)</td></tr>
+        </tbody>
+      </table>
+      <p class="fragment">Con <code>head</code> y <code>tail</code>, agregar en cualquiera de los dos extremos y quitar en <code>head</code> cuestan O(1). Quitar en <code>tail</code> cuesta O(n), porque hay que encontrar al penúltimo. La pila y la fila de hoy nunca quitan por <code>tail</code>.</p>
+    </section>
+
+    <!-- ============ QUIZ EXTREMOS ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="b">
+        <p class="quiz-question">Un equipo montó la pila sobre una lista simple con <code>head</code> y <code>tail</code>, con el tope en <code>tail</code>. Su <code>pop</code> es O(n). ¿Qué cambio deja <code>push</code> y <code>pop</code> en O(1)?</p>
+        <button class="quiz-option" data-opt="a">Guardar también un puntero al penúltimo nodo.</button>
+        <button class="quiz-option" data-opt="b">Poner el tope en <code>head</code>: push y pop trabajan en la cabeza.</button>
+        <button class="quiz-option" data-opt="c">Recorrer desde <code>tail</code> hacia atrás para encontrar al penúltimo.</button>
+        <div class="quiz-explain">
+          <strong>B.</strong> En la cabeza, agregar y quitar cambian un puntero y no recorren nada. Con la A, el
+          primer <code>pop</code> sale barato, pero después habría que encontrar al nuevo penúltimo, y eso es
+          caminar desde <code>head</code> otra vez. La C no se puede en una lista simple: los nodos no guardan
+          a su anterior. Eso lo resuelve la lista doble, que aparece con el deque.
+        </div>
+      </div>
+    </section>
+
     <!-- ============ DIVIDER VARIANTES ============ -->
     <section class="divider">
       <h2>Otras variantes</h2>
@@ -412,106 +467,53 @@ T dequeue() {
     <section>
       <span class="kicker">7.3 · Fila circular</span>
       <h2>La fila sobre un arreglo</h2>
-      <ul>
-        <li class="fragment">Sin nodos: los elementos van en un arreglo y dos índices marcan el frente y el final.</li>
-        <li class="fragment">Si <code>dequeue</code> recorre a todos una casilla hacia adelante, cada salida cuesta O(n).</li>
-        <li class="fragment">Si solo avanza el índice del frente, las casillas del principio quedan vacías y sin usar: la fila "se llena" con espacio libre.</li>
-      </ul>
-      <p class="fragment box-key">La solución es dejar que los índices den la vuelta: al pasar de la última casilla regresan a la 0. El arreglo se usa como un anillo.</p>
-    </section>
-
-    <!-- ============ VARIANTES: ANILLO ============ -->
-    <section>
-      <span class="kicker">7.3 · Fila circular</span>
-      <h2>Los índices giran, los datos no se mueven</h2>
-      <svg viewBox="0 0 1100 420" style="width:100%; max-height:420px;">
-        <g class="anim-step" data-step="1">
-          <text class="svg-label" x="30" y="70" style="font-size:22px;">1. enqueue A, B, C</text>
-        </g>
-        <g class="anim-step" data-step="2">
-          <text class="svg-label" x="30" y="110" style="font-size:22px;">2. dequeue → sale A</text>
-        </g>
-        <g class="anim-step" data-step="3">
-          <text class="svg-label" x="30" y="150" style="font-size:22px;">3. fin da la vuelta: (fin + 1) % 8</text>
-        </g>
-        <g class="anim-step" data-step="4">
-          <text class="svg-label" x="30" y="190" style="font-size:22px;">4. la celda de A se reutiliza</text>
-        </g>
-        <rect class="svg-node" x="665" y="185" width="70" height="50" rx="8"/>
-        <text class="svg-label" x="673" y="203" style="font-size:16px;">0</text>
-        <rect class="svg-node" x="621" y="291" width="70" height="50" rx="8"/>
-        <text class="svg-label" x="629" y="309" style="font-size:16px;">1</text>
-        <rect class="svg-node" x="515" y="335" width="70" height="50" rx="8"/>
-        <text class="svg-label" x="523" y="353" style="font-size:16px;">2</text>
-        <rect class="svg-node" x="409" y="291" width="70" height="50" rx="8"/>
-        <text class="svg-label" x="417" y="309" style="font-size:16px;">3</text>
-        <rect class="svg-node" x="365" y="185" width="70" height="50" rx="8"/>
-        <text class="svg-label" x="373" y="203" style="font-size:16px;">4</text>
-        <rect class="svg-node" x="409" y="79" width="70" height="50" rx="8"/>
-        <text class="svg-label" x="417" y="97" style="font-size:16px;">5</text>
-        <rect class="svg-node" x="515" y="35" width="70" height="50" rx="8"/>
-        <text class="svg-label" x="523" y="53" style="font-size:16px;">6</text>
-        <rect class="svg-node" x="621" y="79" width="70" height="50" rx="8"/>
-        <text class="svg-label" x="629" y="97" style="font-size:16px;">7</text>
-        <g class="anim-step" data-step="1" data-step-off="2">
-          <text class="svg-label" x="700" y="218" text-anchor="middle" style="font-weight:700;">A</text>
-        </g>
-        <g class="anim-step" data-step="1">
-          <text class="svg-label" x="656" y="324" text-anchor="middle" style="font-weight:700;">B</text>
-          <text class="svg-label" x="550" y="368" text-anchor="middle" style="font-weight:700;">C</text>
-        </g>
-        <g class="anim-step" data-step="1" data-step-off="2">
-          <text x="633" y="216" text-anchor="middle" style="font-size:20px; font-weight:700;" class="f-accent">frente</text>
-        </g>
-        <g class="anim-step" data-step="1" data-step-off="3">
-          <text x="487" y="282" text-anchor="middle" style="font-size:20px; font-weight:700;" class="f-ink">fin</text>
-        </g>
-        <g class="anim-step" data-step="2">
-          <text x="617" y="282" text-anchor="middle" style="font-size:20px; font-weight:700;" class="f-accent">frente</text>
-        </g>
-        <g class="anim-step" data-step="3">
-          <text class="svg-label" x="444" y="324" text-anchor="middle" style="font-weight:700;">D</text>
-          <text class="svg-label" x="400" y="218" text-anchor="middle" style="font-weight:700;">E</text>
-          <text class="svg-label" x="444" y="112" text-anchor="middle" style="font-weight:700;">F</text>
-          <text class="svg-label" x="550" y="68" text-anchor="middle" style="font-weight:700;">G</text>
-          <text class="svg-label" x="656" y="112" text-anchor="middle" style="font-weight:700;">H</text>
-        </g>
-        <g class="anim-step" data-step="3" data-step-off="4">
-          <text x="633" y="216" text-anchor="middle" style="font-size:20px; font-weight:700;" class="f-ink">fin</text>
-        </g>
-        <g class="anim-step" data-step="4">
-          <rect class="svg-node-hl" x="665" y="185" width="70" height="50" rx="8"/>
-          <text class="svg-label" x="700" y="218" text-anchor="middle" style="font-weight:700;">I</text>
-          <text x="614" y="252" text-anchor="middle" style="font-size:20px; font-weight:700;" class="f-ink">fin</text>
-        </g>
-        <text x="800" y="360" style="font-size:22px; font-family:'JetBrains Mono',monospace;" class="f-ink-soft">posicion = indice % 8</text>
-      </svg>
-      <span class="fragment"></span>
-      <span class="fragment"></span>
-      <span class="fragment"></span>
-      <span class="fragment"></span>
+      <div class="sim-pf" data-alg="arreglo-ingenuo"></div>
     </section>
 
     <!-- ============ VARIANTES: CÓDIGO CIRCULAR ============ -->
     <section>
       <span class="kicker">7.3 · Fila circular</span>
       <h2>La vuelta es un <code>%</code></h2>
-      <pre data-title="fila_circular.hpp"><code class="language-cpp" data-trim data-line-numbers="1-13|1-3|4-8|9-13">
+      <pre data-title="fila_circular.hpp"><code class="language-cpp" data-trim data-line-numbers="1-14|1-3|4-8|9-14">
 T   datos[8];
-int frente;                         // indice del primero
-int n;                              // cuantos hay: distingue vacia de llena
-void enqueue(T x) {                 // pre: n &lt; 8
-    int fin = (frente + n) % 8;     // la casilla libre, dando la vuelta
+int frente = 0;        // indice del primero
+int n = 0;             // cuantos hay: distingue vacia de llena
+void enqueue(T x) {   // pre: n &lt; 8
+    int fin = (frente + n) % 8;
     datos[fin] = x;
     n++;
 }
-T dequeue() {                       // pre: n &gt; 0
+T dequeue() {         // pre: n &gt; 0
     T x = datos[frente];
     frente = (frente + 1) % 8;
     n--;
     return x;
 }
       </code></pre>
+      <p class="fragment"><code>enqueue</code> calcula <code>fin</code> en cada llamada: la casilla que está <code>n</code> lugares después de <code>frente</code>, dando la vuelta.</p>
+    </section>
+
+    <!-- ============ VARIANTES: CIRCULAR PASO A PASO ============ -->
+    <section>
+      <span class="kicker">7.3 · Fila circular</span>
+      <h2>La fila circular, casilla por casilla</h2>
+      <div class="sim-pf" data-alg="circular"></div>
+    </section>
+
+    <!-- ============ QUIZ CIRCULAR ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="a">
+        <p class="quiz-question">Una fila circular de 8 casillas tiene <code>frente = 6</code> y <code>n = 4</code>. ¿En qué casilla escribe el siguiente <code>enqueue</code>?</p>
+        <button class="quiz-option" data-opt="a">En la 2</button>
+        <button class="quiz-option" data-opt="b">En la 10</button>
+        <button class="quiz-option" data-opt="c">En la 1</button>
+        <div class="quiz-explain">
+          <strong>A.</strong> <code>(6 + 4) % 8 = 10 % 8 = 2</code>. La fila ocupa las casillas 6, 7, 0 y 1, y
+          la primera libre después de ellas es la 2. La B olvida el <code>% 8</code>: la casilla 10 no existe.
+          La C es la casilla del último que entró, <code>(frente + n − 1) % 8</code>; escribir ahí lo borraría.
+        </div>
+      </div>
     </section>
 
     <!-- ============ VARIANTES: PRIORIZADA ============ -->
@@ -563,7 +565,7 @@ T dequeue() {                       // pre: n &gt; 0
       <h2>Deque: los dos extremos abiertos</h2>
       <ul>
         <li class="fragment"><code>pushFront</code>, <code>pushBack</code>, <code>popFront</code> y <code>popBack</code>: se entra y se sale por los dos lados.</li>
-        <li class="fragment">Con la lista simple de la fila, <code>popBack</code> no es O(1): para quitar el último hay que encontrar al penúltimo, y eso obliga a recorrer.</li>
+        <li class="fragment">Con la lista simple de la fila, <code>popBack</code> es el que se animó para la pila B: hay que encontrar al penúltimo recorriendo desde <code>head</code>, O(n).</li>
         <li class="fragment">Con la <strong>lista doble</strong> de la sesión 12, el último conoce a su anterior por <code>prev</code>. Las cuatro operaciones quedan en O(1).</li>
       </ul>
       <p class="fragment muted">Un <span class="term" data-term="deque">deque</span> es la versión menos restringida: si solo se usa un extremo se comporta como pila, y si se entra por uno y se sale por el otro, como fila.</p>
@@ -709,6 +711,7 @@ stack&lt;int, vector&lt;int&gt;&gt; s2;   // la misma pila, guardada
 <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
 <script src="../js/curso-slides.js"></script>
+<script src="../js/sim-pilas-filas.js"></script>
 <script>
   Reveal.initialize({
     width: 1280,
@@ -756,6 +759,7 @@ stack&lt;int, vector&lt;int&gt;&gt; s2;   // la misma pila, guardada
         def: "Promedio del costo por operación sobre una secuencia larga: una operación aislada puede ser cara (cuando el deque agrega un bloque nuevo), pero el promedio sobre n operaciones queda en O(1)."
       }
     });
+    SimPilasFilas.init();
   });
 </script>
 </body>

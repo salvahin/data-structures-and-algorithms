@@ -1,0 +1,84 @@
+/* ============================================================
+   SIM-PILAS-FILAS — estilos de los simuladores de la sesión 14
+   Se carga después de theme-curso.css. Solo usa tokens del tema:
+   el modo oscuro funciona sin reglas propias.
+   Nodos, flechas y punteros reutilizan las clases .sl-* del
+   simulador de listas; la barra, el código y la explicación,
+   las clases .sim-*.
+   ============================================================ */
+
+.reveal .sim-pf {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2em;
+  font-size: 1em;
+}
+.reveal .pf-svg { width: 100%; display: block; }
+
+.reveal .sim-pf .pf-codigo { max-width: 52%; }
+.reveal .sim-pf .sim-dice { min-height: 4.1em; }
+.reveal .sim-pf .pf-dice-ancho { min-height: 4.1em; max-width: none; }
+
+/* ---------- Textos del dibujo ---------- */
+.reveal .pf-tit   { font-family: var(--font-sans); font-size: 22px; font-weight: 700; fill: var(--c-ink); }
+.reveal .pf-costo { font-family: var(--font-mono); font-size: 20px; font-weight: 700; fill: var(--c-ink-soft); text-anchor: end; }
+.reveal .pf-costo.izq { text-anchor: start; }
+.reveal .pf-costo.ok  { fill: var(--c-ok); }
+.reveal .pf-costo.err { fill: var(--c-err); }
+.reveal .pf-costo2 { font-family: var(--font-mono); font-size: 17px; fill: var(--c-ink-soft); }
+.reveal .pf-linea { font-family: var(--font-mono); font-size: 18px; font-weight: 600; fill: var(--c-ink-soft); white-space: pre; }
+.reveal .pf-sep   { stroke: var(--c-line); stroke-width: 2; stroke-dasharray: 4 6; }
+
+/* puntero que apunta a memoria liberada */
+.reveal .pf-colgante  { stroke: var(--c-err); stroke-width: 3; stroke-dasharray: 7 5; fill: none; }
+.reveal .pf-punta-err { fill: var(--c-err); }
+.reveal .sl-nulo.nueva { stroke: var(--c-ok); stroke-width: 4; }
+
+/* ---------- Casillas de arreglo ---------- */
+.reveal .pf-idx { font-family: var(--font-mono); font-size: 18px; font-weight: 600; fill: var(--c-ink-soft); text-anchor: middle; }
+.reveal .pf-idx.chica { font-size: 14px; }
+.reveal .pf-idx.err { fill: var(--c-err); }
+.reveal .pf-val { font-family: var(--font-mono); font-size: 28px; font-weight: 700; fill: var(--c-ink); text-anchor: middle; }
+.reveal .pf-val.chica { font-size: 20px; }
+.reveal .pf-mini { font-family: var(--font-mono); font-size: 14px; font-weight: 700; fill: var(--c-accent); }
+.reveal .pf-mini.err { fill: var(--c-err); font-size: 18px; }
+
+.reveal .pf-celda rect { fill: var(--c-bg); stroke: var(--c-ink); stroke-width: 3; transition: fill .2s, stroke .2s; }
+/* dentro de la fila */
+.reveal .pf-celda.ocupada rect { fill: var(--c-accent-bg); stroke: var(--c-accent); }
+/* conserva un dato viejo, pero ya no es parte de la fila */
+.reveal .pf-celda.basura rect,
+.reveal .pf-celda.libre rect { fill: var(--c-surface-1); stroke: var(--c-ink-faint); stroke-dasharray: 7 5; }
+.reveal .pf-celda.basura .pf-val,
+.reveal .pf-celda.libre .pf-val { fill: var(--c-ink-faint); }
+/* la casilla que la línea actual lee o escribe */
+.reveal .pf-celda.hl rect { stroke: var(--c-ok); stroke-width: 5; stroke-dasharray: none; }
+.reveal .pf-celda.hl rect { fill: var(--c-ok-bg); }
+.reveal .pf-celda.hl .pf-val { fill: var(--c-ink); }
+/* se movió en esta operación (opción 1) */
+.reveal .pf-celda.mov rect { fill: var(--c-err-bg); stroke: var(--c-err); stroke-width: 4; }
+/* fuera del arreglo */
+.reveal .pf-celda.fuera rect { fill: var(--c-err-bg); stroke: var(--c-err); stroke-width: 3; stroke-dasharray: 7 5; }
+.reveal .pf-celda.fuera .pf-val { fill: var(--c-err); }
+
+/* ---------- La vuelta y el tramo de la fila ---------- */
+.reveal .pf-arco { fill: none; stroke: var(--c-ink-faint); stroke-width: 2; stroke-dasharray: 6 6; }
+.reveal .pf-arco.on { stroke: var(--c-accent); stroke-width: 4; stroke-dasharray: none; }
+.reveal .pf-arco-txt { font-family: var(--font-mono); font-size: 15px; fill: var(--c-ink-faint); text-anchor: middle; }
+.reveal .pf-arco-txt.on { fill: var(--c-accent); font-weight: 700; }
+.reveal .pf-punta-tenue { fill: var(--c-ink-faint); }
+.reveal .pf-punta-acc { fill: var(--c-accent); }
+.reveal .pf-banda { stroke: var(--c-accent); stroke-width: 7; stroke-linecap: round; fill: none; }
+.reveal .pf-banda-txt { font-family: var(--font-sans); font-size: 17px; font-weight: 600; fill: var(--c-accent); }
+
+/* ---------- El anillo ---------- */
+.reveal .pf-anillo { fill: none; stroke: var(--c-line); stroke-width: 2; stroke-dasharray: 4 6; }
+.reveal .pf-celda.es-frente rect { stroke: var(--c-accent); stroke-width: 5; }
+.reveal .pf-celda.es-fin rect { stroke: var(--c-ok); stroke-width: 5; stroke-dasharray: none; }
+.reveal .pf-anillo-etq { font-family: var(--font-mono); font-size: 16px; font-weight: 700; }
+.reveal .pf-anillo-etq.acc { fill: var(--c-accent); }
+.reveal .pf-anillo-etq.ok  { fill: var(--c-ok); }
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal .pf-celda rect { transition: none; }
+}
