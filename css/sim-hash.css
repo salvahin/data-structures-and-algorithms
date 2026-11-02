@@ -1,0 +1,70 @@
+/* ============================================================
+   SIM-HASH — estilos de los simuladores de la sesión 24
+   Se carga después de theme-curso.css. Solo usa tokens del tema:
+   el modo oscuro funciona sin reglas propias.
+   Nodos, flechas y punteros reutilizan las clases .sl-* del
+   simulador de listas; la barra, el código y la explicación, las
+   clases .sim-*. Las casillas repiten las de sim-pilas-filas.css
+   para que el deck no dependa de ese archivo.
+   ============================================================ */
+
+.reveal .sim-hash {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2em;
+  font-size: 1em;
+}
+.reveal .sh-svg { display: block; width: 100%; }
+.reveal .sh-svg.sh-concepto  { height: 268px; }
+.reveal .sh-svg.sh-abierta   { height: 190px; }
+.reveal .sh-svg.sh-variantes { height: 350px; }
+
+/* encadenamiento: tabla a la izquierda, código a la derecha */
+.reveal .sh-fila { display: flex; align-items: flex-start; gap: 0.5em; }
+.reveal .sh-fila .sh-svg.sh-cadenas { flex: 0 0 auto; width: 600px; height: 287px; }
+.reveal .sh-fila .sh-codigo { max-width: none; flex: 1 1 auto; }
+.reveal .sim-hash .sh-codigo { max-width: 46%; }
+.reveal .sh-fila .sh-codigo { max-width: none; }
+.reveal .sim-hash .sh-dice { min-height: 3.2em; }
+.reveal .sim-hash > .sh-dice { max-width: none; }
+
+/* ---------- Textos del dibujo ---------- */
+.reveal .sim-hash .pf-tit   { font-family: var(--font-sans); font-size: 22px; font-weight: 700; fill: var(--c-ink); }
+.reveal .sim-hash .pf-costo { font-family: var(--font-mono); font-size: 20px; font-weight: 700; fill: var(--c-ink-soft); text-anchor: end; }
+.reveal .sim-hash .pf-sep   { stroke: var(--c-line); stroke-width: 2; stroke-dasharray: 4 6; }
+.reveal .sim-hash .pf-idx   { font-family: var(--font-mono); font-size: 18px; font-weight: 600; fill: var(--c-ink-soft); text-anchor: middle; }
+.reveal .sim-hash .pf-val   { font-family: var(--font-mono); font-size: 28px; font-weight: 700; fill: var(--c-ink); text-anchor: middle; }
+.reveal .sh-calc    { font-family: var(--font-mono); font-size: 26px; font-weight: 700; fill: var(--c-accent); white-space: pre; }
+.reveal .sh-formula { font-family: var(--font-mono); font-size: 16px; font-weight: 600; fill: var(--c-accent); }
+.reveal .sh-ruta    { font-family: var(--font-mono); font-size: 16px; fill: var(--c-ink-soft); }
+.reveal .sh-ley     { font-family: var(--font-mono); font-size: 16px; fill: var(--c-ink-soft); }
+.reveal .sh-idx-on  { fill: var(--c-accent); font-weight: 700; }
+
+/* ---------- Casillas ---------- */
+.reveal .sim-hash .pf-celda rect { fill: var(--c-bg); stroke: var(--c-ink); stroke-width: 3; transition: fill .2s, stroke .2s; }
+/* guarda una clave */
+.reveal .sim-hash .pf-celda.ocupada rect { fill: var(--c-accent-bg); stroke: var(--c-accent); }
+/* se probó y estaba ocupada (choque), o se miró sin encontrar la clave */
+.reveal .sim-hash .pf-celda.choque rect,
+.reveal .sim-hash .pf-celda.visto rect { fill: var(--c-err-bg); stroke: var(--c-err); stroke-width: 4; }
+/* la casilla que la línea actual va a probar */
+.reveal .sim-hash .pf-celda.actual rect { fill: var(--c-bg); stroke: var(--c-accent); stroke-width: 5; stroke-dasharray: 7 5; }
+.reveal .sim-hash .pf-celda.actual.ocupada rect { fill: var(--c-accent-bg); }
+/* donde quedó la clave, o donde se encontró */
+.reveal .sim-hash .pf-celda.hl rect { fill: var(--c-ok-bg); stroke: var(--c-ok); stroke-width: 5; }
+
+/* ---------- Ruta de sondeo ---------- */
+.reveal .sh-arco { fill: none; stroke: var(--c-err); stroke-width: 3; }
+.reveal .sh-punta-ruta { fill: var(--c-err); }
+.reveal .sh-arco-n { font-family: var(--font-mono); font-size: 14px; font-weight: 700; fill: var(--c-err); text-anchor: middle; }
+
+/* ---------- Cubetas y listas ---------- */
+.reveal .sh-cubeta rect { fill: var(--c-surface-1); stroke: var(--c-ink); stroke-width: 3; }
+.reveal .sh-cubeta.on rect { fill: var(--c-accent-bg); stroke: var(--c-accent); stroke-width: 4; }
+.reveal .sh-dot { fill: var(--c-ink); }
+.reveal .sim-hash .sl-nulo.nueva { stroke: var(--c-ok); stroke-width: 4; }
+.reveal .sh-ptr text { font-size: 14px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal .sim-hash .pf-celda rect { transition: none; }
+}

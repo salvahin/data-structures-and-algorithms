@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sesión 24 — Hashing y conjuntos</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+  <script>try{if(localStorage.getItem("curso-tema")==="dark"&&!/print-pdf/i.test(location.search))document.documentElement.dataset.theme="dark"}catch(e){}</script>
+  <link rel="stylesheet" href="../css/theme-curso.css">
+  <link rel="stylesheet" href="../css/sim-hash.css">
+</head>
+<body>
+<div class="reveal">
+  <div class="slides">
+
+    <!-- ============ PORTADA ============ -->
+    <section class="cover">
+      <span class="kicker">Estructuras de Datos y Algoritmos · Bloque 4</span>
+      <h1>Hashing y&nbsp;conjuntos</h1>
+      <div class="cover-meta">
+        Sesión 24 · Semana 14<br>
+        Salvador Hinojosa
+      </div>
+    </section>
+
+    <!-- ============ OBJETIVO ============ -->
+    <section>
+      <span class="kicker">Objetivo de hoy</span>
+      <h2>Al salir de esta sesión podrás…</h2>
+      <ul>
+        <li class="fragment">Calcular a mano la casilla de una clave con el método de la división y con el hash polinomial para cadenas.</li>
+        <li class="fragment">Explicar cómo una tabla hash logra O(1) promedio y qué provoca su O(n) de peor caso.</li>
+        <li class="fragment">Resolver colisiones por encadenamiento y por direccionamiento abierto (lineal, cuadrático, doble hashing).</li>
+        <li class="fragment">Usar el factor de carga para predecir cuánto cuesta buscar y cuándo hacer rehashing.</li>
+      </ul>
+    </section>
+
+    <!-- ============ DIVIDER 8.3.1 ============ -->
+    <section class="divider">
+      <h2>8.3.1 El TDA conjunto</h2>
+    </section>
+
+    <!-- ============ 8.3.1 OPERACIONES ============ -->
+    <section>
+      <span class="kicker">8.3.1 · El TDA conjunto</span>
+      <h2>Especificación del conjunto</h2>
+      <p>Un conjunto es una colección sin elementos repetidos. Sus operaciones:</p>
+      <ul>
+        <li class="fragment"><strong>Sobre un conjunto:</strong> <code>agrega(x)</code>, <code>elimina(x)</code>, <code>pertenece(x)</code>. La pertenencia es la más usada: casi todo uso real pregunta "¿ya vi esto?".</li>
+        <li class="fragment"><strong>Entre conjuntos:</strong> unión \(A \cup B\), intersección \(A \cap B\), diferencia \(A - B\).</li>
+        <li class="fragment">El invariante (sin repetidos) es el mismo en todas las implementaciones. Lo que cambia es cuánto cuesta cada operación.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 8.3.1 IMPLEMENTACIONES ============ -->
+    <section>
+      <span class="kicker">8.3.1 · El TDA conjunto</span>
+      <h2>Tres implementaciones para el mismo contrato</h2>
+      <table>
+        <thead><tr><th>Implementación</th><th><code>pertenece</code></th><th><code>agrega</code></th><th>¿Recorrido en orden?</th></tr></thead>
+        <tbody>
+          <tr class="fragment"><td>Arreglo desordenado</td><td>O(n)</td><td>O(n) (verificar duplicado)</td><td>no</td></tr>
+          <tr class="fragment"><td>Árbol balanceado (<code>std::set</code>)</td><td>O(log n)</td><td>O(log n)</td><td>sí</td></tr>
+          <tr class="fragment"><td>Tabla hash (<code>std::unordered_set</code>)</td><td>O(1) promedio</td><td>O(1) promedio</td><td>no</td></tr>
+        </tbody>
+      </table>
+      <p class="fragment">El resto de la sesión explica la tercera fila: cómo se consigue el O(1), qué supone la palabra "promedio" y en qué casos deja de cumplirse.</p>
+    </section>
+
+    <!-- ============ QUIZ 1 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="b">
+        <p class="quiz-question">Quieres intersecar dos conjuntos en tablas hash, de tamaños n y m con n &lt; m. ¿Cómo lo haces eficiente?</p>
+        <button class="quiz-option" data-opt="a">Recorres el conjunto grande y consultas cada elemento en el chico: O(m).</button>
+        <button class="quiz-option" data-opt="b">Recorres el conjunto chico y consultas cada elemento en el grande: O(n).</button>
+        <button class="quiz-option" data-opt="c">Da lo mismo: la intersección siempre cuesta O(n + m).</button>
+        <div class="quiz-explain">
+          <strong>B.</strong> Cada consulta de pertenencia cuesta O(1) promedio sin importar el tamaño del
+          conjunto consultado, así que el costo total lo fija el conjunto que <em>recorres</em>. Recorrer el
+          chico da O(n); recorrer el grande, O(m). Con n = 100 y m = 10 millones, recorrer el chico hace
+          cien mil veces menos consultas.
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ DIVIDER 8.3.2 ============ -->
+    <section class="divider">
+      <h2>8.3.2 Técnica de hashing</h2>
+    </section>
+
+    <!-- ============ 8.3.2 LA IDEA (SIM) ============ -->
+    <section>
+      <span class="kicker">8.3.2 · La idea</span>
+      <h2>Calcular la casilla en lugar de buscarla</h2>
+      <div class="sim-hash" data-alg="concepto"></div>
+    </section>
+
+    <!-- ============ 8.3.2 FUNCIÓN HASH ============ -->
+    <section>
+      <span class="kicker">8.3.2 · Función hash</span>
+      <h2>De la clave al índice</h2>
+      <p>La regla que convierte una clave en un número de casilla se llama <strong>función hash</strong>. Con <em>m</em> casillas, devuelve un número entre 0 y \(m - 1\). Necesita tres propiedades:</p>
+      <ul>
+        <li class="fragment"><strong>Determinista:</strong> la misma clave produce siempre la misma casilla. Si no, lo que se guardó no se vuelve a encontrar.</li>
+        <li class="fragment"><strong>Uniforme:</strong> reparte las claves entre las casillas, incluso cuando las claves se parecen entre sí.</li>
+        <li class="fragment"><strong>Rápida:</strong> se calcula en cada operación. Si cuesta más que la búsqueda que evita, no sirve.</li>
+      </ul>
+      <p class="fragment muted">A las casillas de una tabla hash también se les llama <span class="term" data-term="cubeta">cubetas</span>.</p>
+    </section>
+
+    <!-- ============ 8.3.2 MÉTODO DE LA DIVISIÓN ============ -->
+    <section>
+      <span class="kicker">8.3.2 · Función hash</span>
+      <h2>Enteros: el método de la división</h2>
+      <div class="eq-key">\[ h(k) = k \bmod m \]</div>
+      <ul>
+        <li class="fragment">\(k \bmod m\) es el residuo de dividir \(k\) entre \(m\). En C++ se escribe <code>k % m</code>.</li>
+        <li class="fragment">Ejemplo con \(m = 7\): \(\;31 = 4 \cdot 7 + 3\), así que \(h(31) = 3\).</li>
+        <li class="fragment">El residuo siempre queda entre 0 y \(m - 1\), así que la casilla siempre existe. Esto vale para \(k \ge 0\); en C++ el residuo de un negativo es negativo, y por eso las tablas de hoy piden claves no negativas.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 8.3.2 POR QUÉ m PRIMO ============ -->
+    <section>
+      <span class="kicker">8.3.2 · Función hash</span>
+      <h2>Elegir <em>m</em>: por qué conviene un primo</h2>
+      <p>Las claves reales tienen patrones. Estas cinco son múltiplos de 10:</p>
+      <table>
+        <thead><tr><th>\(k\)</th><th>20</th><th>30</th><th>40</th><th>50</th><th>60</th></tr></thead>
+        <tbody>
+          <tr class="fragment"><td>\(k \bmod 10\)</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+          <tr class="fragment"><td>\(k \bmod 7\)</td><td>6</td><td>2</td><td>5</td><td>1</td><td>4</td></tr>
+        </tbody>
+      </table>
+      <ul>
+        <li class="fragment">Con \(m = 10\) el residuo es el último dígito, y las cinco claves caen en la casilla 0. Si las claves comparten un factor con \(m\), solo usan algunas casillas.</li>
+        <li class="fragment">Un primo solo comparte factores con sus propios múltiplos, así que claves con patrones como "múltiplos de 10" o "pares" se reparten entre todas las cubetas. Por eso las tablas de hoy usan \(m = 7\) y \(m = 11\).</li>
+      </ul>
+    </section>
+
+    <!-- ============ 8.3.2 CADENAS ============ -->
+    <section>
+      <span class="kicker">8.3.2 · Función hash</span>
+      <h2>Cadenas: el hash polinomial</h2>
+      <p>Cada carácter es un número, su código ASCII (<code>'s'</code> = 115), y se combinan como dígitos en base \(b\):</p>
+      <div class="eq">\[ h(s) = \left( s_0\, b^{L-1} + s_1\, b^{L-2} + \cdots + s_{L-1} \right) \bmod m \]</div>
+      <div class="cols">
+        <pre><code class="language-cpp" data-trim data-line-numbers="2-3|4-6|5">
+int hashCadena(std::string s) {
+    int L = s.size();
+    int h = 0;
+    for (int j = 0; j &lt; L; j++) {
+        h = (h * 31 + s[j]) % M;
+    }
+    return h;
+}
+        </code></pre>
+        <table class="fragment">
+          <thead><tr><th>\(j\)</th><th>carácter</th><th><code>h * 31 + s[j]</code></th><th>\(h\)</th></tr></thead>
+          <tbody>
+            <tr><td>0</td><td><code>'s'</code> = 115</td><td>0 · 31 + 115 = 115</td><td>3</td></tr>
+            <tr><td>1</td><td><code>'o'</code> = 111</td><td>3 · 31 + 111 = 204</td><td>1</td></tr>
+            <tr><td>2</td><td><code>'l'</code> = 108</td><td>1 · 31 + 108 = 139</td><td>6</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="fragment muted">Sacar el residuo en cada vuelta da lo mismo que sacarlo al final, y evita que <code>h</code> se desborde.</p>
+    </section>
+
+    <!-- ============ 8.3.2 POR QUÉ NO SUMAR ============ -->
+    <section>
+      <span class="kicker">8.3.2 · Función hash</span>
+      <h2>¿Por qué no sumar los caracteres?</h2>
+      <table>
+        <thead><tr><th>Cadena</th><th>Suma de códigos</th><th>Suma \(\bmod 7\)</th><th>Polinomial, \(b = 31\), \(\bmod 7\)</th></tr></thead>
+        <tbody>
+          <tr class="fragment"><td><code>"amor"</code></td><td>97 + 109 + 111 + 114 = 431</td><td>4</td><td>1</td></tr>
+          <tr class="fragment"><td><code>"roma"</code></td><td>114 + 111 + 109 + 97 = 431</td><td>4</td><td>0</td></tr>
+        </tbody>
+      </table>
+      <ul>
+        <li class="fragment">La suma no depende del orden de las letras: todos los anagramas caen en la misma casilla.</li>
+        <li class="fragment">En el polinomial cada carácter se multiplica por una potencia distinta de \(b\) según su posición, así que cambiar el orden cambia el resultado.</li>
+      </ul>
+    </section>
+
+    <!-- ============ QUIZ DIVISIÓN ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="b">
+        <p class="quiz-question">Una tabla de \(m = 100\) cubetas guarda precios en centavos, y casi todos terminan en 00 o en 50. ¿Qué pasa con \(h(k) = k \bmod 100\)?</p>
+        <button class="quiz-option" data-opt="a">Se reparten bien: los precios son distintos entre sí.</button>
+        <button class="quiz-option" data-opt="b">Casi todos caen en las cubetas 0 y 50, y las otras 98 quedan casi vacías.</button>
+        <button class="quiz-option" data-opt="c">Depende de qué tan grandes sean los precios.</button>
+        <div class="quiz-explain">
+          <strong>B.</strong> \(k \bmod 100\) son los dos últimos dígitos de \(k\), y en estos datos solo toman dos
+          valores. Que las claves sean distintas no basta: importa que sus residuos sean distintos. Con
+          \(m = 101\) (primo), los residuos dependen de todos los dígitos del precio y se reparten. El tamaño
+          de los precios no cambia nada, por eso la C es incorrecta.
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 8.3.2 COLISIONES INEVITABLES ============ -->
+    <section>
+      <span class="kicker">8.3.2 · Colisiones</span>
+      <h2>Las colisiones no se pueden evitar</h2>
+      <ul>
+        <li class="fragment">Hay muchas más claves posibles que cubetas: solo de cadenas de 10 letras minúsculas hay \(26^{10}\), unos 141 billones, contra unas miles de cubetas. Por el <span class="term" data-term="casillero">principio del casillero</span>, algunas claves comparten cubeta.</li>
+        <li class="fragment">Una buena función hash reparte las colisiones de manera uniforme, pero no las elimina.</li>
+        <li class="fragment">Por eso toda tabla hash trae una regla para resolverlas. Hay dos familias: <strong>encadenamiento</strong> (una lista por cubeta) y <strong>direccionamiento abierto</strong> (buscar otra casilla en el mismo arreglo).</li>
+      </ul>
+    </section>
+
+    <!-- ============ 8.3.2 ENCADENAMIENTO: LA CLASE ============ -->
+    <section>
+      <span class="kicker">8.3.2 · Encadenamiento</span>
+      <h2>Una lista simple por cubeta</h2>
+      <pre data-title="tabla_hash.hpp"><code class="language-cpp" data-trim data-line-numbers="1-13|1-2|5|7-10|11-12">
+const int M = 7;              // numero de cubetas
+// struct Nodo: el de la sesion 12 (dato, next)
+
+class TablaHash {
+    Nodo* tabla[M];           // tabla[i]: primer nodo de la cubeta i
+public:
+    TablaHash() {
+        for (int i = 0; i &lt; M; i++)
+            tabla[i] = nullptr;   // 7 listas vacias
+    }
+    void inserta(int k);      // pre: k &gt;= 0 y k no esta
+    bool contiene(int k);     // pre: k &gt;= 0
+};
+      </code></pre>
+      <p class="fragment">Cada <code>tabla[i]</code> hace el papel del <code>head</code> de una lista. Insertar y buscar empiezan igual: calculan <code>k % M</code> para saber en qué lista trabajar.</p>
+    </section>
+
+    <!-- ============ 8.3.2 ENCADENAMIENTO (SIM) ============ -->
+    <section>
+      <span class="kicker">8.3.2 · Encadenamiento</span>
+      <h2>Encadenamiento, línea por línea</h2>
+      <div class="sim-hash" data-alg="encadenamiento"></div>
+    </section>
+
+    <!-- ============ 8.3.2 ENCADENAMIENTO: CÓDIGO ============ -->
+    <section>
+      <span class="kicker">8.3.2 · Encadenamiento</span>
+      <h2>El código completo</h2>
+      <div class="cols">
+        <pre><code class="language-cpp" data-trim>
+void inserta(int k) {
+    int i = k % M;
+    Nodo* nuevo = new Nodo(k);
+    nuevo-&gt;next = tabla[i];
+    tabla[i] = nuevo;
+}
+        </code></pre>
+        <pre><code class="language-cpp" data-trim>
+bool contiene(int k) {
+    int i = k % M;
+    Nodo* p = tabla[i];
+    while (p != nullptr) {
+        if (p-&gt;dato == k)
+            return true;
+        p = p-&gt;next;
+    }
+    return false;
+}
+        </code></pre>
+      </div>
+      <p class="fragment"><code>inserta</code> es O(1): no recorre nada. <code>contiene</code> recorre una sola lista y cuesta lo que mida esa lista.</p>
+    </section>
+
+    <!-- ============ 8.3.2 DIRECCIONAMIENTO ABIERTO: LA CLASE ============ -->
+    <section>
+      <span class="kicker">8.3.2 · Direccionamiento abierto</span>
+      <h2>Todo dentro del arreglo</h2>
+      <pre data-title="tabla_abierta.hpp"><code class="language-cpp" data-trim data-line-numbers="1-13|2|5|11">
+const int M = 7;
+const int VACIA = -1;         // marca de casilla sin dato
+
+class TablaAbierta {
+    int tabla[M];             // las claves viven en el arreglo
+public:
+    TablaAbierta() {
+        for (int i = 0; i &lt; M; i++)
+            tabla[i] = VACIA;
+    }
+    void inserta(int k);      // pre: k &gt;= 0, k no esta, hay hueco
+    bool contiene(int k);     // pre: k &gt;= 0, hay hueco
+};
+      </code></pre>
+      <p class="fragment">No hay nodos ni punteros. Como cada casilla guarda una sola clave, la tabla se llena: con <em>M</em> casillas caben a lo más <em>M</em> claves.</p>
+    </section>
+
+    <!-- ============ 8.3.2 SONDEO LINEAL (SIM) ============ -->
+    <section>
+      <span class="kicker">8.3.2 · Direccionamiento abierto</span>
+      <h2>Sondeo lineal, línea por línea</h2>
+      <div class="sim-hash" data-alg="lineal"></div>
+    </section>
+
+    <!-- ============ 8.3.2 BUSCAR Y BORRAR ============ -->
+    <section>
+      <span class="kicker">8.3.2 · Direccionamiento abierto</span>
+      <h2>Buscar sigue la misma ruta</h2>
+      <div class="cols">
+        <pre><code class="language-cpp" data-trim data-line-numbers="1-11|3|4|5-6|7-8">
+bool contiene(int k) {
+    int i = 0;
+    int pos = k % M;
+    while (tabla[pos] != VACIA) {
+        if (tabla[pos] == k)
+            return true;
+        i++;
+        pos = (k % M + i) % M;
+    }
+    return false;
+}
+        </code></pre>
+        <ul>
+          <li class="fragment">Prueba las mismas casillas que <code>inserta</code>, en el mismo orden.</li>
+          <li class="fragment">Una casilla <code>VACIA</code> indica que la clave no está: <code>inserta</code> la habría guardado ahí.</li>
+          <li class="fragment"><strong>Borrar</strong> no puede dejar <code>VACIA</code>: si se borra el 24, <code>contiene(17)</code> se detiene en la 4 y no llega a la 5. Se deja una <span class="term" data-term="lapida">lápida</span>.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============ 8.3.2 ECUACIONES DE SONDEO ============ -->
+    <section>
+      <span class="kicker">8.3.2 · Direccionamiento abierto</span>
+      <h2>Tres reglas para la casilla del intento \(i\)</h2>
+      <table>
+        <thead><tr><th>Sondeo</th><th>Casilla del intento \(i = 0, 1, 2, \ldots\)</th><th>Desde la casilla 3, con \(m = 11\)</th></tr></thead>
+        <tbody>
+          <tr class="fragment"><td>Lineal</td><td>\(\big(h(k) + i\big) \bmod m\)</td><td>3, 4, 5, 6, 7, …</td></tr>
+          <tr class="fragment"><td>Cuadrático</td><td>\(\big(h(k) + i^{2}\big) \bmod m\)</td><td>3, 4, 7, 1, 8, …</td></tr>
+          <tr class="fragment"><td>Doble hashing</td><td>\(\big(h(k) + i \cdot h_2(k)\big) \bmod m\)</td><td>con \(h_2(k) = 6\): 3, 9, 4, 10, 5, …</td></tr>
+        </tbody>
+      </table>
+      <ul>
+        <li class="fragment">\(h(k) = k \bmod m\) es la casilla inicial. La regla solo decide qué casilla se prueba cuando hay choque.</li>
+        <li class="fragment">En doble hashing, \(h_2(k) = R - (k \bmod R)\) con \(R\) primo menor que \(m\). Da un número entre 1 y \(R\), nunca 0; con un paso 0 la clave probaría siempre la misma casilla.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 8.3.2 VARIANTES (SIM) ============ -->
+    <section>
+      <span class="kicker">8.3.2 · Direccionamiento abierto</span>
+      <h2>Las mismas claves, tres reglas</h2>
+      <div class="sim-hash" data-alg="variantes"></div>
+    </section>
+
+    <!-- ============ 8.3.2 VARIANTES: CÓDIGO ============ -->
+    <section>
+      <span class="kicker">8.3.2 · Direccionamiento abierto</span>
+      <h2>En el código cambia una línea</h2>
+      <div class="cols">
+        <pre><code class="language-cpp" data-trim data-line-numbers="1-9|6">
+void inserta(int k) {
+    int i = 0;
+    int pos = k % M;
+    while (tabla[pos] != VACIA) {
+        i++;
+        pos = (k % M + i) % M;
+    }
+    tabla[pos] = k;
+}
+        </code></pre>
+        <pre class="fragment"><code class="language-cpp" data-trim>
+// cuadratico: la linea 6 queda asi
+pos = (k % M + i * i) % M;
+
+// doble hashing: la linea 6 queda asi
+pos = (k % M + i * h2(k)) % M;
+
+int h2(int k) {       // con M = 11
+    return 7 - k % 7; // entre 1 y 7
+}
+        </code></pre>
+      </div>
+      <p class="fragment">Es la misma línea en <code>contiene</code>: buscar tiene que repetir la ruta de la inserción.</p>
+    </section>
+
+    <!-- ============ 8.3.2 DETALLES DE LAS VARIANTES ============ -->
+    <section>
+      <span class="kicker">8.3.2 · Direccionamiento abierto</span>
+      <h2>Lo que cada regla necesita</h2>
+      <ul>
+        <li class="fragment"><strong>Lineal:</strong> siempre encuentra una casilla vacía si la hay, porque prueba todas. Su problema es el <span class="term" data-term="clustering">cúmulo primario</span> que se vio en la animación.</li>
+        <li class="fragment"><strong>Cuadrático:</strong> no prueba todas las casillas. Con \(m = 7\), los valores de \(i^{2} \bmod 7\) son 0, 1, 4, 2, 2, 4, 1: solo 4 casillas distintas. Con \(m\) primo, encuentra hueco si la tabla está a lo más a la mitad.</li>
+        <li class="fragment"><strong>Doble hashing:</strong> prueba todas las casillas si \(h_2(k)\) y \(m\) no comparten factores, lo que se garantiza con \(m\) primo. Cuesta calcular una segunda función.</li>
+      </ul>
+    </section>
+
+    <!-- ============ QUIZ SONDEO ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="b">
+        <p class="quiz-question">Con \(m = 11\) y \(h_2(k) = 7 - (k \bmod 7)\), insertas \(k = 47\) con doble hashing. \(47 \bmod 11 = 3\) y la casilla 3 está ocupada. ¿Qué casilla se prueba después?</p>
+        <button class="quiz-option" data-opt="a">La 4: la siguiente de la 3.</button>
+        <button class="quiz-option" data-opt="b">La 5: \(h_2(47) = 7 - 5 = 2\), y \((3 + 1 \cdot 2) \bmod 11 = 5\).</button>
+        <button class="quiz-option" data-opt="c">La 10: \(3 + 7\), porque el paso de doble hashing es 7.</button>
+        <div class="quiz-explain">
+          <strong>B.</strong> \(47 = 6 \cdot 7 + 5\), así que \(47 \bmod 7 = 5\) y el paso es \(7 - 5 = 2\). En el intento
+          \(i = 1\) se prueba \((3 + 2) \bmod 11 = 5\). La A es sondeo lineal. La C usa el 7 de la fórmula como si fuera
+          el paso; el paso depende de la clave, y por eso dos claves que empiezan en la misma casilla siguen rutas distintas.
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 8.3.2 FACTOR DE CARGA ============ -->
+    <section>
+      <span class="kicker">8.3.2 · Factor de carga</span>
+      <h2>Factor de carga: qué tan llena está la tabla</h2>
+      <div class="eq-key">\[ \alpha = \frac{n}{m} = \frac{\text{claves guardadas}}{\text{cubetas}} \]</div>
+      <ul>
+        <li class="fragment">En la animación de encadenamiento: 5 claves en 7 cubetas, \(\alpha = 5/7 \approx 0.71\). Es el largo promedio de una lista.</li>
+        <li class="fragment">En la de sondeo lineal: también \(\alpha \approx 0.71\), y la casilla 0 se ocupó después de 5 pruebas.</li>
+        <li class="fragment">En encadenamiento \(\alpha\) puede pasar de 1 (las listas crecen). En direccionamiento abierto \(\alpha \le 1\), porque cada casilla guarda una clave.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 8.3.2 COSTO SEGÚN ALFA ============ -->
+    <section>
+      <span class="kicker">8.3.2 · Factor de carga</span>
+      <h2>Cuánto cuesta buscar según \(\alpha\)</h2>
+      <p>Con funciones hash uniformes, una búsqueda que <strong>no</strong> encuentra la clave revisa en promedio:</p>
+      <table class="fragment">
+        <thead><tr><th></th><th>Fórmula</th><th>\(\alpha = 0.5\)</th><th>\(\alpha = 0.7\)</th><th>\(\alpha = 0.9\)</th></tr></thead>
+        <tbody>
+          <tr><td>Encadenamiento</td><td>\(1 + \alpha\)</td><td>1.5</td><td>1.7</td><td>1.9</td></tr>
+          <tr><td>Doble hashing</td><td>\(\dfrac{1}{1 - \alpha}\)</td><td>2</td><td>3.3</td><td>10</td></tr>
+          <tr><td>Sondeo lineal</td><td>\(\dfrac{1}{2}\left(1 + \dfrac{1}{(1 - \alpha)^{2}}\right)\)</td><td>2.5</td><td>6.1</td><td>50.5</td></tr>
+        </tbody>
+      </table>
+      <p class="fragment muted">El costo depende de \(\alpha\) y no de \(n\): con \(\alpha\) fijo, una tabla de mil claves y una de un millón cuestan lo mismo. El direccionamiento abierto se vuelve lento arriba de 0.7, sobre todo el lineal.</p>
+    </section>
+
+    <!-- ============ 8.3.2 REHASHING ============ -->
+    <section>
+      <span class="kicker">8.3.2 · Factor de carga</span>
+      <h2>Rehashing</h2>
+      <ul>
+        <li class="fragment">Cuando \(\alpha\) cruza un umbral (por ejemplo, 0.7 en direccionamiento abierto), se crea una tabla de aproximadamente el doble de cubetas, con \(m\) primo.</li>
+        <li class="fragment">Todas las claves se reinsertan con la \(m\) nueva. No se pueden copiar casilla por casilla: \(k \bmod m\) cambió para casi todas.</li>
+        <li class="fragment">El rehash cuesta O(n), pero ocurre cada vez que el número de claves se duplica. Repartido entre todas las inserciones da O(1) <span class="term" data-term="amortizado">amortizado</span>, como el <code>push_back</code> de <code>vector</code>.</li>
+      </ul>
+      <p class="fragment box-key">El O(1) promedio supone dos cosas: una función hash uniforme y un \(\alpha\) acotado por el rehashing.</p>
+    </section>
+
+    <!-- ============ 8.3.2 PEOR CASO ============ -->
+    <section>
+      <span class="kicker">8.3.2 · El peor caso</span>
+      <h2>Qué provoca el O(n)</h2>
+      <ul>
+        <li class="fragment"><strong>Función hash pobre:</strong> si \(h\) manda las claves reales a pocas cubetas (por ejemplo, \(k \bmod 100\) con precios que terminan en 00), una cubeta concentra casi todo y buscar ahí es recorrer una lista.</li>
+        <li class="fragment"><strong>Claves adversariales:</strong> si un atacante conoce \(h\), puede fabricar miles de claves que colisionan a propósito y volver lento un servicio (<em>hash flooding</em>). Por eso los lenguajes modernos eligen al azar una semilla del hash en cada ejecución.</li>
+        <li class="fragment"><strong>\(\alpha\) sin control:</strong> sin rehashing, \(\alpha\) crece con los datos y \(1 + \alpha\) deja de ser pequeño.</li>
+      </ul>
+    </section>
+
+    <!-- ============ QUIZ 2 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="b">
+        <p class="quiz-question">Diseñas una función hash con distribución perfecta y uniforme. ¿Qué pasa con las colisiones?</p>
+        <button class="quiz-option" data-opt="a">Desaparecen: cada clave recibe su propia cubeta y la tabla queda en O(1) exacto.</button>
+        <button class="quiz-option" data-opt="b">Siguen ocurriendo: con más claves posibles que cubetas son inevitables, y la función solo las reparte de manera uniforme.</button>
+        <button class="quiz-option" data-opt="c">Solo ocurren si las claves son cadenas; con enteros la función puede asignar una cubeta distinta a cada clave.</button>
+        <div class="quiz-explain">
+          <strong>B.</strong> Por el principio del casillero, si hay más claves posibles que cubetas, existen claves
+          que comparten cubeta, y con \(\alpha &gt; 0\) las colisiones aparecen en la práctica. Por eso la regla de
+          resolución es obligatoria. La C confunde las claves posibles con las cubetas: hay \(2^{64}\) enteros de
+          64 bits y la tabla tiene \(m\) cubetas.
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ DIVIDER 8.3.3 ============ -->
+    <section class="divider">
+      <h2>8.3.3 Conjuntos disjuntos</h2>
+    </section>
+
+    <!-- ============ 8.3.3 ESTRUCTURA ============ -->
+    <section>
+      <span class="kicker">8.3.3 · Conjuntos disjuntos</span>
+      <h2>Union-find, ahora como tema formal</h2>
+      <ul>
+        <li class="fragment">El lunes lo usamos para componentes en la Act 4.2; hoy le toca su lugar en el temario. Resuelve otro problema de conjuntos: mantener una <strong>partición</strong>. Cada elemento pertenece a exactamente un conjunto, y los conjuntos se fusionan con el tiempo.</li>
+        <li class="fragment">Representación: un bosque. <code>padre[x]</code> apunta hacia la raíz; la raíz es el representante del conjunto. <code>find</code> sube hasta la raíz; <code>union</code> cuelga una raíz de la otra.</li>
+        <li class="fragment">Sin optimizaciones, los árboles pueden degenerar en cadenas: <code>find</code> llega a costar O(n).</li>
+      </ul>
+    </section>
+
+    <!-- ============ 8.3.3 OPTIMIZACIONES ============ -->
+    <section>
+      <span class="kicker">8.3.3 · Conjuntos disjuntos</span>
+      <h2>Dos optimizaciones, y por qué hacen falta ambas</h2>
+      <table>
+        <thead><tr><th>Configuración</th><th>Costo por operación</th></tr></thead>
+        <tbody>
+          <tr class="fragment"><td>Sin optimizaciones</td><td>O(n) en el peor caso</td></tr>
+          <tr class="fragment"><td>Solo unión por rango</td><td>O(log n)</td></tr>
+          <tr class="fragment"><td>Solo compresión de caminos</td><td>O(log n) amortizado</td></tr>
+          <tr class="fragment"><td><strong>Ambas</strong></td><td><strong>α(n) amortizado</strong> — <span class="term" data-term="ackermann">inversa de Ackermann</span>, ≤ 4 en la práctica</td></tr>
+        </tbody>
+      </table>
+      <ul>
+        <li class="fragment"><strong>Unión por rango</strong> evita que los árboles crezcan de más al fusionar: la raíz baja se cuelga de la alta.</li>
+        <li class="fragment"><strong>Compresión de caminos</strong> aplana el árbol en cada <code>find</code>: todos los vértices del camino quedan colgados directo de la raíz.</li>
+      </ul>
+    </section>
+
+    <!-- ============ QUIZ 3 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="b">
+        <p class="quiz-question">Implementas union-find solo con compresión de caminos, sin unión por rango. ¿Qué garantía tienes?</p>
+        <button class="quiz-option" data-opt="a">α(n) amortizado: la compresión es la optimización que realmente importa.</button>
+        <button class="quiz-option" data-opt="b">O(log n) amortizado: para llegar a α(n) hacen falta las dos optimizaciones combinadas.</button>
+        <button class="quiz-option" data-opt="c">O(n): sin unión por rango la compresión no aporta nada.</button>
+        <div class="quiz-explain">
+          <strong>B.</strong> Cada optimización por separado da O(log n) amortizado; la cota α(n) de
+          Tarjan requiere la combinación. La opción C subestima la compresión: aplanar en cada
+          <code>find</code> sí acota el costo amortizado aunque las uniones se hagan sin criterio.
+          En la práctica se escriben las dos, y son tres líneas extra.
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ RETO ============ -->
+    <section>
+      <span class="kicker">Reto en parejas · Cierre</span>
+      <h2>Hash para cerrar, conectando los bloques</h2>
+      <table>
+        <thead><tr><th>Problema</th><th>Dificultad</th><th>La idea</th></tr></thead>
+        <tbody>
+          <tr class="fragment"><td>LC 128 · Longest Consecutive Sequence</td><td>Media</td><td>Un <code>unordered_set</code> y contar solo desde los inicios de racha. El entregable real es el argumento de por qué es O(n) pese al doble ciclo.</td></tr>
+          <tr class="fragment"><td>LC 146 · LRU Cache</td><td>Media–Alta</td><td>Hashmap + lista doblemente ligada: O(1) para <code>get</code> y <code>put</code>. El bloque 2 y el bloque 4 del curso en una sola estructura.</td></tr>
+        </tbody>
+      </table>
+      <ul>
+        <li class="fragment">Casos de prueba incluidos en el enunciado del LMS.</li>
+        <li class="fragment">Registro completado / no completado; entrega antes de la próxima sesión.</li>
+      </ul>
+    </section>
+
+    <!-- ============ PRÓXIMA SESIÓN ============ -->
+    <section class="divider">
+      <h2>Semana 16: Act 5.1 — conjuntos</h2>
+      <p class="muted" style="margin-top:1em;">Act 4.2 se entrega este domingo 15 de noviembre, 23:59.<br>Reto LC 128 / LC 146 al LMS. La Act 5.1 (sesiones 25–26) se trabaja en laboratorio sin internet: llegar con hashing y union-find dominados.</p>
+    </section>
+
+    <!-- ============ DIVIDER MATERIAL EXTRA ============ -->
+    <section class="divider">
+      <h2>Material extra · autoestudio</h2>
+      <p class="muted">No se cubre en clase: la STL del tema y su conexión con sistemas de IA.</p>
+    </section>
+
+    <!-- ============ STL UNORDERED ============ -->
+    <section>
+      <span class="kicker">8.3.4 · STL</span>
+      <h2><code>std::unordered_map</code> y <code>std::unordered_set</code></h2>
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-3|5-7|9-10">
+std::unordered_set&lt;std::string&gt; vistos;
+vistos.insert("doc-42");
+bool repetido = vistos.count("doc-42") &gt; 0;   // O(1) promedio
+
+std::unordered_map&lt;std::string, int&gt; frecuencia;
+frecuencia["token"] = frecuencia["token"] + 1;
+// si "token" no estaba, frecuencia["token"] lo crea con 0
+
+frecuencia.reserve(1000000);            // pide cubetas de una vez
+double alfa = frecuencia.load_factor(); // n / cubetas
+      </code></pre>
+      <ul>
+        <li class="fragment">Los dos usan encadenamiento. El rehash automático ocurre cuando <code>load_factor()</code> supera <code>max_load_factor()</code>, que vale 1.0 por omisión.</li>
+        <li class="fragment"><code>reserve(n)</code> antes de una carga masiva evita los rehashes intermedios, igual que en <code>vector</code>.</li>
+      </ul>
+    </section>
+
+    <!-- ============ STL HASH PROPIO + REGLA ============ -->
+    <section>
+      <span class="kicker">8.3.4 · STL</span>
+      <h2>Una función hash para un tipo propio</h2>
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-7|8-14|15">
+struct Punto {
+    int x;
+    int y;
+};
+bool operator==(Punto a, Punto b) {
+    return a.x == b.x &amp;&amp; a.y == b.y;
+}
+struct HashPunto {
+    size_t operator()(Punto p) const {
+        size_t h = p.x;
+        h = h * 31 + p.y;       // la idea del hash polinomial
+        return h;
+    }
+};
+std::unordered_set&lt;Punto, HashPunto&gt; puntos;
+      </code></pre>
+      <p class="fragment muted">Multiplicar por 31 antes de sumar hace que (1, 2) y (2, 1) tengan hash distinto. La tabla necesita además <code>==</code> para comparar dos claves de la misma cubeta.</p>
+    </section>
+
+    <!-- ============ STL REGLA ============ -->
+    <section>
+      <span class="kicker">8.3.4 · STL</span>
+      <h2>¿<code>map</code> o <code>unordered_map</code>?</h2>
+      <table>
+        <thead><tr><th></th><th><code>map</code> / <code>set</code></th><th><code>unordered_map</code> / <code>unordered_set</code></th></tr></thead>
+        <tbody>
+          <tr><td>Estructura</td><td>árbol balanceado</td><td>tabla hash con encadenamiento</td></tr>
+          <tr><td>Buscar, insertar</td><td>O(log n) garantizado</td><td>O(1) promedio, O(n) peor caso</td></tr>
+          <tr><td>Recorrido en orden, rangos</td><td>sí</td><td>no</td></tr>
+          <tr><td>La clave necesita</td><td><code>&lt;</code></td><td>función hash y <code>==</code></td></tr>
+        </tbody>
+      </table>
+      <p class="fragment box-key">Regla de decisión del curso: ¿necesitas orden o recorrido por rango? <code>map</code>/<code>set</code>. ¿Solo pertenencia y velocidad? <code>unordered_map</code>/<code>unordered_set</code>.</p>
+    </section>
+
+    <!-- ============ STL SET OPS ============ -->
+    <section>
+      <span class="kicker">8.3.4 · STL</span>
+      <h2>Unión, intersección y diferencia con algoritmos</h2>
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-3|5-7|9-10">
+std::vector&lt;int&gt; a = {1, 3, 5, 7};
+std::vector&lt;int&gt; b = {3, 7, 9};
+std::vector&lt;int&gt; r;
+
+std::set_intersection(a.begin(), a.end(),
+                      b.begin(), b.end(),
+                      std::back_inserter(r));   // r = {3, 7}
+
+// misma familia: std::set_union, std::set_difference
+// requisito: los dos rangos ordenados; costo O(n + m)
+      </code></pre>
+      <ul>
+        <li class="fragment">Recorren los dos rangos en una sola pasada, como el merge de mergesort. <code>std::back_inserter(r)</code> agrega cada resultado con <code>r.push_back</code>.</li>
+        <li class="fragment">Con datos en tablas hash conviene el recorrido con consultas del primer checkpoint.</li>
+      </ul>
+    </section>
+
+    <!-- ============ QUIZ 4 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="b">
+        <p class="quiz-question">Guardas transacciones por folio y necesitas dos cosas: buscar un folio exacto y listar los folios de un rango de fechas en orden. ¿Qué contenedor eliges?</p>
+        <button class="quiz-option" data-opt="a"><code>std::unordered_map</code>: la búsqueda O(1) domina y el orden se puede reconstruir después.</button>
+        <button class="quiz-option" data-opt="b"><code>std::map</code>: la consulta por rango ordenado exige estructura ordenada; O(log n) en búsqueda es el precio.</button>
+        <button class="quiz-option" data-opt="c">Los dos a la vez, sincronizados: cada consulta usa el contenedor que le convenga.</button>
+        <div class="quiz-explain">
+          <strong>B.</strong> Una tabla hash no ofrece recorrido por rango en orden: sus claves están repartidas
+          entre las cubetas, y reconstruir el orden cuesta O(n log n) por consulta. <code>std::map</code> resuelve
+          ambas operaciones en O(log n). La opción C existe en sistemas reales, pero duplica la memoria y complica
+          cada actualización; se justifica solo si se mide que el O(log n) del map es un problema.
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ POR QUÉ IMPORTA HOY ============ -->
+    <section>
+      <span class="kicker kicker-ai">Por qué importa hoy</span>
+      <h2>Hashing en la infraestructura de IA</h2>
+      <div class="box-ai" data-label="Dónde vive esto en sistemas de IA">
+        <ul>
+          <li class="fragment"><strong>Deduplicación a escala web:</strong> <span class="term" data-term="minhash">MinHash</span> y <span class="term" data-term="lsh">LSH</span> son funciones hash diseñadas para que documentos <em>parecidos</em> caigan en la misma cubeta, al revés del objetivo usual de repartir.</li>
+          <li class="fragment"><strong><span class="term" data-term="promptcaching">Prompt caching</span>:</strong> el trabajo de procesar el prefijo de un prompt se guarda en una tabla indexada por ese prefijo y se reutiliza en las llamadas que empiezan igual.</li>
+          <li class="fragment"><strong><span class="term" data-term="featurehashing">Feature hashing</span>:</strong> convierte un vocabulario sin límite en un vector de dimensión fija sin guardar diccionario. La cubeta de cada palabra es su posición en el vector, y las colisiones se toleran como ruido.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============ REFERENCIAS ============ -->
+    <section>
+      <span class="kicker">Sesión 24</span>
+      <h2>Referencias y material para profundizar</h2>
+      <div class="refs cols">
+        <div>
+          <h3>Referencias</h3>
+          <ul>
+            <li><span class="ref-type">Libro</span> Cormen, T. et al. <em>Introduction to Algorithms</em>, 4.ª ed., MIT Press, 2022. Caps. 11 (tablas hash) y 19 (conjuntos disjuntos).</li>
+            <li><span class="ref-type">Libro</span> Weiss, M. A. <em>Data Structures and Algorithm Analysis in C++</em>, 4.ª ed., Pearson, 2014. Cap. 5.</li>
+            <li><span class="ref-type">Libro</span> Knuth, D. E. <em>The Art of Computer Programming, Vol. 3</em>, 2.ª ed., Addison-Wesley, 1998. Sec. 6.4 (costo del sondeo lineal).</li>
+            <li><span class="ref-type">Libro</span> Leskovec, J., Rajaraman, A. y Ullman, J. <em>Mining of Massive Datasets</em>, 3.ª ed., Cambridge, 2020. Cap. 3.</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Para profundizar</h3>
+          <ul>
+            <li><span class="ref-type">Web</span> <a href="https://visualgo.net/en/hashtable">VisuAlgo — Hash Table</a> <span class="ref-nota">— para insertar claves propias con los tres sondeos y con encadenamiento.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://en.cppreference.com/w/cpp/container/unordered_map">cppreference — std::unordered_map</a> <span class="ref-nota">— garantías, <code>load_factor</code> y la interfaz de cubetas del estándar.</span></li>
+            <li><span class="ref-type">Paper</span> Broder, A. <a href="https://doi.org/10.1109/SEQUEN.1997.666900">On the Resemblance and Containment of Documents</a> (1997) <span class="ref-nota">— el paper original de MinHash.</span></li>
+          </ul>
+        </div>
+      </div>
+      <p class="refs-ia">Nota: estas diapositivas fueron generadas usando inteligencia artificial, específicamente Claude (Anthropic).</p>
+    </section>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script src="../js/curso-slides.js"></script>
+<script src="../js/sim-hash.js"></script>
+<script>
+  Reveal.initialize({
+    width: 1280,
+    height: 720,
+    margin: 0.06,
+    hash: true,
+    progress: true,
+    slideNumber: 'c/t',
+    controls: true,
+    transition: 'slide',
+    transitionSpeed: 'fast',
+    plugins: [ RevealHighlight ]
+  }).then(() => {
+    CursoSlides.init({
+      cubeta: {
+        titulo: "Cubeta (bucket)",
+        def: "Cada posición de una tabla hash. La función hash dice a qué cubeta va una clave. En encadenamiento la cubeta guarda una lista de claves; en direccionamiento abierto guarda una sola clave."
+      },
+      casillero: {
+        titulo: "Principio del casillero",
+        def: "Si se reparten más objetos que casillas, al menos una casilla recibe dos o más objetos. Con más claves posibles que cubetas, alguna cubeta recibe dos claves, sea cual sea la función hash."
+      },
+      clustering: {
+        titulo: "Cúmulo primario (primary clustering)",
+        def: "En sondeo lineal, las casillas ocupadas y contiguas forman bloques: cualquier clave cuya casilla caiga dentro del bloque lo recorre entero y, al insertarse, lo alarga. Los bloques grandes reciben más claves y crecen más rápido. El sondeo cuadrático y el doble hashing saltan para no formarlos."
+      },
+      lapida: {
+        titulo: "Lápida (tombstone)",
+        def: "Marca de \"aquí hubo una clave\" que se deja al borrar en direccionamiento abierto. <code>contiene</code> la trata como ocupada y sigue sondeando; <code>inserta</code> la puede reutilizar como casilla libre. Si se dejara la casilla en <code>VACIA</code>, las búsquedas de claves que pasaron por ahí se detendrían antes de llegar."
+      },
+      amortizado: {
+        titulo: "Costo amortizado",
+        def: "Promedio del costo por operación sobre una secuencia larga. Un rehash aislado cuesta O(n), pero solo ocurre cuando el número de claves se duplica, así que repartido entre todas las inserciones da O(1) por inserción."
+      },
+      ackermann: {
+        titulo: "α(n) — inversa de Ackermann",
+        def: "Función que crece tan despacio que α(n) ≤ 4 para cualquier n físicamente representable. Es la cota amortizada del union-find con unión por rango y compresión de caminos combinadas (Tarjan, 1975): en la práctica, costo constante por operación. No es el factor de carga, que también se escribe con α."
+      },
+      minhash: {
+        titulo: "MinHash",
+        def: "Técnica que resume un documento con los mínimos de varias funciones hash aplicadas a sus fragmentos. La probabilidad de que dos documentos compartan un mínimo es igual a su similitud de Jaccard, así que comparar resúmenes cortos estima la similitud sin comparar los textos completos."
+      },
+      lsh: {
+        titulo: "LSH — Locality-Sensitive Hashing",
+        def: "Familia de funciones hash diseñadas para que elementos <em>similares</em> caigan en la misma cubeta con alta probabilidad. Permite buscar casi-duplicados o vecinos cercanos sin comparar contra toda la colección."
+      },
+      promptcaching: {
+        titulo: "Prompt caching",
+        def: "Optimización de las APIs de modelos de lenguaje: el trabajo de procesar un prefijo de prompt (el system prompt, los documentos de contexto) se guarda indexado por el contenido del prefijo y se reutiliza en llamadas siguientes que empiecen igual. Reduce hasta ~10× el costo de los tokens de entrada cacheados."
+      },
+      featurehashing: {
+        titulo: "Feature hashing (hashing trick)",
+        def: "Representar características de texto (palabras, n-gramas) en un vector de dimensión fija aplicando una función hash: la cubeta es la dimensión. No requiere diccionario ni crece con el vocabulario; las colisiones ocurren, pero con suficientes dimensiones el modelo las tolera."
+      }
+    });
+    SimHash.init();
+  });
+</script>
+</body>
+</html>
