@@ -29,6 +29,7 @@ Cada deck es un `index.html` autocontenido hecho con [reveal.js](https://revealj
 | `sesion-17/` | S17 — Operaciones avanzadas en un BST |
 | `sesion-24/` | S24 — Hashing y conjuntos |
 | `taller-01-two-pointers/` | T1 — Patrones de LeetCode: two pointers |
+| `taller-02-hashing/` | T2 — Patrones de LeetCode: tablas hash |
 
 El resto de las sesiones se publica conforme avanza el semestre.
 

@@ -1,0 +1,122 @@
+/* ============================================================
+   ESCRIBE-CODIGO — código que se escribe línea por línea, con la
+   decisión de cada paso en un panel al lado.
+   Se carga después de theme-curso.css. Solo usa tokens del tema.
+   ============================================================ */
+
+.reveal .escribe {
+  display: flex;
+  align-items: stretch;
+  gap: 0.55em;
+  width: 100%;
+  margin-top: 0.2em;
+}
+
+/* ---------- Panel de código ---------- */
+.reveal .ce-codigo {
+  flex: 1.45 1 0;
+  min-width: 0;
+  background: var(--c-code-panel);
+  color: var(--c-code-ink);
+  border-radius: 14px;
+  box-shadow: 0 8px 28px var(--c-shadow);
+  font-family: var(--font-mono);
+  font-size: 0.72em;       /* mínimo proyectable de la guía */
+  line-height: 1.42;
+  padding: 0.55em 0;
+  overflow: hidden;
+}
+.reveal .escribe.ancho .ce-codigo { flex-grow: 2.1; }
+.reveal .ce-codigo[data-titulo]::before {
+  content: attr(data-titulo);
+  display: block;
+  margin: -0.55em 0 0.45em;
+  background: var(--c-code-head);
+  color: var(--c-code-head-ink);
+  font-size: 0.82em;
+  padding: 0.45em 1.2em;
+  border-bottom: 1px solid var(--c-code-head-line);
+}
+.reveal .ce-linea {
+  white-space: pre;
+  padding: 0 1em;
+  border-left: 4px solid transparent;
+  transition: background .2s ease, opacity .2s ease;
+}
+.reveal .ce-linea.ce-oculta { visibility: hidden; }
+.reveal .ce-linea.on { background: rgba(130,171,245,.20); border-left-color: #82abf5; }
+.reveal .ce-codigo .kw  { color: #ff7b72; }
+.reveal .ce-codigo .num { color: #79c0ff; }
+.reveal .ce-codigo .fn  { color: #d2a8ff; }
+.reveal .ce-codigo .cm  { color: #8b949e; }
+
+/* Efecto de escritura: el texto se descubre de izquierda a derecha. */
+.reveal .ce-linea.ce-escribe .ce-txt {
+  display: inline-block;
+  animation: ce-escribir var(--ce-dur, .6s) steps(var(--ce-pasos, 20), end) var(--ce-retraso, 0s) both;
+}
+@keyframes ce-escribir {
+  from { clip-path: inset(0 100% 0 0); }
+  to   { clip-path: inset(0 0 0 0); }
+}
+
+/* ---------- Panel de decisiones ---------- */
+.reveal .ce-porque {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3em;
+  background: var(--c-accent-bg);
+  border-left: 6px solid var(--c-accent);
+  border-radius: 0 14px 14px 0;
+  padding: 0.55em 0.75em;
+  font-size: 0.6em;
+  line-height: 1.42;
+}
+.reveal .ce-cuenta {
+  font-family: var(--font-mono);
+  font-size: 0.82em;
+  font-weight: 700;
+  color: var(--c-accent);
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.reveal .ce-nota { display: none; }
+.reveal .ce-nota.ce-activa { display: block; animation: ce-aparece .35s ease both; }
+.reveal .ce-nota b { color: var(--c-accent); }
+.reveal .ce-nota code {
+  font-size: 0.92em;
+  background: var(--c-bg);
+  padding: 0.05em 0.24em;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+@keyframes ce-aparece {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Decisiones ya tomadas, al pie del panel */
+.reveal .ce-resumen {
+  margin: auto 0 0 0;
+  padding: 0.5em 0 0 0;
+  border-top: 2px solid var(--c-accent-soft);
+  list-style: none;
+  font-size: 0.9em;
+  color: var(--c-ink-soft);
+}
+.reveal .ce-resumen.ce-vacio { visibility: hidden; }
+.reveal .ce-resumen li { display: none; margin: 0.12em 0; }
+.reveal .ce-resumen li.ce-hecho { display: block; }
+.reveal .ce-resumen li::before { content: "✓ "; color: var(--c-ok); font-weight: 700; }
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal .ce-linea.ce-escribe .ce-txt,
+  .reveal .ce-nota.ce-activa { animation: none; }
+}
+
+/* PDF: todo el código visible */
+@media print {
+  .reveal .ce-linea.ce-oculta { visibility: visible; }
+}

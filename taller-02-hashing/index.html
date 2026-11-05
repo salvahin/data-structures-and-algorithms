@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Taller 2 — Patrones de LeetCode: tablas hash</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+  <script>try{if(localStorage.getItem("curso-tema")==="dark"&&!/print-pdf/i.test(location.search))document.documentElement.dataset.theme="dark"}catch(e){}</script>
+  <link rel="stylesheet" href="../css/theme-curso.css">
+  <link rel="stylesheet" href="../css/sim-hash.css">
+  <link rel="stylesheet" href="../css/sim-taller-hash.css">
+  <link rel="stylesheet" href="../css/escribe-codigo.css">
+  <link rel="stylesheet" href="../css/pregunta-alumno.css">
+</head>
+<body>
+<div class="reveal">
+  <div class="slides">
+
+    <!-- ============ PORTADA ============ -->
+    <section class="cover">
+      <span class="kicker">Estructuras de Datos y Algoritmos · Taller</span>
+      <h1>Patrones de LeetCode:<br>tablas&nbsp;hash</h1>
+      <div class="cover-meta">
+        Taller 2 · tres problemas resueltos paso a paso<br>
+        Salvador Hinojosa
+      </div>
+    </section>
+
+    <!-- ============ OBJETIVO ============ -->
+    <section>
+      <span class="kicker">Objetivo del taller</span>
+      <h2>Al terminar podrás…</h2>
+      <ul>
+        <li class="fragment">Implementar una tabla hash con direccionamiento abierto que sí permita borrar.</li>
+        <li class="fragment">Diseñar la clave de un mapa para que las cosas que deben quedar juntas caigan en la misma cubeta.</li>
+        <li class="fragment">Guardar en un mapa algo que no aparece en la entrada, como una suma acumulada, para responder en orden uno una pregunta sobre el pasado.</li>
+        <li class="fragment">Justificar cada decisión de diseño antes de escribir el código.</li>
+      </ul>
+    </section>
+
+    <!-- ============ MÉTODO ============ -->
+    <section>
+      <span class="kicker">Método</span>
+      <h2>Los mismos cinco pasos en los tres problemas</h2>
+      <ol>
+        <li class="fragment"><strong>Entender</strong> el enunciado con un ejemplo hecho a mano.</li>
+        <li class="fragment"><strong>Fuerza bruta:</strong> la solución más directa, aunque sea lenta, y su costo.</li>
+        <li class="fragment"><strong>Qué se repite:</strong> el trabajo que la fuerza bruta hace una y otra vez.</li>
+        <li class="fragment"><strong>Qué guardar y con qué clave:</strong> la estructura que evita repetir ese trabajo.</li>
+        <li class="fragment"><strong>Escribir y probar</strong>, empezando por los casos borde.</li>
+      </ol>
+    </section>
+
+    <!-- ============ LOS TRES PROBLEMAS ============ -->
+    <section>
+      <span class="kicker">Panorama</span>
+      <h2>Tres problemas, tres usos de una tabla hash</h2>
+      <table>
+        <thead><tr><th>Problema</th><th>Dificultad</th><th>Lo que practica</th></tr></thead>
+        <tbody>
+          <tr class="fragment"><td>LC 706 · Design HashMap</td><td>Fácil</td><td>Construir la tabla, incluido el borrado con lápidas</td></tr>
+          <tr class="fragment"><td>LC 49 · Group Anagrams</td><td>Media</td><td>Diseñar la clave</td></tr>
+          <tr class="fragment"><td>LC 560 · Subarray Sum Equals K</td><td>Media</td><td>Guardar un estado del recorrido y contar cuántas veces apareció</td></tr>
+        </tbody>
+      </table>
+      <p class="fragment muted">LeetCode ya incluye <code>using namespace std;</code>, por eso el código de hoy escribe <code>vector</code> y <code>string</code> sin <code>std::</code>.</p>
+    </section>
+
+    <!-- ===================================================== -->
+    <!-- ================= PROBLEMA 1 · LC 706 ================ -->
+    <!-- ===================================================== -->
+    <section class="divider">
+      <h2>Problema 1<br>LC 706 · Design HashMap</h2>
+    </section>
+
+    <section>
+      <span class="kicker">LC 706 · Enunciado</span>
+      <h2>Una tabla hash propia, sin usar la de la STL</h2>
+      <ul>
+        <li class="fragment">Implementar la clase <code>MyHashMap</code> con tres operaciones:
+          <code>put(key, value)</code> guarda o actualiza, <code>get(key)</code> regresa el valor o −1, y <code>remove(key)</code> quita la clave si está.</li>
+        <li class="fragment">Restricciones: \(0 \le key, value \le 10^{6}\), y a lo más \(10^{4}\) llamadas en total.</li>
+        <li class="fragment">Ejemplo: <code>put(1, 1)</code>, <code>put(2, 2)</code>, <code>get(1)</code> → 1, <code>get(3)</code> → −1, <code>put(2, 1)</code>, <code>get(2)</code> → 1, <code>remove(2)</code>, <code>get(2)</code> → −1.</li>
+      </ul>
+      <p class="fragment muted">Fíjate en <code>put(2, 1)</code>: la clave 2 ya existía, así que no se agrega otra pareja; se cambia el valor.</p>
+      <div class="pregunta fragment">
+        <p><span class="pq">¿Puedo usar <code>unordered_map</code> por dentro?</span> El enunciado lo prohíbe, y el juez no lo detecta. Si lo usas, el problema se resuelve en tres líneas y no practicas nada de lo que pide.</p>
+      </div>
+    </section>
+
+    <section>
+      <span class="kicker">LC 706 · Decisión 1</span>
+      <h2>¿Por qué no un arreglo de un millón de casillas?</h2>
+      <table>
+        <thead><tr><th></th><th>Arreglo directo</th><th>Tabla hash</th></tr></thead>
+        <tbody>
+          <tr class="fragment"><td>Idea</td><td><code>valores[key]</code>, una casilla por clave posible</td><td>\(M\) casillas, la clave elige una con <code>key % M</code></td></tr>
+          <tr class="fragment"><td>Memoria</td><td>\(10^{6} + 1\) enteros, unos 4 MB</td><td>\(2 \times 20\,011\) enteros, unos 160 KB</td></tr>
+          <tr class="fragment"><td>Colisiones</td><td>no hay</td><td>hay que resolverlas</td></tr>
+          <tr class="fragment"><td>Si las claves fueran cadenas o enteros de 64 bits</td><td>imposible</td><td>funciona igual</td></tr>
+        </tbody>
+      </table>
+      <p class="fragment">Con estas restricciones el arreglo directo pasa las pruebas. La memoria depende del rango de las claves y no de cuántas se guardan; por eso hoy hacemos la tabla hash.</p>
+    </section>
+
+    <section>
+      <span class="kicker">LC 706 · Decisión 2</span>
+      <h2>¿De qué tamaño? \(M = 20\,011\)</h2>
+      <ul>
+        <li class="fragment">Con a lo más \(10^{4}\) llamadas, la tabla guarda a lo más \(10^{4}\) claves.</li>
+        <li class="fragment">Con sondeo lineal conviene \(\alpha \le 0.5\): con la fórmula de la sesión 24, una búsqueda que falla revisa en promedio 2.5 casillas.</li>
+        <li class="fragment">\(10^{4} / 0.5 = 20\,000\) casillas, y el primo siguiente es \(20\,011\). Con \(m\) primo, las claves con patrones se reparten.</li>
+      </ul>
+      <div class="eq fragment">\[ \alpha = \frac{10^{4}}{20\,011} \approx 0.5 \]</div>
+      <div class="pregunta fragment">
+        <p><span class="pq">¿Por qué 0.5, si en la sesión 24 el límite era 0.7?</span> 0.7 es donde el sondeo lineal empieza a ser lento: unas 6 casillas por búsqueda fallida. Aquí la memoria sobra, así que se elige un \(\alpha\) cómodo, con 2.5 casillas.</p>
+      </div>
+    </section>
+
+    <section>
+      <span class="kicker">LC 706 · Decisión 3</span>
+      <h2>¿Encadenamiento o direccionamiento abierto?</h2>
+      <ul>
+        <li class="fragment"><strong>Encadenamiento</strong> borraría quitando un nodo de una lista, como en la sesión 12. Necesita <code>new</code>, <code>delete</code> y un destructor.</li>
+        <li class="fragment"><strong>Direccionamiento abierto</strong> usa dos arreglos de tamaño fijo y no pide memoria dinámica. Su problema es borrar.</li>
+        <li class="fragment">Elegimos direccionamiento abierto con sondeo lineal, porque obliga a resolver el borrado con lápidas, el punto que quedó pendiente en la sesión 24.</li>
+      </ul>
+      <p class="fragment box-key">Una casilla puede estar en tres estados: con una clave, <code>VACIA</code> (nunca se usó) o <code>BORRADA</code> (tuvo una clave que ya se quitó).</p>
+    </section>
+
+    <!-- ESCRIBE: atributos y constructor -->
+    <section>
+      <span class="kicker">LC 706 · Escribir el código</span>
+      <h2>Las constantes, los datos y el constructor</h2>
+      <div class="escribe" data-titulo="my_hash_map.cpp">
+        <div class="ce-codigo">
+          <div class="ce-linea" data-paso="1">const int M = 20011;</div>
+          <div class="ce-linea" data-paso="2">const int VACIA = -1;</div>
+          <div class="ce-linea" data-paso="2">const int BORRADA = -2;</div>
+          <div class="ce-linea" data-paso="3"> </div>
+          <div class="ce-linea" data-paso="3">class MyHashMap {</div>
+          <div class="ce-linea" data-paso="3">    int claves[M];</div>
+          <div class="ce-linea" data-paso="3">    int valores[M];</div>
+          <div class="ce-linea" data-paso="4">public:</div>
+          <div class="ce-linea" data-paso="4">    MyHashMap() {</div>
+          <div class="ce-linea" data-paso="4">        for (int i = 0; i &lt; M; i++)</div>
+          <div class="ce-linea" data-paso="4">            claves[i] = VACIA;</div>
+          <div class="ce-linea" data-paso="4">    }</div>
+          <div class="ce-linea" data-paso="5">    // buscar, put, get y remove</div>
+          <div class="ce-linea" data-paso="3">};</div>
+        </div>
+        <div class="ce-porque">
+          <div class="ce-nota" data-paso="0">Ya están tomadas tres decisiones: un arreglo de tamaño fijo \(M\) primo, sondeo lineal y lápidas para borrar. Ahora se escriben, una por una.</div>
+          <div class="ce-nota" data-paso="1"><b>El tamaño.</b> \(M\) es constante para poder declarar arreglos de ese tamaño dentro de la clase.</div>
+          <div class="ce-nota" data-paso="2"><b>Dos marcas.</b> Las claves van de 0 a \(10^{6}\), así que ningún valor negativo puede ser una clave. −1 y −2 sirven como marcas sin necesitar un tercer arreglo de estados.</div>
+          <div class="ce-nota" data-paso="3"><b>Dos arreglos paralelos.</b> La casilla <code>i</code> guarda una pareja: <code>claves[i]</code> y <code>valores[i]</code>. Es lo mismo que un arreglo de parejas, sin introducir <code>pair</code>.<br><br>¿Por qué arreglos y no <code>vector</code>? El tamaño se conoce desde antes de compilar y nunca cambia. Un <code>vector</code> también funcionaría.</div>
+          <div class="ce-nota" data-paso="4"><b>Todo empieza vacío.</b> Solo hace falta marcar las claves. Los valores no se inicializan porque solo se leen cuando la clave está.</div>
+          <div class="ce-nota" data-paso="5"><b>Faltan las operaciones.</b> Las tres necesitan encontrar dónde está una clave, así que primero se escribe esa búsqueda una sola vez.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ESCRIBE: buscar -->
+    <section>
+      <span class="kicker">LC 706 · Escribir el código</span>
+      <h2>Una función para encontrar la casilla de una clave</h2>
+      <div class="escribe" data-titulo="my_hash_map.cpp">
+        <div class="ce-codigo">
+          <div class="ce-linea" data-paso="1">int buscar(int key) {</div>
+          <div class="ce-linea" data-paso="2">    int pos = key % M;</div>
+          <div class="ce-linea" data-paso="3">    while (claves[pos] != VACIA) {</div>
+          <div class="ce-linea" data-paso="4">        if (claves[pos] == key)</div>
+          <div class="ce-linea" data-paso="4">            return pos;</div>
+          <div class="ce-linea" data-paso="5">        pos = (pos + 1) % M;</div>
+          <div class="ce-linea" data-paso="3">    }</div>
+          <div class="ce-linea" data-paso="6">    return -1;</div>
+          <div class="ce-linea" data-paso="1">}</div>
+        </div>
+        <div class="ce-porque">
+          <div class="ce-nota" data-paso="0"><code>put</code>, <code>get</code> y <code>remove</code> empiezan igual: hay que saber si la clave está guardada y en qué casilla.</div>
+          <div class="ce-nota" data-paso="1"><b>Qué regresa.</b> La casilla donde está <code>key</code>, o −1 si no está. Con un número se responden las dos preguntas.<br><br>¿Debería ser <code>private</code>? Sí, nadie fuera de la clase la necesita. La dejamos pública para no agregar otra sección a la clase.</div>
+          <div class="ce-nota" data-paso="2"><b>Dónde empezar.</b> En la casilla que da la función hash. Es la primera que probó la inserción.</div>
+          <div class="ce-nota" data-paso="3"><b>Cuándo parar.</b> Solo en una casilla <code>VACIA</code>, nunca en una <code>BORRADA</code>: detrás de una lápida puede estar la clave que buscamos.</div>
+          <div class="ce-nota" data-paso="4"><b>La encontró.</b> Se regresa la casilla de inmediato.</div>
+          <div class="ce-nota" data-paso="5"><b>La siguiente.</b> El <code>% M</code> regresa a la casilla 0 después de la última, como en la fila circular. Es la misma regla que <code>(k % M + i) % M</code> de la sesión 24, sin llevar la cuenta de <code>i</code>.</div>
+          <div class="ce-nota" data-paso="6"><b>No está.</b> Se llegó a una <code>VACIA</code>. El ciclo siempre termina: con \(10^{4}\) claves y \(20\,011\) casillas, siempre quedan casillas vacías.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ESCRIBE: put -->
+    <section>
+      <span class="kicker">LC 706 · Escribir el código</span>
+      <h2><code>put</code>: actualizar si ya está, insertar si no</h2>
+      <div class="escribe">
+        <div class="ce-codigo">
+          <div class="ce-linea" data-paso="1">void put(int key, int value) {</div>
+          <div class="ce-linea" data-paso="2">    int pos = buscar(key);</div>
+          <div class="ce-linea" data-paso="3">    if (pos != -1) {</div>
+          <div class="ce-linea" data-paso="3">        valores[pos] = value;</div>
+          <div class="ce-linea" data-paso="3">        return;</div>
+          <div class="ce-linea" data-paso="3">    }</div>
+          <div class="ce-linea" data-paso="4">    pos = key % M;</div>
+          <div class="ce-linea" data-paso="5">    while (claves[pos] != VACIA &amp;&amp;</div>
+          <div class="ce-linea" data-paso="5">           claves[pos] != BORRADA)</div>
+          <div class="ce-linea" data-paso="5">        pos = (pos + 1) % M;</div>
+          <div class="ce-linea" data-paso="6">    claves[pos] = key;</div>
+          <div class="ce-linea" data-paso="6">    valores[pos] = value;</div>
+          <div class="ce-linea" data-paso="1">}</div>
+        </div>
+        <div class="ce-porque">
+          <div class="ce-nota" data-paso="0">Insertar tiene un caso que es fácil olvidar: la clave ya puede estar guardada.</div>
+          <div class="ce-nota" data-paso="1"><b>La firma</b> es la que pide LeetCode: no regresa nada.</div>
+          <div class="ce-nota" data-paso="2"><b>Primero buscar.</b> Si la clave ya está y se inserta otra vez, la tabla tendría dos parejas con la misma clave, y <code>get</code> podría regresar la vieja.</div>
+          <div class="ce-nota" data-paso="3"><b>Ya estaba:</b> se cambia el valor y se termina.</div>
+          <div class="ce-nota" data-paso="4"><b>No estaba:</b> se busca lugar desde la casilla inicial.</div>
+          <div class="ce-nota" data-paso="5"><b>Un lugar libre</b> es una casilla <code>VACIA</code> o una <code>BORRADA</code>. Este ciclo sí se detiene en las lápidas: aquí ya sabemos que la clave no está, y la lápida se puede reutilizar.<br><br>¿No recorre la ruta dos veces? Sí. <code>buscar</code> podría recordar la primera lápida que vio y ahorrarse este ciclo. Lo dejamos en dos ciclos para que cada uno haga una sola cosa.</div>
+          <div class="ce-nota" data-paso="6"><b>Se escribe la pareja</b> en la casilla encontrada.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ESCRIBE: get y remove -->
+    <section>
+      <span class="kicker">LC 706 · Escribir el código</span>
+      <h2><code>get</code> y <code>remove</code> se apoyan en <code>buscar</code></h2>
+      <div class="escribe">
+        <div class="ce-codigo">
+          <div class="ce-linea" data-paso="1">int get(int key) {</div>
+          <div class="ce-linea" data-paso="2">    int pos = buscar(key);</div>
+          <div class="ce-linea" data-paso="2">    if (pos == -1)</div>
+          <div class="ce-linea" data-paso="2">        return -1;</div>
+          <div class="ce-linea" data-paso="3">    return valores[pos];</div>
+          <div class="ce-linea" data-paso="1">}</div>
+          <div class="ce-linea" data-paso="4"> </div>
+          <div class="ce-linea" data-paso="4">void remove(int key) {</div>
+          <div class="ce-linea" data-paso="5">    int pos = buscar(key);</div>
+          <div class="ce-linea" data-paso="5">    if (pos != -1)</div>
+          <div class="ce-linea" data-paso="6">        claves[pos] = BORRADA;</div>
+          <div class="ce-linea" data-paso="4">}</div>
+        </div>
+        <div class="ce-porque">
+          <div class="ce-nota" data-paso="0">Con <code>buscar</code> escrita, las dos operaciones que faltan son cortas.</div>
+          <div class="ce-nota" data-paso="1"><b><code>get</code></b> regresa un entero: el valor, o −1 si la clave no está.</div>
+          <div class="ce-nota" data-paso="2"><b>Si no está,</b> el enunciado pide −1. No hay que confundirlo con un valor guardado, porque los valores van de 0 a \(10^{6}\).</div>
+          <div class="ce-nota" data-paso="3"><b>Si está,</b> el valor vive en la misma casilla, en el otro arreglo.</div>
+          <div class="ce-nota" data-paso="4"><b><code>remove</code></b> no regresa nada. Si la clave no está, no hace nada.</div>
+          <div class="ce-nota" data-paso="5"><b>Encontrar antes de borrar.</b> Igual que en <code>get</code>.</div>
+          <div class="ce-nota" data-paso="6"><b>La lápida.</b> Se escribe <code>BORRADA</code>, no <code>VACIA</code>. Si se escribiera <code>VACIA</code>, las claves que se guardaron después en la misma ruta dejarían de encontrarse. La animación siguiente lo muestra.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SIM HASHMAP -->
+    <section>
+      <span class="kicker">LC 706 · Ejecución</span>
+      <h2>La tabla con lápidas, operación por operación</h2>
+      <div class="sim-hash sim-taller" data-alg="hashmap"></div>
+    </section>
+
+    <section>
+      <span class="kicker">LC 706 · Probar</span>
+      <h2>Casos que vale la pena probar antes de enviar</h2>
+      <table>
+        <thead><tr><th>Caso</th><th>Qué revisa</th></tr></thead>
+        <tbody>
+          <tr class="fragment"><td><code>put(5, 1)</code>, <code>put(5, 9)</code>, <code>get(5)</code> → 9</td><td>que <code>put</code> actualice en lugar de duplicar</td></tr>
+          <tr class="fragment"><td><code>remove(8)</code> sin haber insertado el 8</td><td>que borrar algo que no está no rompa nada</td></tr>
+          <tr class="fragment"><td>tres claves con el mismo residuo: 5, 20016 y 40027; borrar la segunda y pedir la tercera</td><td>que <code>buscar</code> pase por la lápida</td></tr>
+          <tr class="fragment"><td>insertar, borrar y volver a insertar la misma clave</td><td>que <code>put</code> reutilice la lápida</td></tr>
+        </tbody>
+      </table>
+      <p class="fragment muted">20016 y 40027 dejan residuo 5 al dividirlos entre 20011. Las colisiones no aparecen solas en pruebas al azar; hay que provocarlas.</p>
+    </section>
+
+    <section>
+      <span class="kicker">LC 706 · Costo</span>
+      <h2>Cuánto cuesta cada operación</h2>
+      <ul>
+        <li class="fragment">Cada operación hace a lo más dos recorridos cortos de la tabla. Con \(\alpha \approx 0.5\), cuestan orden uno en promedio.</li>
+        <li class="fragment">La memoria es fija: dos arreglos de \(M\) enteros, se guarde una clave o diez mil.</li>
+        <li class="fragment">Las lápidas no se convierten de nuevo en <code>VACIA</code>. Con muchos borrados, las búsquedas se alargan; en una tabla de uso general, esa es otra razón para hacer rehash, que limpia las lápidas al reinsertar.</li>
+      </ul>
+    </section>
+
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="c">
+        <p class="quiz-question">En <code>MyHashMap</code>, el <code>while</code> de <code>buscar</code> se detiene en <code>VACIA</code> pero no en <code>BORRADA</code>. ¿Por qué?</p>
+        <button class="quiz-option" data-opt="a">Porque una casilla borrada todavía guarda el valor viejo y hay que leerlo.</button>
+        <button class="quiz-option" data-opt="b">Porque las lápidas solo aparecen al final de la tabla.</button>
+        <button class="quiz-option" data-opt="c">Porque la clave buscada pudo guardarse después de esa casilla, en la misma ruta.</button>
+        <div class="quiz-explain">
+          <strong>C.</strong> La lápida ocupa un lugar en la ruta de sondeo de otras claves. Si el 17 se borró de la casilla 4 y el 24
+          se había guardado en la 5 porque la 4 estaba ocupada, buscar el 24 tiene que pasar por la 4. El valor viejo
+          no se lee nunca (A), y las lápidas pueden quedar en cualquier casilla (B).
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================== -->
+    <!-- ================= PROBLEMA 2 · LC 49 ================= -->
+    <!-- ===================================================== -->
+    <section class="divider">
+      <h2>Problema 2<br>LC 49 · Group Anagrams</h2>
+    </section>
+
+    <section>
+      <span class="kicker">LC 49 · Enunciado</span>
+      <h2>Juntar las palabras que tienen las mismas letras</h2>
+      <ul>
+        <li class="fragment">Dada una lista de palabras, agruparlas en <span class="term" data-term="anagrama">anagramas</span>: palabras con exactamente las mismas letras, en otro orden.</li>
+        <li class="fragment">Entrada: <code>["eat", "tea", "tan", "ate", "nat", "bat"]</code></li>
+        <li class="fragment">Salida, en cualquier orden: <code>[["bat"], ["nat", "tan"], ["ate", "eat", "tea"]]</code></li>
+        <li class="fragment">Restricciones: hasta \(10^{4}\) palabras, de hasta 100 letras minúsculas cada una.</li>
+      </ul>
+    </section>
+
+    <section>
+      <span class="kicker">LC 49 · Fuerza bruta</span>
+      <h2>Comparar cada palabra con cada grupo</h2>
+      <ul>
+        <li class="fragment">Para cada palabra, recorrer los grupos que ya existen y preguntar si es anagrama del primero. Si no encaja en ninguno, abre un grupo nuevo.</li>
+        <li class="fragment">Saber si dos palabras son anagramas: ordenar las dos y comparar. Con palabras de \(L\) letras cuesta \(L \log L\).</li>
+        <li class="fragment">Con \(n\) palabras, cada una se compara con hasta \(n\) grupos: del orden de \(n^{2} \cdot L \log L\), unos \(10^{8}\) comparaciones con \(10^{4}\) palabras.</li>
+      </ul>
+      <p class="fragment box-key">Lo que se repite: la misma palabra se ordena una y otra vez, una vez por cada grupo contra el que se compara.</p>
+    </section>
+
+    <section>
+      <span class="kicker">LC 49 · La idea</span>
+      <h2>Una firma que comparten todos los anagramas</h2>
+      <ul>
+        <li class="fragment">Dos palabras son anagramas si y solo si, al ordenar sus letras, quedan iguales: "eat", "tea" y "ate" quedan las tres como "aet".</li>
+        <li class="fragment">Esa palabra ordenada es una <span class="term" data-term="firma">firma</span> del grupo. Se calcula una vez por palabra y sirve como clave en un mapa.</li>
+        <li class="fragment">Aquí las colisiones se buscan a propósito: todas las palabras de un grupo deben caer en la misma entrada del mapa.</li>
+      </ul>
+      <p class="fragment box-key">El mapa va de firma a lista de palabras: <code>unordered_map&lt;string, vector&lt;string&gt;&gt;</code>.</p>
+    </section>
+
+    <section>
+      <span class="kicker">LC 49 · Decisión</span>
+      <h2>¿Qué firma usar?</h2>
+      <table>
+        <thead><tr><th>Firma</th><th>"eat"</th><th>Costo por palabra</th><th>¿Correcta?</th></tr></thead>
+        <tbody>
+          <tr class="fragment"><td>Suma de los códigos</td><td>314</td><td>\(L\)</td><td>no: "ad" y "bc" también suman 197</td></tr>
+          <tr class="fragment"><td>Letras ordenadas</td><td>"aet"</td><td>\(L \log L\)</td><td>sí</td></tr>
+          <tr class="fragment"><td>Conteo de cada letra</td><td>"1#0#0#0#1#…"</td><td>\(L + 26\)</td><td>sí</td></tr>
+        </tbody>
+      </table>
+      <p class="fragment">Usamos las letras ordenadas: es correcta y se escribe en una línea con <code>sort</code>. Con palabras de hasta 100 letras, la diferencia con el conteo es pequeña.</p>
+      <div class="pregunta fragment">
+        <p><span class="pq">¿Para qué sirve el <code>#</code> en la firma de conteo?</span> Separa los números. Sin él, "1 vez la a y 11 veces la b" y "11 veces la a y 1 vez la b" se escribirían igual, "111", y dos palabras distintas tendrían la misma firma.</p>
+      </div>
+    </section>
+
+    <!-- ESCRIBE: groupAnagrams -->
+    <section>
+      <span class="kicker">LC 49 · Escribir el código</span>
+      <h2>Una pasada por las palabras, otra por el mapa</h2>
+      <div class="escribe ancho">
+        <div class="ce-codigo">
+          <div class="ce-linea" data-paso="1">vector&lt;vector&lt;string&gt;&gt;</div>
+          <div class="ce-linea" data-paso="1">groupAnagrams(vector&lt;string&gt;&amp; strs) {</div>
+          <div class="ce-linea" data-paso="2">    unordered_map&lt;string, vector&lt;string&gt;&gt; grupos;</div>
+          <div class="ce-linea" data-paso="3">    int n = strs.size();</div>
+          <div class="ce-linea" data-paso="3">    for (int i = 0; i &lt; n; i++) {</div>
+          <div class="ce-linea" data-paso="3">        string palabra = strs[i];</div>
+          <div class="ce-linea" data-paso="4">        string clave = palabra;</div>
+          <div class="ce-linea" data-paso="4">        sort(clave.begin(), clave.end());</div>
+          <div class="ce-linea" data-paso="5">        grupos[clave].push_back(palabra);</div>
+          <div class="ce-linea" data-paso="3">    }</div>
+          <div class="ce-linea" data-paso="6">    vector&lt;vector&lt;string&gt;&gt; resultado;</div>
+          <div class="ce-linea" data-paso="6">    for (auto par : grupos)</div>
+          <div class="ce-linea" data-paso="6">        resultado.push_back(par.second);</div>
+          <div class="ce-linea" data-paso="7">    return resultado;</div>
+          <div class="ce-linea" data-paso="1">}</div>
+        </div>
+        <div class="ce-porque">
+          <div class="ce-nota" data-paso="0">El plan: calcular la firma de cada palabra y usarla como clave del mapa.</div>
+          <div class="ce-nota" data-paso="1"><b>La firma de LeetCode.</b> Recibe la lista por referencia y regresa una lista de listas. La partimos en dos líneas para que quepa.</div>
+          <div class="ce-nota" data-paso="2"><b>El mapa:</b> de firma a la lista de palabras que la tienen.</div>
+          <div class="ce-nota" data-paso="3"><b>Una vuelta por palabra.</b> Se toma la palabra con un índice, como en los ciclos de siempre.</div>
+          <div class="ce-nota" data-paso="4"><b>La firma.</b> Se copia la palabra y se ordena la copia. La palabra original no se toca, porque es la que va en la respuesta.</div>
+          <div class="ce-nota" data-paso="5"><b>Agrupar.</b> Si la firma no está en el mapa, <code>grupos[clave]</code> la crea con una lista vacía. Por eso basta una línea, sin preguntar antes si existe.</div>
+          <div class="ce-nota" data-paso="6"><b>Armar la respuesta.</b> Cada entrada del mapa es una pareja: <code>par.first</code> es la firma y <code>par.second</code> la lista. Solo nos interesan las listas.<br><br>¿Qué es <code>auto</code>? Le pide al compilador que deduzca el tipo. Aquí sería <code>pair&lt;const string, vector&lt;string&gt;&gt;</code>, que es largo de escribir.</div>
+          <div class="ce-nota" data-paso="7"><b>Listo.</b> El orden de los grupos no importa, y el de un <code>unordered_map</code> no está definido.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SIM ANAGRAMAS -->
+    <section>
+      <span class="kicker">LC 49 · Ejecución</span>
+      <h2>Seis palabras, tres firmas</h2>
+      <div class="sim-hash sim-taller" data-alg="anagramas"></div>
+    </section>
+
+    <section>
+      <span class="kicker">LC 49 · Costo y pruebas</span>
+      <h2>De \(n^{2}\) comparaciones a una pasada</h2>
+      <ul>
+        <li class="fragment">Cada palabra se ordena una vez y hace una consulta al mapa: del orden de \(n \cdot L \log L\), contra \(n^{2} \cdot L \log L\) de la fuerza bruta.</li>
+        <li class="fragment">La consulta al mapa no es gratis: calcular el hash de una cadena recorre sus \(L\) letras, como el hash polinomial de la sesión 24. Queda dentro del mismo costo.</li>
+        <li class="fragment">Casos borde: la lista <code>[""]</code> (una palabra vacía forma su propio grupo), una sola palabra, y todas las palabras iguales.</li>
+      </ul>
+    </section>
+
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="a">
+        <p class="quiz-question">Alguien propone usar como firma la suma de los códigos de las letras, porque cuesta \(L\) en lugar de \(L \log L\). ¿Qué pasa con <code>["ad", "bc"]</code>?</p>
+        <button class="quiz-option" data-opt="a">Quedan en el mismo grupo aunque no son anagramas, porque las dos suman 197.</button>
+        <button class="quiz-option" data-opt="b">Quedan en grupos distintos; la suma solo falla con palabras largas.</button>
+        <button class="quiz-option" data-opt="c">El programa no compila, porque la clave del mapa debe ser una cadena.</button>
+        <div class="quiz-explain">
+          <strong>A.</strong> 'a' + 'd' = 97 + 100 = 197 y 'b' + 'c' = 98 + 99 = 197. Una firma tiene que ser igual para todos
+          los anagramas <em>y distinta</em> para todo lo demás; la suma cumple lo primero pero no lo segundo. Un mapa con clave
+          <code>int</code> sí compila (C), y el problema aparece desde palabras de dos letras (B).
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================== -->
+    <!-- ================= PROBLEMA 3 · LC 560 ================ -->
+    <!-- ===================================================== -->
+    <section class="divider">
+      <h2>Problema 3<br>LC 560 · Subarray Sum Equals K</h2>
+    </section>
+
+    <section>
+      <span class="kicker">LC 560 · Enunciado</span>
+      <h2>¿Cuántos pedazos seguidos suman exactamente <em>k</em>?</h2>
+      <ul>
+        <li class="fragment">Dado un arreglo de enteros <code>nums</code> y un entero <code>k</code>, contar los subarreglos (pedazos contiguos, de al menos un elemento) cuya suma es <code>k</code>.</li>
+        <li class="fragment">Ejemplo: <code>nums = [1, 2, −2, 2, 1]</code>, <code>k = 3</code> → 4: <code>[1, 2]</code>, <code>[1, 2, −2, 2]</code>, <code>[2, −2, 2, 1]</code> y <code>[2, 1]</code>.</li>
+        <li class="fragment">Restricciones: hasta \(2 \times 10^{4}\) elementos, y pueden ser negativos.</li>
+      </ul>
+      <p class="fragment muted">El ejemplo de LeetCode es <code>[1, 1, 1]</code> con <code>k = 2</code> → 2. Usamos uno con negativos porque es el que separa las soluciones correctas de las que no.</p>
+      <div class="pregunta fragment">
+        <p><span class="pq">¿Un subarreglo es lo mismo que un subconjunto?</span> No. Un subarreglo toma elementos seguidos y en su orden: <code>[1, 2]</code> sí lo es, pero <code>[1, 1]</code>, con el primero y el último, no.</p>
+      </div>
+    </section>
+
+    <section>
+      <span class="kicker">LC 560 · Fuerza bruta</span>
+      <h2>Probar cada inicio y cada fin</h2>
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-9|2|4|5-7">
+int cuenta = 0;
+for (int i = 0; i &lt; n; i++) {        // inicio
+    int suma = 0;
+    for (int j = i; j &lt; n; j++) {    // fin
+        suma = suma + nums[j];
+        if (suma == k)
+            cuenta++;
+    }
+}
+      </code></pre>
+      <p class="fragment">Del orden de \(n^{2}\): con \(2 \times 10^{4}\) elementos son unos \(2 \times 10^{8}\) sumas. Es correcto, pero lento.</p>
+      <div class="pregunta fragment">
+        <p><span class="pq">¿Doscientos millones de sumas es mucho?</span> En LeetCode, una solución en C++ tiene alrededor de un segundo, y eso alcanza para unos \(10^{8}\) pasos sencillos. Esta queda en el límite y con frecuencia excede el tiempo.</p>
+      </div>
+    </section>
+
+    <section>
+      <span class="kicker">LC 560 · Por qué no dos punteros</span>
+      <h2>La ventana del Taller 1 no sirve aquí</h2>
+      <ul>
+        <li class="fragment">Una ventana deslizante crece por la derecha cuando falta suma y se encoge por la izquierda cuando sobra.</li>
+        <li class="fragment">Eso supone que agregar un elemento hace crecer la suma. Con negativos no es cierto: en <code>[1, 2, −2, 2, 1]</code>, agregar el −2 la hace bajar.</li>
+        <li class="fragment">Con negativos, una ventana que ya se pasó de <code>k</code> todavía puede volver a sumar <code>k</code> si se alarga. Encogerla descartaría soluciones.</li>
+      </ul>
+      <div class="pregunta fragment">
+        <p><span class="pq">¿Y si primero ordeno el arreglo?</span> Ordenar cambia qué elementos quedan juntos, y los subarreglos dependen de ese orden. Después de ordenar <code>[1, 2, −2, 2, 1]</code>, el arreglo tiene otros subarreglos.</p>
+      </div>
+    </section>
+
+    <section>
+      <span class="kicker">LC 560 · La idea</span>
+      <h2>Sumas prefijas: un subarreglo es una resta</h2>
+      <p><span class="term" data-term="prefijo">\(S_i\)</span> es la suma de los primeros \(i\) elementos, con \(S_0 = 0\).</p>
+      <table class="fragment">
+        <thead><tr><th>\(i\)</th><th>0</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th></tr></thead>
+        <tbody><tr><td>\(S_i\)</td><td>0</td><td>1</td><td>3</td><td>1</td><td>3</td><td>4</td></tr></tbody>
+      </table>
+      <div class="eq-key fragment">\[ \text{suma de } nums[j..i-1] = S_i - S_j \]</div>
+      <p class="fragment">Por ejemplo, <code>[2, 1]</code> son los elementos 3 y 4: \(S_5 - S_3 = 4 - 1 = 3\).</p>
+    </section>
+
+    <section>
+      <span class="kicker">LC 560 · Reformular</span>
+      <h2>De "probar cada inicio" a "contar lo que ya vi"</h2>
+      <ul>
+        <li class="fragment">Un subarreglo que termina donde vamos suma \(k\) cuando \(S_i - S_j = k\), es decir, cuando \(S_j = S_i - k\).</li>
+        <li class="fragment">Para cada fin, la pregunta deja de ser "¿qué inicios funcionan?" y pasa a ser: <strong>¿cuántas sumas prefijas anteriores valen \(S_i - k\)?</strong></li>
+        <li class="fragment">Esa pregunta la contesta en orden uno un mapa de suma prefija a cuántas veces apareció.</li>
+      </ul>
+      <p class="fragment box-key">La clave del mapa no es un elemento de la entrada: es un estado del recorrido, la suma hasta ese momento.</p>
+    </section>
+
+    <section>
+      <span class="kicker">LC 560 · Dos detalles</span>
+      <h2>Lo que hace falta para que el conteo sea correcto</h2>
+      <ul>
+        <li class="fragment"><strong>El mapa empieza con <code>vistos[0] = 1</code>.</strong> Es \(S_0\), el prefijo vacío. Sin él, los subarreglos que empiezan en la posición 0 no se cuentan: con <code>nums = [3]</code> y <code>k = 3</code> el resultado saldría 0.</li>
+        <li class="fragment"><strong>Primero se consulta y después se guarda.</strong> Si se guardara antes, con <code>k = 0</code> cada suma se encontraría a sí misma y se contaría el subarreglo vacío.</li>
+        <li class="fragment"><strong>Se cuentan veces, no solo presencia.</strong> Si \(S_i - k\) apareció dos veces, hay dos subarreglos distintos que terminan aquí. Por eso el mapa guarda un contador y no es un <code>unordered_set</code>.</li>
+      </ul>
+    </section>
+
+    <!-- ESCRIBE: subarraySum -->
+    <section>
+      <span class="kicker">LC 560 · Escribir el código</span>
+      <h2>Una pasada, una consulta y una escritura por elemento</h2>
+      <div class="escribe">
+        <div class="ce-codigo">
+          <div class="ce-linea" data-paso="1">int subarraySum(vector&lt;int&gt;&amp; nums, int k) {</div>
+          <div class="ce-linea" data-paso="2">    unordered_map&lt;int, int&gt; vistos;</div>
+          <div class="ce-linea" data-paso="3">    vistos[0] = 1;</div>
+          <div class="ce-linea" data-paso="4">    int suma = 0;</div>
+          <div class="ce-linea" data-paso="4">    int cuenta = 0;</div>
+          <div class="ce-linea" data-paso="5">    int n = nums.size();</div>
+          <div class="ce-linea" data-paso="5">    for (int i = 0; i &lt; n; i++) {</div>
+          <div class="ce-linea" data-paso="5">        suma = suma + nums[i];</div>
+          <div class="ce-linea" data-paso="6">        int buscado = suma - k;</div>
+          <div class="ce-linea" data-paso="6">        if (vistos.count(buscado) &gt; 0)</div>
+          <div class="ce-linea" data-paso="6">            cuenta = cuenta + vistos[buscado];</div>
+          <div class="ce-linea" data-paso="7">        vistos[suma] = vistos[suma] + 1;</div>
+          <div class="ce-linea" data-paso="5">    }</div>
+          <div class="ce-linea" data-paso="8">    return cuenta;</div>
+          <div class="ce-linea" data-paso="1">}</div>
+        </div>
+        <div class="ce-porque">
+          <div class="ce-nota" data-paso="0">El plan: recorrer una vez, llevando la suma prefija, y preguntarle al mapa por la suma que haría falta.</div>
+          <div class="ce-nota" data-paso="1"><b>La firma de LeetCode.</b> Regresa cuántos subarreglos suman <code>k</code>.</div>
+          <div class="ce-nota" data-paso="2"><b>El mapa:</b> de suma prefija a cuántas veces apareció. Un contador por clave.</div>
+          <div class="ce-nota" data-paso="3"><b>El prefijo vacío.</b> \(S_0 = 0\) apareció una vez antes de empezar.</div>
+          <div class="ce-nota" data-paso="4"><b>Dos acumuladores:</b> la suma prefija actual y el total de subarreglos encontrados.<br><br>¿Cabe <code>suma</code> en un <code>int</code>? Sí: a lo más \(2 \times 10^{4}\) elementos de valor absoluto hasta 1000 dan \(2 \times 10^{7}\).</div>
+          <div class="ce-nota" data-paso="5"><b>El recorrido.</b> Al sumar <code>nums[i]</code>, <code>suma</code> pasa a ser \(S_{i+1}\): la suma de todo hasta este elemento.</div>
+          <div class="ce-nota" data-paso="6"><b>La consulta.</b> Se buscan las sumas anteriores que valen <code>suma - k</code>, y se suman todas sus apariciones. Se pregunta con <code>count</code> para no crear entradas vacías en el mapa.</div>
+          <div class="ce-nota" data-paso="7"><b>Guardar después.</b> La suma actual se registra hasta que terminó la consulta, para que ningún subarreglo termine antes de empezar.</div>
+          <div class="ce-nota" data-paso="8"><b>Listo.</b> Cada elemento hizo una consulta y una escritura.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SIM PREFIJOS -->
+    <section>
+      <span class="kicker">LC 560 · Ejecución</span>
+      <h2>Contar con sumas prefijas, elemento por elemento</h2>
+      <div class="sim-hash sim-taller" data-alg="prefijos"></div>
+    </section>
+
+    <section>
+      <span class="kicker">LC 560 · Costo y pruebas</span>
+      <h2>De \(n^{2}\) a \(n\)</h2>
+      <ul>
+        <li class="fragment">Una pasada, con una consulta y una escritura al mapa por elemento: orden \(n\) en promedio. La memoria es orden \(n\), una entrada por suma distinta.</li>
+        <li class="fragment"><code>nums = [3]</code>, <code>k = 3</code> → 1. Revisa el prefijo vacío.</li>
+        <li class="fragment"><code>nums = [0, 0, 0]</code>, <code>k = 0</code> → 6. Revisa el orden de consultar y guardar, y que se cuenten veces.</li>
+        <li class="fragment"><code>nums = [1, −1, 1]</code>, <code>k = 1</code> → 3. Revisa los negativos.</li>
+      </ul>
+    </section>
+
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="b">
+        <p class="quiz-question">Si se quita la línea <code>vistos[0] = 1;</code>, ¿qué regresa la función con <code>nums = [1, 2]</code> y <code>k = 3</code>?</p>
+        <button class="quiz-option" data-opt="a">1: el subarreglo <code>[1, 2]</code> se sigue encontrando.</button>
+        <button class="quiz-option" data-opt="b">0: para encontrar <code>[1, 2]</code> hay que preguntar por la suma 0.</button>
+        <button class="quiz-option" data-opt="c">El programa falla, porque <code>vistos[0]</code> no existe.</button>
+        <div class="quiz-explain">
+          <strong>B.</strong> Al llegar al 2, <code>suma</code> vale 3 y se busca 3 − 3 = 0. El subarreglo empieza en la posición 0, así que
+          su suma es \(S_2 - S_0\), y sin la entrada del prefijo vacío el 0 no está en el mapa. No falla (C): <code>count</code>
+          regresa 0 y la cuenta queda en 0.
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ CIERRE ============ -->
+    <section class="divider">
+      <h2>Cierre</h2>
+    </section>
+
+    <section>
+      <span class="kicker">Cierre</span>
+      <h2>Lo que tienen en común los tres</h2>
+      <table>
+        <thead><tr><th>Problema</th><th>Clave</th><th>Valor</th><th>Pregunta que responde en orden uno</th></tr></thead>
+        <tbody>
+          <tr class="fragment"><td>LC 706</td><td>la clave del usuario</td><td>su valor</td><td>¿qué valor tiene esta clave?</td></tr>
+          <tr class="fragment"><td>LC 49</td><td>la firma de la palabra</td><td>lista de palabras</td><td>¿con quién va esta palabra?</td></tr>
+          <tr class="fragment"><td>LC 560</td><td>una suma prefija</td><td>cuántas veces apareció</td><td>¿cuántos inicios sirven para este fin?</td></tr>
+        </tbody>
+      </table>
+      <p class="fragment box-key">Antes de escribir el mapa, se decide qué pregunta se le va a hacer. La clave es lo que se conoce al momento de preguntar.</p>
+    </section>
+
+    <section>
+      <span class="kicker">Para practicar</span>
+      <h2>Siguientes problemas, en orden</h2>
+      <table>
+        <thead><tr><th>Problema</th><th>Se parece a</th></tr></thead>
+        <tbody>
+          <tr><td>LC 242 · Valid Anagram</td><td>la firma de LC 49, para dos palabras</td></tr>
+          <tr><td>LC 1 · Two Sum</td><td>buscar "lo que me falta", como <code>suma - k</code> en LC 560</td></tr>
+          <tr><td>LC 705 · Design HashSet</td><td>LC 706 sin valores</td></tr>
+          <tr><td>LC 380 · Insert Delete GetRandom O(1)</td><td>un mapa y un arreglo que se mantienen de acuerdo</td></tr>
+          <tr><td>LC 525 · Contiguous Array</td><td>LC 560 cambiando cada 0 por −1</td></tr>
+        </tbody>
+      </table>
+      <div class="pregunta fragment">
+        <p><span class="pq">¿Cómo reconozco que un problema nuevo se resuelve con un mapa?</span> Busca en el enunciado preguntas como "¿ya apareció?", "¿cuántas veces?", "agrupar los que…" o "¿existe el que me falta?". Si la fuerza bruta repite esa pregunta en un ciclo, un mapa la contesta en orden uno.</p>
+      </div>
+    </section>
+
+    <section>
+      <span class="kicker">Taller 2</span>
+      <h2>Referencias y material para profundizar</h2>
+      <div class="refs cols">
+        <div>
+          <h3>Referencias</h3>
+          <ul>
+            <li><span class="ref-type">Libro</span> Cormen, T. et al. <em>Introduction to Algorithms</em>, 4.ª ed., MIT Press, 2022. Cap. 11 (tablas hash, borrado en direccionamiento abierto).</li>
+            <li><span class="ref-type">Libro</span> Weiss, M. A. <em>Data Structures and Algorithm Analysis in C++</em>, 4.ª ed., Pearson, 2014. Cap. 5.</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Para profundizar</h3>
+          <ul>
+            <li><span class="ref-type">Web</span> <a href="https://leetcode.com/problems/design-hashmap/">LC 706 · Design HashMap</a> <span class="ref-nota">— enunciado y juez.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://leetcode.com/problems/group-anagrams/">LC 49 · Group Anagrams</a> <span class="ref-nota">— enunciado y juez.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://leetcode.com/problems/subarray-sum-equals-k/">LC 560 · Subarray Sum Equals K</a> <span class="ref-nota">— enunciado y juez.</span></li>
+          </ul>
+        </div>
+      </div>
+      <p class="refs-ia">Nota: estas diapositivas fueron generadas usando inteligencia artificial, específicamente Claude (Anthropic).</p>
+    </section>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script src="../js/curso-slides.js"></script>
+<script src="../js/escribe-codigo.js"></script>
+<script src="../js/sim-taller-hash.js"></script>
+<script>
+  Reveal.initialize({
+    width: 1280,
+    height: 720,
+    margin: 0.06,
+    hash: true,
+    progress: true,
+    slideNumber: 'c/t',
+    controls: true,
+    transition: 'slide',
+    transitionSpeed: 'fast',
+    plugins: [ RevealHighlight ]
+  }).then(() => {
+    CursoSlides.init({
+      anagrama: {
+        titulo: "Anagrama",
+        def: "Palabra que se forma con exactamente las mismas letras que otra, cada una el mismo número de veces, en otro orden: \"eat\", \"tea\" y \"ate\"."
+      },
+      firma: {
+        titulo: "Firma",
+        def: "Valor que se calcula a partir de un dato y que es igual para todos los datos que deben considerarse equivalentes, y distinto para los demás. En LC 49, las letras ordenadas de una palabra. Se usa como clave de un mapa para agrupar."
+      },
+      prefijo: {
+        titulo: "Suma prefija",
+        def: "\\(S_i\\) es la suma de los primeros \\(i\\) elementos del arreglo, con \\(S_0 = 0\\). La suma del subarreglo que va de la posición \\(j\\) a la \\(i-1\\) es \\(S_i - S_j\\)."
+      }
+    });
+    EscribeCodigo.init();
+    SimTallerHash.init();
+  });
+</script>
+</body>
+</html>

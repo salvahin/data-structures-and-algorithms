@@ -1,0 +1,40 @@
+/* ============================================================
+   PREGUNTA-ALUMNO — la pregunta que probablemente se está haciendo
+   quien ve el slide, con su respuesta corta.
+   Se carga después de theme-curso.css. Solo usa tokens del tema.
+
+     <div class="pregunta fragment">
+       <p><span class="pq">¿Puedo usar unordered_map?</span> No: …</p>
+     </div>
+
+   Va al final del slide, como fragment, para que la narración
+   la plantee después de explicar el contenido.
+   ============================================================ */
+
+.reveal .pregunta {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55em;
+  margin-top: 0.55em;
+  padding: 0.5em 0.8em;
+  border: 2px dashed var(--c-ink-faint);
+  border-radius: 14px;
+  background: var(--c-surface-1);
+  font-size: 0.64em;
+  line-height: 1.42;
+}
+.reveal .pregunta::before {
+  content: "?";
+  flex: 0 0 auto;
+  width: 1.55em;
+  height: 1.55em;
+  border-radius: 50%;
+  background: var(--c-accent);
+  color: var(--c-on-accent);
+  font-weight: 700;
+  text-align: center;
+  line-height: 1.55em;
+}
+.reveal .pregunta p { margin: 0; }
+.reveal .pregunta .pq { display: block; font-weight: 700; color: var(--c-ink); }
+.reveal .pregunta .pq::before { content: "Probablemente te estás preguntando: "; font-weight: 600; color: var(--c-ink-soft); }

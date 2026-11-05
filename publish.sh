@@ -6,6 +6,10 @@ set -euo pipefail
 REPO="$(cd "$(dirname "$0")" && pwd)"
 SRC="${SLIDES_SRC:-$REPO/../slides}"
 
+# Carpetas de trabajo que viven junto al deck pero no se publican:
+# el video de la clase y el guion pesan decenas de MB y son material de autor.
+NO_PUBLICAR=(narracion)
+
 [ -d "$SRC" ] || { echo "No encuentro la carpeta de slides: $SRC" >&2; exit 1; }
 [ $# -gt 0 ] || { echo "Uso: $0 <carpeta-de-deck> [...]" >&2; exit 1; }
 
@@ -13,6 +17,12 @@ for deck in "$@"; do
   [ -f "$SRC/$deck/index.html" ] || { echo "No existe $SRC/$deck/index.html" >&2; exit 1; }
   rm -rf "${REPO:?}/$deck"
   cp -R "$SRC/$deck" "$REPO/"
+  for extra in "${NO_PUBLICAR[@]}"; do
+    if [ -e "$REPO/$deck/$extra" ]; then
+      rm -rf "${REPO:?}/$deck/$extra"
+      echo "  omitido: $deck/$extra"
+    fi
+  done
   echo "copiado: $deck"
 done
 

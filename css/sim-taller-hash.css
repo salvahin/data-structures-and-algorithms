@@ -1,0 +1,51 @@
+/* ============================================================
+   SIM-TALLER-HASH — estilos propios de las animaciones del Taller 2.
+   Se carga después de theme-curso.css y sim-hash.css (casillas,
+   ruta de sondeo y barra). Solo usa tokens del tema.
+   ============================================================ */
+
+.reveal .sh-svg.st-hashmap   { height: 192px; width: 100%; }
+.reveal .st-lado { display: flex; align-items: flex-start; gap: 0.5em; }
+.reveal .st-izq { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: 0.2em; }
+.reveal .st-izq .sim-dice { max-width: none; min-height: 6em; }
+.reveal .st-izq .sim-test { white-space: normal; font-size: 0.5em; }
+.reveal .sh-svg.st-anagramas { height: 300px; }
+.reveal .sh-svg.st-prefijos  { height: 300px; }
+.reveal .sim-taller .st-codigo { flex: 0 0 auto; max-width: 48%; }
+.reveal .sim-taller .st-dice-ancho { max-width: none; min-height: 3.6em; }
+
+/* casillas del hashmap */
+.reveal .st-valor { font-family: var(--font-mono); font-size: 15px; fill: var(--c-ink-soft); text-anchor: middle; }
+.reveal .st-valor.tenue { fill: var(--c-ink-faint); }
+.reveal .st-vacia { font-family: var(--font-mono); font-size: 14px; fill: var(--c-ink-faint); text-anchor: middle; }
+.reveal .st-lapida { font-family: var(--font-mono); font-size: 14px; font-weight: 700; fill: var(--c-ink-soft); text-anchor: middle; }
+.reveal .st-lapida.err { fill: var(--c-err); }
+.reveal .sim-hash .pf-celda.borrada rect { fill: var(--c-surface-2); stroke: var(--c-ink-soft); stroke-width: 3; stroke-dasharray: 8 5; }
+.reveal .sim-hash .pf-celda.fantasma rect { fill: var(--c-err-bg); stroke: var(--c-err); stroke-width: 4; stroke-dasharray: 8 5; }
+
+/* chips de palabras y claves */
+.reveal .st-chip rect { fill: var(--c-bg); stroke: var(--c-ink); stroke-width: 2.5; }
+.reveal .st-chip text { font-family: var(--font-mono); font-size: 19px; font-weight: 600; fill: var(--c-ink); text-anchor: middle; }
+.reveal .st-chip.usada rect { fill: var(--c-surface-1); stroke: var(--c-ink-faint); }
+.reveal .st-chip.usada text { fill: var(--c-ink-faint); }
+.reveal .st-chip.hl rect { fill: var(--c-ok-bg); stroke: var(--c-ok); stroke-width: 4; }
+.reveal .st-chip.en-grupo rect { fill: var(--c-accent-bg); stroke: var(--c-accent); }
+.reveal .st-clave rect { fill: var(--c-surface-1); stroke: var(--c-ink); stroke-width: 3; }
+.reveal .st-clave text { font-family: var(--font-mono); font-size: 20px; font-weight: 700; fill: var(--c-ink); text-anchor: middle; }
+.reveal .st-clave.on rect { fill: var(--c-accent-bg); stroke: var(--c-accent); stroke-width: 4; }
+.reveal .st-clave.nueva rect { fill: var(--c-ok-bg); stroke: var(--c-ok); stroke-width: 4; }
+.reveal .st-flecha { font-family: var(--font-mono); font-size: 22px; fill: var(--c-ink-soft); }
+
+/* código y resultados dentro del dibujo */
+.reveal .st-cod { font-family: var(--font-mono); font-size: 19px; font-weight: 600; fill: var(--c-ink); white-space: pre; }
+.reveal .st-cod.grande { font-size: 21px; fill: var(--c-accent); }
+.reveal .st-res { font-family: var(--font-mono); font-size: 19px; font-weight: 700; fill: var(--c-ok); }
+
+/* sumas prefijas */
+.reveal .st-pref { font-family: var(--font-mono); font-size: 22px; font-weight: 700; fill: var(--c-ink-soft); text-anchor: middle; }
+.reveal .st-pref.on { fill: var(--c-accent); }
+.reveal .st-veces { font-family: var(--font-mono); font-size: 22px; font-weight: 700; fill: var(--c-ink); }
+.reveal .st-veces.on { fill: var(--c-accent); }
+.reveal .st-falta { font-family: var(--font-mono); font-size: 18px; font-weight: 700; fill: var(--c-err); }
+.reveal .st-rango { fill: none; stroke: var(--c-ok); stroke-width: 4; }
+.reveal .sim-hash .pf-celda.rango rect { fill: var(--c-ok-bg); stroke: var(--c-ok); stroke-width: 4; }
