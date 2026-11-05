@@ -186,7 +186,7 @@ const SimTallerHash = (() => {
         test: `put(31, 5):  primera casilla libre desde la 3  →  la ${l.pos}, la lápida`,
         say: `El segundo ciclo de <code>put</code> sí acepta las lápidas como casillas libres. Empieza en la 3, que está ocupada, y se detiene en la 4: el 31 reutiliza el lugar que dejó el 17.` });
     }
-    add({ fn: 'put', code: -1, ruta: [], marcas: {}, chips: [['4 claves en 7 casillas', '']],
+    add({ fn: 'put', code: -1, ruta: [], marcas: {}, chips: [['3 claves en 7 casillas', '']],
       test: 'buscar se detiene en VACIA; el ciclo de put se detiene en VACIA o BORRADA',
       say: `Esa es la única diferencia entre los dos ciclos, y es la que hace funcionar el borrado. <code>buscar</code> pasa de largo las lápidas porque la clave podría estar detrás. El ciclo de <code>put</code> las reutiliza porque solo necesita un lugar libre.` });
     return { frames: F, tipo: 'hashmap', M };
