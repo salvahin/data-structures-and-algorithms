@@ -27,6 +27,7 @@ Cada deck es un `index.html` autocontenido hecho con [reveal.js](https://revealj
 | `sesion-14/` | S14 — Pilas y filas: listas con restricciones |
 | `sesion-16/` | S16 — Árboles binarios de búsqueda y AVL |
 | `sesion-17/` | S17 — Operaciones avanzadas en un BST |
+| `sesion-18/` | S18 — Heaps |
 | `sesion-24/` | S24 — Hashing y conjuntos |
 | `taller-01-two-pointers/` | T1 — Patrones de LeetCode: two pointers |
 | `taller-02-hashing/` | T2 — Patrones de LeetCode: tablas hash |

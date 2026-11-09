@@ -1,0 +1,96 @@
+/* ============================================================
+   SIM-HEAP — estilos del simulador de heap binario
+   Se carga después de theme-curso.css. Solo usa tokens del tema:
+   el modo oscuro funciona sin reglas propias. La barra, el panel
+   de código y la explicación reutilizan las clases .sim-* del tema.
+   ============================================================ */
+
+.reveal .sim-heap { font-size: 1em; }
+
+/* Código (o cálculo) a la izquierda; árbol, arreglo, explicación y
+   barra a la derecha. La barra va en la columna derecha para que el
+   código de pop + bajar (18 líneas) quepa a 0.72em. */
+.reveal .sh-cuerpo { display: flex; gap: 0.45em; align-items: flex-start; }
+.reveal .sh-izq { flex: 0 0 59%; min-width: 0; display: flex; flex-direction: column; gap: 0.35em; }
+.reveal .sh-der { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: 0.25em; }
+
+.reveal .sim-heap .sh-codigo { max-width: none; width: 100%; line-height: 1.28; }
+.reveal .sim-heap .sh-dice { font-size: 0.56em; min-height: 5.6em; flex: none; margin: 0; }
+.reveal .sim-heap .sh-barra { flex-wrap: wrap; row-gap: 0.25em; font-size: 0.92em; }
+.reveal .sim-heap .sh-barra .sim-test { flex-basis: 100%; order: 5; }
+
+/* ---------- Árbol y arreglo ---------- */
+.reveal .sh-svg { width: 100%; display: block; }
+.reveal .sh-arista { stroke: var(--c-ink); stroke-width: 3; }
+.reveal .sh-arista.viola { stroke: var(--c-err); stroke-width: 5; }
+.reveal .sh-arista.tenue { stroke: var(--c-ink-faint); stroke-dasharray: 6 6; }
+
+.reveal .sh-nodo circle,
+.reveal .sh-celda rect { fill: var(--c-bg); stroke: var(--c-ink); stroke-width: 3; }
+.reveal .sh-dato { font-family: var(--font-sans); font-size: 19px; font-weight: 700; fill: var(--c-ink); text-anchor: middle; }
+.reveal .sh-dato.chico { font-size: 16px; }
+.reveal .sh-ind { font-family: var(--font-mono); font-size: 13px; fill: var(--c-ink-soft); text-anchor: end; }
+.reveal .sh-ind-c { font-family: var(--font-mono); font-size: 14px; fill: var(--c-ink-soft); text-anchor: middle; }
+.reveal .sh-ind-c.izq { text-anchor: start; }
+.reveal .sh-celda.vacia rect { fill: none; stroke: var(--c-ink-faint); stroke-dasharray: 7 6; }
+
+/* celda o nodo en curso */
+.reveal .sh-nodo.activo circle, .reveal .sh-celda.activo rect { fill: var(--c-accent-bg); stroke: var(--c-accent); stroke-width: 5; }
+/* comparado / hijo */
+.reveal .sh-nodo.comp circle, .reveal .sh-celda.comp rect { stroke: var(--c-accent); stroke-width: 4; stroke-dasharray: 6 4; }
+/* el ganador de la comparación (mayor, o padre en el explorador) */
+.reveal .sh-nodo.mayor circle, .reveal .sh-celda.mayor rect { fill: var(--c-accent-soft); stroke: var(--c-accent); stroke-width: 6; }
+.reveal .sh-nodo.mayor .sh-dato, .reveal .sh-celda.mayor .sh-dato { fill: var(--c-ink); }
+/* recién llegado */
+.reveal .sh-nodo.nuevo circle, .reveal .sh-celda.nuevo rect { fill: var(--c-accent-bg); stroke: var(--c-accent); stroke-width: 5; }
+.reveal .sh-nodo.nuevo .sh-dato, .reveal .sh-celda.nuevo .sh-dato { fill: var(--c-accent); }
+/* acaba de moverse por un intercambio */
+.reveal .sh-nodo.movido circle, .reveal .sh-celda.movido rect { fill: var(--c-accent-bg); stroke: var(--c-accent); stroke-width: 5; }
+/* en su lugar */
+.reveal .sh-nodo.listo circle, .reveal .sh-celda.listo rect { fill: var(--c-ok-bg); stroke: var(--c-ok); stroke-width: 5; }
+.reveal .sh-nodo.listo .sh-dato, .reveal .sh-celda.listo .sh-dato { fill: var(--c-ok); }
+/* fuera del heap: zona ordenada de Heap Sort */
+.reveal .sh-nodo.fuera circle { fill: var(--c-surface-1); stroke: var(--c-ink-faint); stroke-dasharray: 6 5; }
+.reveal .sh-nodo.fuera .sh-dato { fill: var(--c-ink-faint); }
+.reveal .sh-celda.fuera rect { fill: var(--c-ok-bg); stroke: var(--c-ok); }
+.reveal .sh-celda.fuera .sh-dato { fill: var(--c-ok); }
+.reveal .sh-corte { stroke: var(--c-ok); stroke-width: 4; }
+
+.reveal .sh-flecha { fill: none; stroke: var(--c-accent); stroke-width: 3.5; }
+.reveal .sh-punta { fill: var(--c-accent); }
+.reveal .sh-sale { font-family: var(--font-mono); font-size: 16px; font-weight: 700; fill: var(--c-err); text-anchor: end; }
+
+/* ---------- Stream de top-k ---------- */
+.reveal .sh-stream rect { fill: var(--c-bg); stroke: var(--c-line); stroke-width: 2; }
+.reveal .sh-stream.actual rect { stroke: var(--c-accent); stroke-width: 4; }
+.reveal .sh-stream.entra rect { fill: var(--c-ok-bg); stroke: var(--c-ok); }
+.reveal .sh-stream.entra .sh-dato { fill: var(--c-ok); }
+.reveal .sh-stream.expulsado rect { fill: var(--c-surface-1); stroke: var(--c-ink-faint); }
+.reveal .sh-stream.expulsado .sh-dato { fill: var(--c-ink-faint); text-decoration: line-through; }
+.reveal .sh-stream.descartado rect { fill: var(--c-surface-1); stroke: var(--c-ink-faint); stroke-dasharray: 4 4; }
+.reveal .sh-stream.descartado .sh-dato { fill: var(--c-ink-faint); }
+.reveal .sh-stream.actual.descartado rect { stroke: var(--c-err); stroke-dasharray: none; stroke-width: 4; }
+
+/* ---------- Cálculo de índices y tabla de build-heap ---------- */
+.reveal .sh-calc {
+  font-family: var(--font-mono);
+  font-size: 0.78em;
+  line-height: 1.5;
+  border: 2px solid var(--c-line);
+  border-radius: var(--radius);
+  padding: 0.5em 0.8em;
+}
+.reveal .sh-calc-l { padding: 0.08em 0.4em; border-left: 6px solid transparent; }
+.reveal .sh-calc-l.acc { color: var(--c-accent); font-weight: 700; }
+.reveal .sh-calc-l.hijo { border-left-color: var(--c-accent); }
+.reveal .sh-calc-l.padre { border-left-color: var(--c-accent); background: var(--c-accent-bg); font-weight: 700; }
+.reveal .sh-calc-l.nada { color: var(--c-ink-soft); }
+
+.reveal .sh-tabla { font-size: 0.56em; margin: 0; width: 100%; }
+.reveal .sh-tabla th, .reveal .sh-tabla td { padding: 0.25em 0.6em; text-align: center; }
+.reveal .sh-tabla tr.total td { font-weight: 700; border-top: 2px solid var(--c-ink); }
+
+@media (max-width: 760px) {
+  .reveal .sh-cuerpo { flex-direction: column; }
+  .reveal .sh-izq { flex-basis: auto; width: 100%; }
+}

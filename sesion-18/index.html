@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sesión 18 — Heaps</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+  <script>try{if(localStorage.getItem("curso-tema")==="dark"&&!/print-pdf/i.test(location.search))document.documentElement.dataset.theme="dark"}catch(e){}</script>
+  <link rel="stylesheet" href="../css/theme-curso.css">
+  <link rel="stylesheet" href="../css/sim-heap.css">
+</head>
+<body>
+<div class="reveal">
+  <div class="slides">
+
+    <!-- ============ PORTADA ============ -->
+    <section class="cover">
+      <span class="kicker">Estructuras de Datos y Algoritmos · Bloque 3</span>
+      <h1>Heaps</h1>
+      <div class="cover-meta">
+        Sesión 18 · Semana 10<br>
+        Salvador Hinojosa
+      </div>
+    </section>
+
+    <!-- ============ OBJETIVO ============ -->
+    <section>
+      <span class="kicker">Objetivo de hoy</span>
+      <h2>Al salir de esta sesión podrás…</h2>
+      <ul>
+        <li class="fragment">Implementar un <span class="term" data-term="heap">heap</span> binario sobre un arreglo, sin punteros.</li>
+        <li class="fragment">Justificar por qué <code>push</code> y <code>pop</code> cuestan O(log n) y la construcción completa O(n).</li>
+        <li class="fragment">Resolver <span class="term" data-term="topk">top-k</span> con un heap de tamaño k en O(n log k).</li>
+      </ul>
+    </section>
+
+    <!-- ============ FILA PRIORIZADA ============ -->
+    <section>
+      <span class="kicker">8.2 · De la fila priorizada al heap</span>
+      <h2>La fila priorizada</h2>
+      <ul>
+        <li class="fragment">Una fila priorizada guarda elementos y siempre atiende primero al de mayor prioridad, sin importar el orden de llegada. Tiene tres operaciones: <code>push</code> agrega, <code>top</code> consulta al de mayor prioridad y <code>pop</code> lo quita.</li>
+        <li class="fragment">Con un arreglo ordenado: <code>top</code> O(1), pero <code>push</code> O(n). Con uno desordenado: <code>push</code> O(1), pero <code>top</code> O(n).</li>
+        <li class="fragment">El heap binario da <code>top</code> en O(1) y <code>push</code>/<code>pop</code> en O(log n). Hoy lo implementamos.</li>
+      </ul>
+    </section>
+
+    <!-- ============ DIVIDER PROPIEDAD ============ -->
+    <section class="divider">
+      <h2>8.2 El heap binario</h2>
+    </section>
+
+    <!-- ============ PROPIEDAD DE HEAP ============ -->
+    <section>
+      <span class="kicker">8.2 · Propiedad de heap</span>
+      <h2>La propiedad de heap</h2>
+      <ul>
+        <li class="fragment"><strong>Max-heap:</strong> cada padre es mayor o igual que sus dos hijos. No se pide nada más.</li>
+        <li class="fragment">Consecuencia: el máximo está en la raíz. Entre hermanos, y entre ramas distintas, no hay ningún orden.</li>
+        <li class="fragment">Como se pide poco, mantener la propiedad cuesta O(log n) por operación. Mantener todo ordenado costaría O(n) por inserción.</li>
+      </ul>
+      <p class="fragment box-key">El heap da acceso inmediato al máximo. Para conocer el segundo hay que hacer <code>pop</code>.</p>
+    </section>
+
+    <!-- ============ CÓMO SE VE UN HEAP ============ -->
+    <section>
+      <span class="kicker">8.2 · Propiedad de heap</span>
+      <h2>Así se ve un max-heap</h2>
+      <svg viewBox="0 0 1100 380" style="width:100%; max-height:420px;" role="img" aria-label="Max-heap con 90 en la raíz, 70 y 80 en el segundo nivel, y 30, 50 y 60 en el tercero">
+        <!-- aristas -->
+        <path class="svg-edge" d="M 350 60 L 190 175"/>
+        <path class="svg-edge" d="M 350 60 L 510 175"/>
+        <path class="svg-edge" d="M 190 175 L 110 295"/>
+        <path class="svg-edge" d="M 190 175 L 270 295"/>
+        <path class="svg-edge" d="M 510 175 L 430 295"/>
+        <path d="M 510 175 L 590 295" fill="none" stroke-width="3" stroke-dasharray="9 7" class="s-ink-faint-2"/>
+        <!-- 2: aristas resaltadas, debajo de los nodos -->
+        <g class="anim-step" data-step="2">
+            <path class="s-accent" stroke-width="5" fill="none" d="M 350 60 L 190 175 M 350 60 L 510 175 M 190 175 L 110 295 M 190 175 L 270 295 M 510 175 L 430 295"/>
+        </g>
+        <!-- 3: los hermanos no se comparan -->
+        <g class="anim-step" data-step="3">
+          <rect x="142" y="137" width="416" height="76" rx="38" fill="none" stroke-width="4" stroke-dasharray="12 8" class="s-accent"/>
+        </g>
+        <!-- nodos -->
+        <circle class="svg-node" cx="350" cy="60" r="34"/>
+        <circle class="svg-node" cx="190" cy="175" r="34"/>
+        <circle class="svg-node" cx="510" cy="175" r="34"/>
+        <circle class="svg-node" cx="110" cy="295" r="34"/>
+        <circle class="svg-node" cx="270" cy="295" r="34"/>
+        <circle class="svg-node" cx="430" cy="295" r="34"/>
+        <text class="svg-label" x="350" y="69" text-anchor="middle">90</text>
+        <text class="svg-label" x="190" y="184" text-anchor="middle">70</text>
+        <text class="svg-label" x="510" y="184" text-anchor="middle">80</text>
+        <text class="svg-label" x="110" y="304" text-anchor="middle">30</text>
+        <text class="svg-label" x="270" y="304" text-anchor="middle">50</text>
+        <text class="svg-label" x="430" y="304" text-anchor="middle">60</text>
+        <!-- 1: el máximo en la raíz -->
+        <g class="anim-step" data-step="1">
+          <circle cx="350" cy="60" r="44" fill="none" stroke-width="5" class="s-accent"/>
+          <circle cx="410" cy="28" r="17" class="f-accent"/>
+          <text x="410" y="35" text-anchor="middle" style="font-size:20px; font-weight:700;" class="f-bg">1</text>
+        </g>
+        <!-- 2: padre ≥ hijos en cada arista -->
+        <g class="anim-step" data-step="2" style="font-size:19px; font-weight:700;">
+          <text x="258" y="108" text-anchor="end" class="f-accent">90 ≥ 70</text>
+          <text x="442" y="108" text-anchor="start" class="f-accent">90 ≥ 80</text>
+          <text x="130" y="245" text-anchor="end" class="f-accent">70 ≥ 30</text>
+          <text x="254" y="245" text-anchor="start" class="f-accent">70 ≥ 50</text>
+          <text x="450" y="245" text-anchor="end" class="f-accent">80 ≥ 60</text>
+          <circle cx="160" cy="101" r="17" class="f-accent"/>
+          <text x="160" y="108" text-anchor="middle" style="font-size:20px;" class="f-bg">2</text>
+        </g>
+        <!-- 3: insignia -->
+        <g class="anim-step" data-step="3">
+          <circle cx="350" cy="175" r="17" class="f-accent"/>
+          <text x="350" y="182" text-anchor="middle" style="font-size:20px; font-weight:700;" class="f-bg">3</text>
+        </g>
+        <!-- 4: el siguiente lugar libre -->
+        <g class="anim-step" data-step="4">
+          <circle cx="590" cy="295" r="34" fill="none" stroke-width="4" stroke-dasharray="9 7" class="s-accent"/>
+          <text x="590" y="303" text-anchor="middle" style="font-size:24px; font-weight:700;" class="f-accent">?</text>
+          <circle cx="640" cy="262" r="17" class="f-accent"/>
+          <text x="640" y="269" text-anchor="middle" style="font-size:20px; font-weight:700;" class="f-bg">4</text>
+        </g>
+        <!-- explicaciones -->
+        <g style="font-size:23px;">
+          <g class="anim-step" data-step="1">
+            <circle cx="712" cy="52" r="17" class="f-accent"/>
+            <text x="712" y="59" text-anchor="middle" style="font-size:20px; font-weight:700;" class="f-bg">1</text>
+            <text x="742" y="60" class="f-ink"><tspan font-weight="700">El máximo está en la raíz.</tspan><tspan x="742" dy="30"><tspan style="font-family: var(--font-mono);">top()</tspan> lo lee sin buscar.</tspan></text>
+          </g>
+          <g class="anim-step" data-step="2">
+            <circle cx="712" cy="137" r="17" class="f-accent"/>
+            <text x="712" y="144" text-anchor="middle" style="font-size:20px; font-weight:700;" class="f-bg">2</text>
+            <text x="742" y="145" class="f-ink"><tspan font-weight="700">Cada padre ≥ sus dos hijos.</tspan><tspan x="742" dy="30">Es lo único que se garantiza.</tspan></text>
+          </g>
+          <g class="anim-step" data-step="3">
+            <circle cx="712" cy="222" r="17" class="f-accent"/>
+            <text x="712" y="229" text-anchor="middle" style="font-size:20px; font-weight:700;" class="f-bg">3</text>
+            <text x="742" y="230" class="f-ink"><tspan font-weight="700">Los hermanos no se ordenan.</tspan><tspan x="742" dy="30">El 70 está a la izquierda</tspan><tspan x="742" dy="30">del 80, y no importa.</tspan></text>
+          </g>
+          <g class="anim-step" data-step="4">
+            <circle cx="712" cy="327" r="17" class="f-accent"/>
+            <text x="712" y="334" text-anchor="middle" style="font-size:20px; font-weight:700;" class="f-bg">4</text>
+            <text x="742" y="335" class="f-ink"><tspan font-weight="700">Árbol completo.</tspan><tspan x="742" dy="30">El siguiente elemento va aquí.</tspan></text>
+          </g>
+        </g>
+      </svg>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+    </section>
+
+    <!-- ============ ÁRBOL COMPLETO ============ -->
+    <section>
+      <span class="kicker">8.2 · Árbol completo</span>
+      <h2>Árbol completo: la forma depende solo de n</h2>
+      <ul>
+        <li class="fragment">Un heap es un <span class="term" data-term="arbolcompleto">árbol completo</span>: todos los niveles llenos, salvo quizá el último, que se llena de izquierda a derecha.</li>
+        <li class="fragment">Con n elementos solo hay una forma posible. Las operaciones deciden dónde va cada valor, nunca la forma.</li>
+        <li class="fragment">La altura es \(\lfloor \log_2 n \rfloor\) siempre. No hacen falta rotaciones ni factores de balance.</li>
+      </ul>
+      <p class="fragment muted">Comparación con el BST de la sesión 16: allá el orden es fuerte y la forma depende del orden de inserción; acá el orden es débil y la forma es fija.</p>
+    </section>
+
+    <!-- ============ SIM: ÁRBOL ↔ ARREGLO ============ -->
+    <section>
+      <span class="kicker">8.2 · Representación implícita</span>
+      <h2>El árbol es un arreglo</h2>
+      <div class="sim-heap" data-alg="indices" data-datos="90,70,80,30,50,60"></div>
+    </section>
+
+    <!-- ============ REPRESENTACIÓN IMPLÍCITA ============ -->
+    <section>
+      <span class="kicker">8.2 · Representación implícita</span>
+      <h2>Tres fórmulas sustituyen a los punteros</h2>
+      <div class="eq">\[ \text{izq}(i) = 2i + 1 \qquad \text{der}(i) = 2i + 2 \qquad \text{padre}(i) = \left\lfloor \tfrac{i - 1}{2} \right\rfloor \]</div>
+      <ul>
+        <li class="fragment">Un índice es válido solo si es menor que n. Si \(2i + 1 \ge n\), el nodo i es hoja.</li>
+        <li class="fragment">Sin <code>izq</code> ni <code>der</code> en cada nodo se usa menos memoria, y los datos quedan contiguos en el arreglo.</li>
+        <li class="fragment">Las fórmulas funcionan porque el árbol es completo. Con huecos, el arreglo tendría celdas sin dato.</li>
+      </ul>
+    </section>
+
+    <!-- ============ QUIZ 1 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="b">
+        <p class="quiz-question">El arreglo [90, 70, 80, 30, 50, 60] es un max-heap válido. ¿Qué garantiza eso sobre el arreglo?</p>
+        <button class="quiz-option" data-opt="a">Que está ordenado de mayor a menor — por eso 90 va primero.</button>
+        <button class="quiz-option" data-opt="b">Que cada celda i es ≥ que las celdas 2i+1 y 2i+2: el máximo está en la posición 0 y nada más.</button>
+        <button class="quiz-option" data-opt="c">Que la primera mitad del arreglo contiene los elementos mayores que la segunda mitad.</button>
+        <div class="quiz-explain">
+          <strong>B.</strong> El propio ejemplo refuta la opción A: 70 aparece antes que 80. Solo se garantiza
+          la relación padre-hijos. La opción C también falla: 30 (posición 3, primera mitad) es menor que 60
+          (posición 5). Tratar el heap como estructura ordenada es el error conceptual más frecuente del tema.
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ============ DIVIDER OPERACIONES ============ -->
+    <section class="divider">
+      <h2>8.2 Operaciones<br>y construcción</h2>
+    </section>
+
+    <!-- ============ LA CLASE ============ -->
+    <section>
+      <span class="kicker">8.2 · La clase</span>
+      <h2>Un heap es un vector y dos funciones auxiliares</h2>
+      <pre><code class="language-cpp" data-trim>
+class Heap {
+    std::vector&lt;int&gt; datos;
+    void subir(int i);
+    void bajar(int i, int n);
+public:
+    void push(int x);
+    void pop();
+    int top() { return datos[0]; }
+    int size() { return datos.size(); }
+    void construir();
+    void heapSort();
+};
+      </code></pre>
+      <p class="fragment muted"><code>subir</code> y <code>bajar</code> reparan la propiedad de heap después de un cambio. Todas las operaciones públicas se apoyan en ellas.</p>
+    </section>
+
+    <!-- ============ SIM PUSH ============ -->
+    <section>
+      <span class="kicker">8.2 · push y subir</span>
+      <h2>push(85), línea por línea</h2>
+      <div class="sim-heap" data-alg="push" data-datos="90,70,80,30,50,60" data-x="85"></div>
+    </section>
+
+    <!-- ============ CÓDIGO PUSH ============ -->
+    <section>
+      <span class="kicker">8.2 · push y subir</span>
+      <h2><code>push</code>: entra al final y <span class="term" data-term="heapify">sube</span></h2>
+      <pre><code class="language-cpp" data-trim>
+void Heap::push(int x) {
+    datos.push_back(x);
+    int n = datos.size();
+    subir(n - 1);
+}
+void Heap::subir(int i) {
+    if (i == 0) return;
+    int p = (i - 1) / 2;
+    if (datos[p] &gt;= datos[i]) return;
+    std::swap(datos[p], datos[i]);
+    subir(p);
+}
+      </code></pre>
+    </section>
+
+    <!-- ============ SIM POP ============ -->
+    <section>
+      <span class="kicker">8.2 · pop y bajar</span>
+      <h2>pop(), línea por línea</h2>
+      <div class="sim-heap" data-alg="pop" data-datos="90,70,85,30,50,60,80"></div>
+    </section>
+
+    <!-- ============ CÓDIGO POP ============ -->
+    <section>
+      <h2><code>pop</code>: el último pasa a la raíz y <span class="term" data-term="heapify">baja</span></h2>
+      <pre><code class="language-cpp" data-trim>
+void Heap::pop() {
+    datos[0] = datos.back();
+    datos.pop_back();
+    bajar(0, datos.size());
+}
+void Heap::bajar(int i, int n) {
+    int mayor = i;
+    int izq = 2 * i + 1;
+    int der = 2 * i + 2;
+    if (izq &lt; n &amp;&amp; datos[izq] &gt; datos[mayor])
+        mayor = izq;
+    if (der &lt; n &amp;&amp; datos[der] &gt; datos[mayor])
+        mayor = der;
+    if (mayor == i) return;
+    std::swap(datos[i], datos[mayor]);
+    bajar(mayor, n);
+}
+      </code></pre>
+    </section>
+
+    <!-- ============ NOTAS POP ============ -->
+    <section>
+      <span class="kicker">8.2 · subir y bajar</span>
+      <h2>Lo que hay que recordar de <code>subir</code> y <code>bajar</code></h2>
+      <ul>
+        <li class="fragment">Cada llamada sube o baja un nivel: a lo más \(\lfloor \log_2 n \rfloor\) intercambios. <code>push</code> y <code>pop</code> cuestan O(log n).</li>
+        <li class="fragment"><code>mayor</code> se compara contra los <strong>dos</strong> hijos. Si solo se mira al izquierdo, el derecho puede quedar debajo de un valor menor.</li>
+        <li class="fragment">Recibe <code>n</code> como parámetro: solo las celdas 0…n − 1 forman parte del heap. <code>construir</code> y Heap Sort lo aprovechan.</li>
+        <li class="fragment"><code>pop</code> supone que el heap no está vacío; quien lo llama debe revisar <code>size()</code> antes.</li>
+      </ul>
+    </section>
+
+    <!-- ============ QUIZ 2 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="c">
+        <p class="quiz-question">¿Cuánto cuesta encontrar el <em>mínimo</em> en un max-heap de n elementos?</p>
+        <button class="quiz-option" data-opt="a">O(1): está en la última celda del arreglo.</button>
+        <button class="quiz-option" data-opt="b">O(log n): se baja por los hijos menores hasta una hoja.</button>
+        <button class="quiz-option" data-opt="c">O(n): el mínimo es alguna hoja, y entre las ~n/2 hojas no hay ningún orden.</button>
+        <div class="quiz-explain">
+          <strong>C.</strong> La propiedad de heap solo empuja a los grandes hacia arriba: el mínimo está en
+          alguna hoja, pero el arreglo no dice en cuál — la última celda (opción A) es solo el último nivel
+          por la izquierda. No hay "camino de los menores" (opción B) porque los hermanos no se comparan
+          entre sí. Un heap resuelve extremos de un solo lado; para ambos lados se usan dos heaps (reto LC 295).
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ============ BUILD-HEAP IDEA ============ -->
+    <section>
+      <span class="kicker">8.2 · Construcción</span>
+      <h2>Construir un heap desde un arreglo</h2>
+      <ul>
+        <li class="fragment"><strong>Opción directa:</strong> n llamadas a <code>push</code> → O(n log n).</li>
+        <li class="fragment"><strong>Opción mejor:</strong> tomar el arreglo tal como está y llamar a <code>bajar</code> desde el último padre (celda n / 2 − 1) hasta la 0.</li>
+        <li class="fragment">Las hojas ya son heaps de un elemento. Cada <code>bajar</code> junta dos heaps hijos con su padre en un heap más grande.</li>
+      </ul>
+    </section>
+
+    <!-- ============ SIM CONSTRUIR ============ -->
+    <section>
+      <span class="kicker">8.2 · Construcción</span>
+      <h2>construir(), una llamada a bajar por paso</h2>
+      <div class="sim-heap" data-alg="construir" data-datos="12,5,30,8,40,20,25,3,7,45"></div>
+    </section>
+
+    <!-- ============ CÓDIGO CONSTRUIR + O(N) ============ -->
+    <section>
+      <span class="kicker">8.2 · Construcción</span>
+      <h2>Por qué build-heap cuesta O(n)</h2>
+      <pre><code class="language-cpp" data-trim>
+void Heap::construir() {
+    int n = datos.size();
+    for (int i = n / 2 - 1; i &gt;= 0; i--)
+        bajar(i, n);
+}
+      </code></pre>
+      <ul>
+        <li class="fragment">Un nodo a altura h hace a lo más h intercambios, y hay cerca de \(n / 2^{h+1}\) nodos a esa altura:</li>
+      </ul>
+      <div class="eq fragment">\[ \text{intercambios} \;\le\; \sum_{h \ge 0} \frac{n}{2^{h+1}} \cdot h \;=\; n \sum_{h \ge 0} \frac{h}{2^{h+1}} \;=\; n \]</div>
+    </section>
+
+    <!-- ============ HEAP SORT IDEA ============ -->
+    <section>
+      <span class="kicker">8.2 · Heap Sort</span>
+      <h2>Heap Sort: ordenar dentro del mismo arreglo</h2>
+      <ul>
+        <li class="fragment"><strong>1.</strong> <code>construir()</code> sobre el arreglo completo: O(n).</li>
+        <li class="fragment"><strong>2.</strong> Repetir n − 1 veces: intercambiar la raíz (el máximo) con la última celda de la zona viva, reducir la zona viva en uno y llamar a <code>bajar(0, fin)</code>: O(log n) cada vez.</li>
+        <li class="fragment">El arreglo queda ordenado de menor a mayor, de derecha a izquierda.</li>
+      </ul>
+    </section>
+
+    <!-- ============ SIM HEAPSORT ============ -->
+    <section>
+      <span class="kicker">8.2 · Heap Sort</span>
+      <h2>heapSort(): zona viva y zona ordenada</h2>
+      <div class="sim-heap" data-alg="heapsort" data-datos="30,90,50,80,70,60,85"></div>
+    </section>
+
+    <!-- ============ CÓDIGO HEAPSORT ============ -->
+    <section>
+      <span class="kicker">8.2 · Heap Sort</span>
+      <h2>Heap Sort en código</h2>
+      <pre><code class="language-cpp" data-trim>
+void Heap::heapSort() {
+    construir();
+    int n = datos.size();
+    for (int fin = n - 1; fin &gt; 0; fin--) {
+        std::swap(datos[0], datos[fin]);
+        bajar(0, fin);
+    }
+}
+      </code></pre>
+      <ul>
+        <li class="fragment">O(n log n) sin memoria extra.</li>
+        <li class="fragment">Frente al Merge Sort de la sesión 8: el mismo O(n log n) sin los O(n) de memoria auxiliar. A cambio, no es estable y salta más por el arreglo, lo que aprovecha peor la caché.</li>
+      </ul>
+    </section>
+
+    <!-- ============ DIVIDER TOP-K ============ -->
+    <section class="divider">
+      <h2>8.2 El patrón top-k</h2>
+    </section>
+
+    <!-- ============ TOP-K ============ -->
+    <section>
+      <span class="kicker">8.2 · Top-k</span>
+      <h2>Los k mayores de un stream</h2>
+      <ul>
+        <li class="fragment">Se mantiene un <strong>min-heap de tamaño k</strong> con los k mejores vistos hasta ahora. Su raíz es el menor de ellos; lo llamamos el portero.</li>
+        <li class="fragment">Llega un elemento: si no supera al portero, se descarta con una comparación. Si lo supera, <code>pop</code> + <code>push</code> en O(log k).</li>
+        <li class="fragment">Costo total: <strong>O(n log k)</strong> con memoria O(k). Ordenar todo costaría O(n log n) y exigiría guardar los n elementos.</li>
+      </ul>
+      <p class="fragment box-key">Para quedarte con los k <strong>mayores</strong>, el heap es de <strong>mínimos</strong>: el que sale siempre es el peor de los candidatos.</p>
+    </section>
+
+    <!-- ============ HEAP MIN ============ -->
+    <section>
+      <span class="kicker">8.2 · Top-k</span>
+      <h2>Del max-heap al min-heap: tres comparaciones</h2>
+      <pre><code class="language-cpp" data-trim>
+// HeapMin: igual que Heap, salvo tres
+// comparaciones. En subir:
+    if (datos[p] &lt;= datos[i]) return;
+// En bajar (mayor pasa a llamarse menor):
+    if (izq &lt; n &amp;&amp; datos[izq] &lt; datos[menor])
+        menor = izq;
+    if (der &lt; n &amp;&amp; datos[der] &lt; datos[menor])
+        menor = der;
+      </code></pre>
+    </section>
+
+    <!-- ============ SIM TOP-K ============ -->
+    <section>
+      <span class="kicker">8.2 · Top-k</span>
+      <h2>Top-3 de un stream de 12 números</h2>
+      <div class="sim-heap" data-alg="topk" data-datos="42,7,65,13,88,21,54,9,71,30,95,17" data-k="3"></div>
+    </section>
+
+    <!-- ============ CÓDIGO TOP-K ============ -->
+    <section>
+      <span class="kicker">8.2 · Top-k</span>
+      <h2>Top-k en código</h2>
+      <pre><code class="language-cpp" data-trim>
+// portero: min-heap de a lo más k elementos;
+// su raíz es el menor de los k mejores
+void topK(std::vector&lt;int&gt;&amp; v, int k,
+          HeapMin&amp; portero) {
+    for (int x : v) {
+        if (portero.size() &lt; k) {
+            portero.push(x);
+        } else if (x &gt; portero.top()) {
+            portero.pop();
+            portero.push(x);
+        }
+    }
+}
+      </code></pre>
+    </section>
+
+    <!-- ============ QUIZ 3 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="b">
+        <p class="quiz-question">Quieres los 10 elementos más grandes de un stream de 10 millones. ¿Qué estructura usas?</p>
+        <button class="quiz-option" data-opt="a">Guardar todo y ordenar al final: O(n log n) y 10 millones en memoria.</button>
+        <button class="quiz-option" data-opt="b">Un min-heap de tamaño 10: cada elemento se compara contra la raíz y solo entra si la supera.</button>
+        <button class="quiz-option" data-opt="c">Un max-heap de tamaño 10: la raíz da acceso directo al mayor, que es lo que buscamos.</button>
+        <div class="quiz-explain">
+          <strong>B.</strong> El max-heap de tamaño 10 (opción C) es el error clásico: su raíz es el mejor
+          candidato, pero para decidir si un recién llegado entra hay que compararlo con el <em>peor</em> de
+          los 10 — y encontrar el mínimo en un max-heap cuesta O(k), como vimos en el quiz anterior.
+          El min-heap pone al portero en la raíz: comparación en O(1), reemplazo en O(log k).
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ============ PRÁCTICA DE LABORATORIO ============ -->
+    <section>
+      <span class="kicker">Práctica de laboratorio</span>
+      <h2>Fila priorizada sobre tu heap</h2>
+      <ul>
+        <li class="fragment">Con el <code>push</code> y el <code>pop</code> de hoy, arma una fila priorizada: plantilla <code>FilaPriorizada&lt;T&gt;</code> con <code>push</code>, <code>top</code>, <code>pop</code>, <code>size</code>.</li>
+        <li class="fragment">Pruébala contra <code>std::priority_queue</code>: la misma secuencia de operaciones debe dar los mismos resultados.</li>
+      </ul>
+    </section>
+
+    <!-- ============ RETO EN PAREJAS ============ -->
+    <section>
+      <span class="kicker">Reto en parejas</span>
+      <h2>Dos problemas con heaps</h2>
+      <ul>
+        <li class="fragment"><strong>LC 347 — Top K Frequent Elements</strong> [Media]. Un hashmap para contar y el heap de tamaño k de hoy.</li>
+        <li class="fragment"><strong>LC 295 — Find Median from Data Stream</strong> [Alta]. Dos heaps balanceados: un max-heap con la mitad baja y un min-heap con la mitad alta; la mediana está en las raíces.</li>
+      </ul>
+    </section>
+
+    <!-- ============ PRÓXIMA SESIÓN ============ -->
+    <section class="divider">
+      <h2>Próxima sesión:<br>Splay trees y Act 3.2 (parte 1)</h2>
+      <p class="muted">La sesión 19 es en laboratorio <strong>sin internet</strong>: inicia la integradora de árboles (15 pts). Sube el reto (LC 347 / LC 295) al LMS antes de la sesión y llega con tu fila priorizada funcionando.</p>
+    </section>
+
+    <!-- ============ DIVIDER MATERIAL EXTRA ============ -->
+    <section class="divider">
+      <h2>Material extra · autoestudio</h2>
+      <p class="muted">No se cubre en clase: la STL del tema y su conexión con sistemas de IA.</p>
+    </section>
+
+    <!-- ============ POR QUÉ IMPORTA HOY ============ -->
+    <section>
+      <span class="kicker kicker-ai">Por qué importa hoy</span>
+      <h2>Top-k sostiene la generación de texto</h2>
+      <div class="box-ai" data-label="Dónde vive esto en sistemas de IA">
+        <ul>
+          <li class="fragment">Con <strong>top-k sampling</strong>, un modelo de lenguaje escoge el siguiente token entre los k más probables de un vocabulario de decenas de miles. Un heap de tamaño k lo resuelve en O(n log k) por token generado, sin ordenar el vocabulario.</li>
+          <li class="fragment">Los k vecinos más cercanos de un índice vectorial se recolectan con el mismo patrón: un heap que descarta en la puerta a quien no supera al peor candidato.</li>
+          <li class="fragment">El algoritmo de <span class="term" data-term="dijkstra">Dijkstra</span> del bloque de grafos extrae en cada paso el nodo más cercano de una fila priorizada: la de hoy.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============ CIERRE STL 1 ============ -->
+    <section>
+      <span class="kicker">STL</span>
+      <h2>Dos niveles de control</h2>
+      <table>
+        <thead><tr><th></th><th><code>std::priority_queue</code></th><th><code>make_heap</code> + amigos</th></tr></thead>
+        <tbody>
+          <tr class="fragment"><td>Qué es</td><td>adaptador sobre <code>vector</code></td><td>algoritmos sobre tu <code>vector</code></td></tr>
+          <tr class="fragment"><td>Interfaz</td><td><code>push</code>/<code>top</code>/<code>pop</code>, nada más</td><td>control total del contenedor</td></tr>
+          <tr class="fragment"><td>Recorrer elementos</td><td>imposible sin vaciarla</td><td>el <code>vector</code> es tuyo</td></tr>
+          <tr class="fragment"><td>Por defecto</td><td>max-heap (<code>std::greater</code> lo invierte)</td><td>max-heap</td></tr>
+        </tbody>
+      </table>
+      <p class="fragment muted">El mismo patrón adaptador de <code>std::stack</code> y <code>std::queue</code>: envolver un contenedor y restringirle la interfaz.</p>
+    </section>
+
+    <!-- ============ CIERRE STL 2 ============ -->
+    <section>
+      <span class="kicker">STL</span>
+      <h2>Las funciones de heap, en acción</h2>
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-13|1-2|3-5|7-9|11-13">
+std::vector&lt;int&gt; v = {30, 90, 50, 80, 70, 60};
+std::make_heap(v.begin(), v.end());       // build-heap: O(n)
+v.push_back(85);
+std::push_heap(v.begin(), v.end());       // sift-up: O(log n)
+std::pop_heap(v.begin(), v.end());        // máximo al final
+v.pop_back();
+
+std::priority_queue&lt;int, std::vector&lt;int&gt;,
+                    std::greater&lt;int&gt;&gt; minq;   // min-heap
+
+// ¿solo quieres los k mejores, ya ordenados?
+std::partial_sort(v.begin(), v.begin() + k, v.end());
+      </code></pre>
+      <p class="muted"><code>std::partial_sort</code> usa un heap por dentro: la versión de biblioteca del top-k de hoy.</p>
+    </section>
+
+    <!-- ============ REFERENCIAS ============ -->
+    <section>
+      <span class="kicker">Sesión 18</span>
+      <h2>Referencias y material para profundizar</h2>
+      <div class="refs cols">
+        <div>
+          <h3>Referencias</h3>
+          <ul>
+            <li><span class="ref-type">Libro</span> Cormen, T. et al. <em>Introduction to Algorithms</em>, 4.ª ed., MIT Press, 2022. Cap. 6 (Heapsort y build-heap O(n)).</li>
+            <li><span class="ref-type">Libro</span> Weiss, M. A. <em>Data Structures and Algorithm Analysis in C++</em>, 4.ª ed., Pearson, 2014. Cap. 6 (colas de prioridad).</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Para profundizar</h3>
+          <ul>
+            <li><span class="ref-type">Web</span> <a href="https://visualgo.net/en/heap">VisuAlgo — Binary Heap</a> <span class="ref-nota">— la vista dual arreglo/árbol de hoy, interactiva.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://en.cppreference.com/w/cpp/algorithm/make_heap">cppreference — make_heap</a> <span class="ref-nota">— la familia completa de algoritmos de heap del cierre STL.</span></li>
+            <li><span class="ref-type">Paper</span> Holtzman et al., <a href="https://arxiv.org/abs/1904.09751">The Curious Case of Neural Text Degeneration</a> (arXiv:1904.09751) <span class="ref-nota">— el paper que discute el muestreo top-k y propone top-p.</span></li>
+          </ul>
+        </div>
+      </div>
+      <p class="refs-ia">Nota: estas diapositivas fueron generadas usando inteligencia artificial, específicamente Claude (Anthropic).</p>
+    </section>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script src="../js/curso-slides.js"></script>
+<script src="../js/sim-heap.js"></script>
+<script>
+  Reveal.initialize({
+    width: 1280,
+    height: 720,
+    margin: 0.06,
+    hash: true,
+    progress: true,
+    slideNumber: 'c/t',
+    controls: true,
+    transition: 'slide',
+    transitionSpeed: 'fast',
+    plugins: [ RevealHighlight ]
+  }).then(() => {
+    CursoSlides.init({
+      heap: {
+        titulo: "Heap binario",
+        def: "Árbol binario completo donde cada padre cumple la propiedad de heap con sus hijos (padre ≥ hijos en un max-heap). Se representa sobre un arreglo sin punteros y ofrece el máximo en O(1), con <code>push</code> y <code>pop</code> en O(log n)."
+      },
+      arbolcompleto: {
+        titulo: "Árbol completo",
+        def: "Árbol binario con todos los niveles llenos excepto quizá el último, que se llena de izquierda a derecha. Esa forma garantiza altura O(log n) y que el arreglo que lo representa no tenga huecos."
+      },
+      heapify: {
+        titulo: "Subir y bajar (sift-up / sift-down)",
+        def: "Reparar la propiedad de heap moviendo un solo elemento: <code>subir</code> lo intercambia con su padre mientras lo supere (después de <code>push</code>); <code>bajar</code> lo intercambia con el mayor de sus hijos (después de <code>pop</code>). En inglés se llaman sift-up y sift-down, o heapify. A lo más h intercambios: O(log n)."
+      },
+      topk: {
+        titulo: "Patrón top-k",
+        def: "Recuperar los k mayores (o menores) de un flujo de n elementos sin ordenarlo: un heap de tamaño k cuya raíz actúa de portero lo resuelve en O(n log k) con memoria O(k)."
+      },
+      dijkstra: {
+        titulo: "Algoritmo de Dijkstra",
+        def: "Calcula caminos más cortos desde un origen en un grafo con pesos no negativos. Su implementación eficiente extrae en cada paso el nodo más cercano pendiente usando una fila priorizada. Lo estudiaremos en el bloque de grafos."
+      }
+    });
+    SimHeap.init();
+  });
+</script>
+</body>
+</html>
