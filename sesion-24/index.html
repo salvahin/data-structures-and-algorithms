@@ -275,6 +275,17 @@ bool contiene(int k) {
       <p class="fragment"><code>inserta</code> es O(1): no recorre nada. <code>contiene</code> recorre una sola lista y cuesta lo que mida esa lista.</p>
     </section>
 
+    <!-- ============ 8.3.2 ENCADENAMIENTO: LO QUE FALTA ============ -->
+    <section>
+      <span class="kicker">8.3.2 · Encadenamiento</span>
+      <h2>Lo que le falta a <code>TablaHash</code></h2>
+      <ul>
+        <li class="fragment"><strong>Claves repetidas:</strong> <code>inserta</code> supone que <code>k</code> no está. Un conjunto llama primero a <code>contiene(k)</code> e inserta solo si da <code>false</code>.</li>
+        <li class="fragment"><strong>Borrar:</strong> se calcula <code>i = k % M</code> y se quita el nodo de la lista <code>tabla[i]</code> con el mismo procedimiento de la sesión 12. Las demás cubetas no se tocan.</li>
+        <li class="fragment"><strong>Destructor:</strong> la tabla crea nodos con <code>new</code>, así que su destructor recorre las <code>M</code> listas y hace <code>delete</code> a cada nodo, como la lista de la sesión 11. Sin él, cada tabla que se destruye deja sus nodos en el heap.</li>
+      </ul>
+    </section>
+
     <!-- ============ 8.3.2 DIRECCIONAMIENTO ABIERTO: LA CLASE ============ -->
     <section>
       <span class="kicker">8.3.2 · Direccionamiento abierto</span>
@@ -328,6 +339,17 @@ bool contiene(int k) {
           <li class="fragment"><strong>Borrar</strong> no puede dejar <code>VACIA</code>: si se borra el 24, <code>contiene(17)</code> se detiene en la 4 y no llega a la 5. Se deja una <span class="term" data-term="lapida">lápida</span>.</li>
         </ul>
       </div>
+    </section>
+
+    <!-- ============ 8.3.2 ABIERTA: LO QUE FALTA ============ -->
+    <section>
+      <span class="kicker">8.3.2 · Direccionamiento abierto</span>
+      <h2>Lo que le falta a <code>TablaAbierta</code></h2>
+      <ul>
+        <li class="fragment"><strong>Tabla llena:</strong> si no queda ninguna casilla <code>VACIA</code>, el <code>while</code> de <code>inserta</code> nunca termina. Por eso la precondición pide un hueco, y en la práctica se hace rehash antes de que la tabla se llene.</li>
+        <li class="fragment"><strong>Guardar el −1:</strong> chocaría con la marca <code>VACIA</code>. La alternativa es un segundo arreglo que guarde el estado de cada casilla: vacía, ocupada o borrada.</li>
+        <li class="fragment"><strong>Lápidas:</strong> la casilla borrada es un tercer estado. <code>contiene</code> la trata como ocupada y sigue probando; <code>inserta</code> la puede reutilizar como si estuviera libre.</li>
+      </ul>
     </section>
 
     <!-- ============ 8.3.2 ECUACIONES DE SONDEO ============ -->
@@ -453,6 +475,21 @@ int h2(int k) {       // con M = 11
       <p class="fragment box-key">El O(1) promedio supone dos cosas: una función hash uniforme y un \(\alpha\) acotado por el rehashing.</p>
     </section>
 
+    <!-- ============ 8.3.2 POR QUÉ DUPLICAR ============ -->
+    <section>
+      <span class="kicker">8.3.2 · Factor de carga</span>
+      <h2>¿Por qué duplicar y no agregar 10 cubetas?</h2>
+      <p>Insertar un millón de claves con encadenamiento, haciendo rehash cada vez que \(\alpha\) llega a 1:</p>
+      <table>
+        <thead><tr><th>Al hacer rehash…</th><th>Rehashes</th><th>Claves copiadas en total</th></tr></thead>
+        <tbody>
+          <tr class="fragment"><td>se agregan 10 cubetas</td><td>unos 100 000</td><td>\(10 + 20 + \cdots + 10^{6} \approx 5 \times 10^{10}\)</td></tr>
+          <tr class="fragment"><td>se duplica la tabla</td><td>unos 20</td><td>\(1 + 2 + 4 + \cdots + 10^{6} &lt; 2 \times 10^{6}\)</td></tr>
+        </tbody>
+      </table>
+      <p class="fragment">Con incrementos fijos, el costo total crece como \(n^{2}\). Al duplicar, cada clave se copia en promedio menos de dos veces, y por eso cada inserción cuesta O(1) amortizado.</p>
+    </section>
+
     <!-- ============ 8.3.2 PEOR CASO ============ -->
     <section>
       <span class="kicker">8.3.2 · El peor caso</span>
@@ -505,7 +542,7 @@ int h2(int k) {       // con M = 11
         <thead><tr><th>Configuración</th><th>Costo por operación</th></tr></thead>
         <tbody>
           <tr class="fragment"><td>Sin optimizaciones</td><td>O(n) en el peor caso</td></tr>
-          <tr class="fragment"><td>Solo unión por rango</td><td>O(log n)</td></tr>
+          <tr class="fragment"><td>Solo unión por <span class="term" data-term="rango">rango</span></td><td>O(log n)</td></tr>
           <tr class="fragment"><td>Solo compresión de caminos</td><td>O(log n) amortizado</td></tr>
           <tr class="fragment"><td><strong>Ambas</strong></td><td><strong>α(n) amortizado</strong> — <span class="term" data-term="ackermann">inversa de Ackermann</span>, ≤ 4 en la práctica</td></tr>
         </tbody>
@@ -646,6 +683,34 @@ std::set_intersection(a.begin(), a.end(),
       </ul>
     </section>
 
+    <!-- ============ HASH DE CADENAS: DETALLES ============ -->
+    <section>
+      <span class="kicker">8.3.2 · Función hash</span>
+      <h2>Tres preguntas sobre el hash de cadenas</h2>
+      <ul>
+        <li class="fragment"><strong>¿Por qué 31?</strong> Es primo e impar, y es la base que usa <code>String.hashCode</code> de Java. Otros primos chicos funcionan igual; lo importante es que la posición de cada carácter cambie el resultado.</li>
+        <li class="fragment"><strong>¿Y los acentos o la ñ?</strong> En UTF-8 ocupan dos bytes, y con <code>char</code> con signo esos bytes son negativos, así que <code>h</code> puede salir negativo. Se evita convirtiendo cada carácter a <code>unsigned char</code> antes de sumarlo.</li>
+        <li class="fragment"><strong>¿Es lo mismo que SHA-256?</strong> Las dos convierten datos en un número. SHA-256 está diseñada para que nadie pueda fabricar colisiones a propósito y es mucho más lenta; una tabla hash necesita una función rápida.</li>
+      </ul>
+    </section>
+
+    <!-- ============ CUÁL SE USA ============ -->
+    <section>
+      <span class="kicker">8.3.4 · STL y otros lenguajes</span>
+      <h2>¿Cuál se usa en la práctica?</h2>
+      <table>
+        <thead><tr><th>Biblioteca</th><th>Resolución de colisiones</th></tr></thead>
+        <tbody>
+          <tr><td>C++ <code>std::unordered_map</code></td><td>encadenamiento</td></tr>
+          <tr><td>Java <code>HashMap</code></td><td>encadenamiento; una cubeta que pasa de 8 claves puede convertirse en árbol</td></tr>
+          <tr><td>Python <code>dict</code></td><td>direccionamiento abierto</td></tr>
+          <tr><td>Rust <code>HashMap</code></td><td>direccionamiento abierto</td></tr>
+        </tbody>
+      </table>
+      <p class="fragment">El sondeo lineal forma cúmulos, pero prueba casillas contiguas en memoria y aprovecha la caché, como el recorrido de un <code>vector</code> frente al de una lista. Con \(\alpha\) bajo suele ser el más rápido.</p>
+      <p class="fragment muted">El orden en que se recorre un <code>unordered_map</code> puede cambiar al insertar, porque un rehash reacomoda todas las claves.</p>
+    </section>
+
     <!-- ============ QUIZ 4 ============ -->
     <section>
       <span class="kicker">Checkpoint</span>
@@ -742,6 +807,10 @@ std::set_intersection(a.begin(), a.end(),
       amortizado: {
         titulo: "Costo amortizado",
         def: "Promedio del costo por operación sobre una secuencia larga. Un rehash aislado cuesta O(n), pero solo ocurre cuando el número de claves se duplica, así que repartido entre todas las inserciones da O(1) por inserción."
+      },
+      rango: {
+        titulo: "Rango (union-find)",
+        def: "Número que guarda cada raíz como cota de la altura de su árbol. Al unir dos árboles, la raíz de menor rango se cuelga de la de mayor rango; si empatan, una se cuelga de la otra y el rango de la nueva raíz sube en 1."
       },
       ackermann: {
         titulo: "α(n) — inversa de Ackermann",
