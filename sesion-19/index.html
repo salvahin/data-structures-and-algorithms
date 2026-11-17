@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sesión 19 — Árboles splay</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+  <script>try{if(localStorage.getItem("curso-tema")==="dark"&&!/print-pdf/i.test(location.search))document.documentElement.dataset.theme="dark"}catch(e){}</script>
+  <link rel="stylesheet" href="../css/theme-curso.css">
+  <link rel="stylesheet" href="../css/sim-splay.css">
+</head>
+<body>
+<div class="reveal">
+  <div class="slides">
+
+    <!-- ============ PORTADA ============ -->
+    <section class="cover">
+      <span class="kicker">Estructuras de Datos y Algoritmos · Bloque 3</span>
+      <h1>Árboles splay</h1>
+      <div class="cover-meta">
+        Sesión 19 · Semana 11<br>
+        Salvador Hinojosa
+      </div>
+    </section>
+
+    <!-- ============ OBJETIVO ============ -->
+    <section>
+      <span class="kicker">Objetivo de hoy</span>
+      <h2>Al salir de esta sesión podrás…</h2>
+      <ul>
+        <li class="fragment">Implementar las rotaciones y la operación <code>splay</code>, distinguiendo los casos zig, zig-zig y zig-zag.</li>
+        <li class="fragment">Buscar, insertar y eliminar en un <span class="term" data-term="splay">árbol splay</span>.</li>
+        <li class="fragment">Explicar qué garantiza el costo <span class="term" data-term="amortizado">amortizado</span> O(log n) y cuándo conviene un splay frente a un árbol balanceado.</li>
+      </ul>
+    </section>
+
+    <!-- ============ DIVIDER SPLAY ============ -->
+    <section class="divider">
+      <h2>8.3 El árbol splay</h2>
+    </section>
+
+    <!-- ============ IDEA ============ -->
+    <section>
+      <span class="kicker">8.3 · Árboles splay</span>
+      <h2>Un BST que se reorganiza al usarse</h2>
+      <ul>
+        <li class="fragment">Es un BST sin información de balance en los nodos: no guarda alturas ni factores de balance.</li>
+        <li class="fragment">Después de <strong>cada</strong> acceso (búsqueda, inserción, incluso una búsqueda fallida), el nodo alcanzado sube hasta la raíz con rotaciones. Esa operación se llama <code>splay</code>.</li>
+        <li class="fragment">Los elementos que se usan seguido quedan cerca de la raíz, y acceder a ellos otra vez cuesta poco.</li>
+        <li class="fragment">Leer también modifica el árbol: una búsqueda reescribe punteros.</li>
+      </ul>
+    </section>
+
+    <!-- ============ SIM ROTACIÓN ============ -->
+    <section>
+      <span class="kicker">8.3 · Rotaciones</span>
+      <h2>rotarDer, línea por línea</h2>
+      <div class="sim-splay" data-alg="rotacion" data-arbol="50,30,70,20,40"></div>
+    </section>
+
+    <!-- ============ CÓDIGO ROTACIONES ============ -->
+    <section>
+      <span class="kicker">8.3 · Rotaciones</span>
+      <h2>Las dos rotaciones</h2>
+      <pre class="sp-compacto"><code class="language-cpp" data-trim>
+Nodo* rotarDer(Nodo* y) {
+    Nodo* x = y-&gt;izq;
+    y-&gt;izq = x-&gt;der;
+    x-&gt;der = y;
+    return x;
+}
+Nodo* rotarIzq(Nodo* x) {
+    Nodo* y = x-&gt;der;
+    x-&gt;der = y-&gt;izq;
+    y-&gt;izq = x;
+    return y;
+}
+      </code></pre>
+      <p class="fragment">Cambian dos punteros y conservan el inorden: O(1). Son las rotaciones del AVL; el splay decide cuándo y en qué orden se aplican.</p>
+    </section>
+
+    <!-- ============ TRES CASOS ============ -->
+    <section>
+      <span class="kicker">8.3 · La operación splay</span>
+      <h2>Los tres casos, según dónde está el buscado</h2>
+      <p class="muted">r es la raíz del subárbol que se procesa, p su hijo izquierdo, x el nodo que se busca.</p>
+      <table>
+        <thead><tr><th>Caso</th><th>Cuándo</th><th>Rotaciones</th></tr></thead>
+        <tbody>
+          <tr class="fragment"><td><strong>zig</strong></td><td>x es p: falta un solo nivel</td><td>una: <code>rotarDer(r)</code></td></tr>
+          <tr class="fragment"><td><strong>zig-zig</strong></td><td>x está a la izquierda de p</td><td>dos a la derecha: primero sobre r (el abuelo), luego sobre p</td></tr>
+          <tr class="fragment"><td><strong>zig-zag</strong></td><td>x está a la derecha de p</td><td><code>rotarIzq(p)</code> y luego <code>rotarDer(r)</code>, como el caso doble del AVL</td></tr>
+        </tbody>
+      </table>
+      <p class="fragment muted">Si x está a la derecha de r, los tres casos son el espejo.</p>
+    </section>
+
+    <!-- ============ SIM ZIG-ZAG ============ -->
+    <section>
+      <h2>splay(40): un zig-zag</h2>
+      <div class="sim-splay" data-alg="splay" data-arbol="60,20,null,null,40" data-k="40"></div>
+    </section>
+
+    <!-- ============ SIM ZIG-ZIG ============ -->
+    <section>
+      <h2>splay(10): tres zig-zig seguidos</h2>
+      <div class="sim-splay" data-alg="splay" data-arbol="70,60,null,50,null,40,null,30,null,20,null,10" data-k="10"></div>
+    </section>
+
+    <!-- ============ CÓDIGO SPLAY ============ -->
+    <section>
+      <h2>splay en código</h2>
+      <pre class="sp-compacto"><code class="language-cpp" data-trim>
+Nodo* splay(Nodo* r, int k) {
+    if (r == nullptr) return r;
+    if (k &lt; r-&gt;dato) return splayIzq(r, k);
+    if (k &gt; r-&gt;dato) return splayDer(r, k);
+    return r;
+}
+Nodo* splayIzq(Nodo* r, int k) {
+    Nodo* p = r-&gt;izq;
+    if (p == nullptr) return r;
+    if (k &lt; p-&gt;dato) {
+        p-&gt;izq = splay(p-&gt;izq, k);
+        r = rotarDer(r);
+    } else if (k &gt; p-&gt;dato) {
+        p-&gt;der = splay(p-&gt;der, k);
+        if (p-&gt;der != nullptr)
+            r-&gt;izq = rotarIzq(p);
+    }
+    if (r-&gt;izq == nullptr) return r;
+    return rotarDer(r);
+}
+      </code></pre>
+    </section>
+
+    <!-- ============ DETALLES SPLAY ============ -->
+    <section>
+      <span class="kicker">8.3 · La operación splay</span>
+      <h2>Lo que hay que notar del código</h2>
+      <ul>
+        <li class="fragment">La recursión baja de dos en dos niveles y las rotaciones ocurren al regresar, de abajo hacia arriba.</li>
+        <li class="fragment">En el zig-zig se rota primero el abuelo (<code>r = rotarDer(r)</code>) y después el padre. Ese orden importa, como se ve en el siguiente slide.</li>
+        <li class="fragment">Si k no está, sube el último nodo visitado: los dos <code>return r</code> cuando un hijo es <code>nullptr</code>.</li>
+        <li class="fragment"><code>splayDer</code> es el espejo: <code>izq</code> ↔ <code>der</code>, <code>&lt;</code> ↔ <code>&gt;</code>, <code>rotarDer</code> ↔ <code>rotarIzq</code>. Lo escribes en la práctica.</li>
+      </ul>
+      <p class="fragment muted">Sleator y Tarjan agrupan los niveles desde abajo; esta versión, desde arriba. Con profundidad impar el zig sobrante queda abajo. La garantía amortizada es la misma.</p>
+    </section>
+
+    <!-- ============ SIM COMPARAR ============ -->
+    <section>
+      <span class="kicker">8.3 · La operación splay</span>
+      <h2>¿Por qué rotar primero el abuelo?</h2>
+      <div class="sim-splay" data-alg="comparar" data-arbol="70,60,null,50,null,40,null,30,null,20,null,10" data-k="10"></div>
+    </section>
+
+    <!-- ============ QUIZ 1 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="b">
+        <p class="quiz-question">En un splay, el 10 es hijo izquierdo del 20 y el 20 es hijo izquierdo del 30. Se accede al 10. ¿Cuál es la primera rotación?</p>
+        <button class="quiz-option" data-opt="a">Rotación a la derecha sobre el 20, para que el 10 suba un nivel.</button>
+        <button class="quiz-option" data-opt="b">Rotación a la derecha sobre el 30: es un zig-zig y se rota primero el abuelo.</button>
+        <button class="quiz-option" data-opt="c">Rotación a la izquierda sobre el 20, como en el caso doble del AVL.</button>
+        <div class="quiz-explain">
+          <strong>B.</strong> El 10 y el 20 son hijos del mismo lado: es un zig-zig, y el zig-zig rota primero
+          el abuelo (el 30) y después el padre. La opción A es la versión ingenua, que sube el 10 pero deja el
+          camino como cadena. La opción C corresponde al zig-zag, cuando el buscado y su padre son hijos de lados
+          opuestos.
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ DIVIDER OPERACIONES ============ -->
+    <section class="divider">
+      <h2>8.3 Buscar, insertar<br>y eliminar</h2>
+    </section>
+
+    <!-- ============ CÓDIGO OPERACIONES ============ -->
+    <section>
+      <span class="kicker">8.3 · Operaciones</span>
+      <h2>Buscar e insertar: el trabajo lo hace splay</h2>
+      <pre><code class="language-cpp" data-trim>
+bool contiene(Nodo*&amp; raiz, int k) {
+    raiz = splay(raiz, k);
+    if (raiz == nullptr) return false;
+    return raiz-&gt;dato == k;
+}
+Nodo* insertar(Nodo* raiz, int k) {
+    raiz = insertarBST(raiz, k);
+    return splay(raiz, k);
+}
+      </code></pre>
+      <ul>
+        <li class="fragment"><code>contiene</code> recibe la raíz por referencia: buscar cambia la raíz del árbol.</li>
+        <li class="fragment"><code>insertarBST</code> es la inserción normal de un BST. Después, splay sube al recién insertado.</li>
+      </ul>
+    </section>
+
+    <!-- ============ CÓDIGO ELIMINAR ============ -->
+    <section>
+      <span class="kicker">8.3 · Operaciones</span>
+      <h2>Eliminar: subir, quitar y unir</h2>
+      <pre class="sp-compacto"><code class="language-cpp" data-trim>
+Nodo* eliminar(Nodo* raiz, int k) {
+    raiz = splay(raiz, k);
+    if (raiz == nullptr) return nullptr;
+    if (raiz-&gt;dato != k) return raiz;
+    Nodo* izq = raiz-&gt;izq;
+    Nodo* der = raiz-&gt;der;
+    delete raiz;
+    if (izq == nullptr) return der;
+    // k es mayor que todo izq: sube su máximo
+    izq = splay(izq, k);
+    izq-&gt;der = der;
+    return izq;
+}
+      </code></pre>
+      <p class="fragment">Tras <code>splay(izq, k)</code>, la raíz de <code>izq</code> es su máximo y no tiene hijo derecho: ahí se cuelga <code>der</code>.</p>
+    </section>
+
+    <!-- ============ QUIZ 2 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="c">
+        <p class="quiz-question">Se llama a <code>contiene(raiz, 25)</code> en un splay donde el 25 no está. ¿Qué nodo queda en la raíz?</p>
+        <button class="quiz-option" data-opt="a">Ninguno: la raíz queda en <code>nullptr</code> porque la búsqueda falló.</button>
+        <button class="quiz-option" data-opt="b">La misma raíz que había: si no se encuentra la clave, el árbol no cambia.</button>
+        <button class="quiz-option" data-opt="c">El último nodo que visitó la búsqueda: el predecesor o el sucesor de 25 en el árbol.</button>
+        <div class="quiz-explain">
+          <strong>C.</strong> Cuando un hijo es <code>nullptr</code>, <code>splayIzq</code> (o su espejo) devuelve
+          <code>r</code>, y las llamadas de arriba lo siguen subiendo. Queda en la raíz el último nodo del camino,
+          que siempre es el predecesor o el sucesor de 25 en el árbol. Una búsqueda fallida también reorganiza
+          el árbol; por eso <code>eliminar</code> funciona aunque la clave no exista.
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ DIVIDER AMORTIZADO ============ -->
+    <section class="divider">
+      <h2>8.3 Complejidad amortizada</h2>
+    </section>
+
+    <!-- ============ AMORTIZADO ============ -->
+    <section>
+      <span class="kicker">8.3 · Complejidad amortizada</span>
+      <h2>Qué promete exactamente el splay</h2>
+      <ul>
+        <li class="fragment">Un acceso individual puede costar O(n): el árbol puede estar degenerado en ese momento, como la cadena de hace unos slides.</li>
+        <li class="fragment"><strong>Amortizado O(log n):</strong> cualquier secuencia de m operaciones cuesta O(m log n) en total. Un acceso caro deja el árbol más bajo, y los siguientes accesos cuestan menos.</li>
+        <li class="fragment"><strong>Promedio</strong> supone una distribución de entradas; <strong>peor caso</strong> acota cada operación por separado; <strong>amortizado</strong> acota la secuencia completa sin suponer nada sobre las entradas.</li>
+        <li class="fragment">El <code>push_back</code> de <code>std::vector</code> sigue el mismo patrón: O(1) amortizado, con redimensionamientos O(n) de vez en cuando.</li>
+      </ul>
+    </section>
+
+    <!-- ============ SIM PATRÓN ============ -->
+    <section>
+      <span class="kicker">8.3 · Patrón de acceso</span>
+      <h2>La apuesta: accesos sesgados contra uniformes</h2>
+      <div class="sim-splay" data-alg="patron"></div>
+    </section>
+
+    <!-- ============ CUÁNDO CONVIENE ============ -->
+    <section>
+      <span class="kicker">8.3 · Patrón de acceso</span>
+      <h2>Cuándo conviene un splay</h2>
+      <ul>
+        <li class="fragment"><strong>Conviene</strong> cuando pocos elementos concentran la mayoría de los accesos, o cuando lo recién usado se vuelve a usar pronto.</li>
+        <li class="fragment"><strong>No conviene</strong> si cada operación tiene un límite de tiempo: la garantía es sobre la secuencia, y un acceso suelto puede costar O(n).</li>
+        <li class="fragment"><strong>Tampoco</strong> si varios hilos leen a la vez: cada lectura modifica el árbol, así que hasta las búsquedas necesitan exclusión mutua.</li>
+        <li class="fragment">A favor: no guarda nada extra en los nodos y el código es más corto que el de un AVL.</li>
+      </ul>
+    </section>
+
+    <!-- ============ QUIZ 3 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="a">
+        <p class="quiz-question">Un splay garantiza O(log n) amortizado por operación. ¿Qué afirmación es correcta?</p>
+        <button class="quiz-option" data-opt="a">Cualquier secuencia de m operaciones cuesta O(m log n), aunque alguna operación suelta cueste O(n).</button>
+        <button class="quiz-option" data-opt="b">Cada operación cuesta O(log n), igual que en un AVL.</button>
+        <button class="quiz-option" data-opt="c">Si las claves llegan en orden aleatorio, cada operación cuesta O(log n) en promedio.</button>
+        <div class="quiz-explain">
+          <strong>A.</strong> La cota amortizada es sobre la secuencia completa y no supone nada sobre las
+          entradas. La opción B describe una cota de peor caso por operación, que el splay no da: el acceso al
+          fondo de una cadena cuesta O(n). La opción C describe un costo promedio, que depende de suponer una
+          distribución de entradas.
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PRÁCTICA ============ -->
+    <section>
+      <span class="kicker">Práctica de laboratorio</span>
+      <h2>Completa el splay</h2>
+      <ul>
+        <li class="fragment">Escribe <code>splayDer(r, k)</code>, el espejo de <code>splayIzq</code>, y junto con el código de hoy arma <code>contiene</code>, <code>insertar</code> y <code>eliminar</code>.</li>
+        <li class="fragment"><strong>Prueba 1:</strong> inserta 10, 20, …, 70 con <code>insertarBST</code> (queda una cadena a la derecha) y llama <code>splay(raiz, 70)</code>. Debe quedar el 70 en la raíz y el árbol con altura 4.</li>
+        <li class="fragment"><strong>Prueba 2:</strong> aplica la misma secuencia aleatoria de inserciones, búsquedas y eliminaciones a tu splay y a un <code>std::set</code>. Después de cada operación, el inorden de tu árbol debe coincidir con el contenido del <code>set</code>.</li>
+      </ul>
+    </section>
+
+    <!-- ============ PRÓXIMA SESIÓN ============ -->
+    <section class="divider">
+      <h2>Próxima sesión:<br>Grafos: definición y representaciones</h2>
+      <p class="muted">La Act 3.2 se pospone; la nueva fecha se publica en el LMS. Termina y prueba tu <code>splayDer</code> antes de la próxima clase.</p>
+    </section>
+
+    <!-- ============ DIVIDER MATERIAL EXTRA ============ -->
+    <section class="divider">
+      <h2>Material extra · autoestudio</h2>
+      <p class="muted">No se cubre en clase: la STL del tema y su conexión con sistemas de IA.</p>
+    </section>
+
+    <!-- ============ POR QUÉ IMPORTA HOY ============ -->
+    <section>
+      <span class="kicker kicker-ai">Por qué importa hoy</span>
+      <h2>La apuesta por la localidad temporal</h2>
+      <div class="box-ai" data-label="Dónde vive esto en sistemas de IA">
+        <ul>
+          <li class="fragment">El splay apuesta a que lo recién usado se volverá a usar. La misma hipótesis sostiene el <strong>prompt caching</strong>: los tokens de entrada cacheados cuestan hasta ~10× menos cuando la apuesta acierta (los de salida se pagan igual).</li>
+          <li class="fragment">Las políticas <span class="term" data-term="lru">LRU</span> de la <span class="term" data-term="kvcache">caché KV</span> de un modelo hacen la misma apuesta al decidir qué desalojar.</li>
+          <li class="fragment">Con un patrón de acceso uniforme, la ventaja desaparece y el splay pierde contra un AVL. Elegir la estructura es elegir qué apuesta sobre el patrón de acceso estás dispuesto a hacer.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============ CIERRE STL ============ -->
+    <section>
+      <span class="kicker">STL</span>
+      <h2>La STL no trae splay</h2>
+      <ul>
+        <li class="fragment">No hay estructura auto-ajustable en la biblioteca estándar: <code>std::map</code> y <code>std::set</code> rebalancean por forma, ignorando el patrón de acceso.</li>
+        <li class="fragment">Implementar una estructura propia se justifica cuando hay un patrón de acceso <strong>medido</strong> con datos que la estructura estándar desaprovecha.</li>
+        <li class="fragment">Sin esa medición, la implementación propia agrega costo de mantenimiento y riesgo de errores a cambio de nada.</li>
+      </ul>
+    </section>
+
+    <!-- ============ REFERENCIAS ============ -->
+    <section>
+      <span class="kicker">Sesión 19</span>
+      <h2>Referencias y material para profundizar</h2>
+      <div class="refs cols">
+        <div>
+          <h3>Referencias</h3>
+          <ul>
+            <li><span class="ref-type">Paper</span> Sleator, D. y Tarjan, R. <a href="https://doi.org/10.1145/3828.3835">Self-Adjusting Binary Search Trees</a>, JACM 32(3), 1985.</li>
+            <li><span class="ref-type">Libro</span> Weiss, M. A. <em>Data Structures and Algorithm Analysis in C++</em>, 4.ª ed., Pearson, 2014. Caps. 4.5 (splay) y 11 (análisis amortizado).</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Para profundizar</h3>
+          <ul>
+            <li><span class="ref-type">Web</span> <a href="https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching">Anthropic — Prompt caching</a> <span class="ref-nota">— la apuesta de localidad temporal, con precios: qué se abarata y qué no.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://en.cppreference.com/w/cpp/container/map">cppreference — std::map</a> <span class="ref-nota">— lo que la STL sí garantiza, para comparar contra tu splay.</span></li>
+          </ul>
+        </div>
+      </div>
+      <p class="refs-ia">Nota: estas diapositivas fueron generadas usando inteligencia artificial, específicamente Claude (Anthropic).</p>
+    </section>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script src="../js/curso-slides.js"></script>
+<script src="../js/sim-splay.js"></script>
+<script>
+  Reveal.initialize({
+    width: 1280,
+    height: 720,
+    margin: 0.06,
+    hash: true,
+    progress: true,
+    slideNumber: 'c/t',
+    controls: true,
+    transition: 'slide',
+    transitionSpeed: 'fast',
+    plugins: [ RevealHighlight ]
+  }).then(() => {
+    CursoSlides.init({
+      splay: {
+        titulo: "Splay tree — árbol desplegado",
+        def: "BST auto-ajustable (Sleator y Tarjan, 1985): cada acceso sube el nodo alcanzado hasta la raíz mediante rotaciones (zig, zig-zig, zig-zag). No guarda información de balance y garantiza O(log n) <em>amortizado</em> por operación."
+      },
+      amortizado: {
+        titulo: "Costo amortizado",
+        def: "Cota sobre el costo total de una secuencia de operaciones, repartido entre ellas: operaciones individuales pueden ser caras (hasta O(n) en un splay), pero cualquier secuencia de m operaciones cuesta O(m log n). No supone ninguna distribución de entradas, a diferencia del costo promedio."
+      },
+      lru: {
+        titulo: "LRU — Least Recently Used",
+        def: "Política de reemplazo de caché que desaloja el elemento usado hace más tiempo. Apuesta por la localidad temporal: lo recién usado tiene más probabilidad de volver a usarse que lo que lleva tiempo sin tocarse."
+      },
+      avl: {
+        titulo: "Árbol AVL",
+        def: "BST que se mantiene balanceado (Adelson-Velskii y Landis, 1962): tras cada inserción o eliminación restaura con rotaciones la propiedad de que las alturas de los dos subárboles de cada nodo difieren a lo más en 1. Garantiza altura O(log n)."
+      },
+      kvcache: {
+        titulo: "Caché KV",
+        def: "En un transformer, la memoria que guarda las claves y valores de atención ya calculados para no recomputarlos en cada token generado. Crece con el contexto, y su política de desalojo (p. ej. LRU) es una decisión de estructura de datos con efecto directo en la latencia."
+      }
+    });
+    SimSplay.init();
+  });
+</script>
+</body>
+</html>

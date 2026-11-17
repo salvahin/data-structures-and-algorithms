@@ -1,0 +1,82 @@
+/* ============================================================
+   SIM-SPLAY — estilos del simulador de árboles splay
+   Se carga después de theme-curso.css. Solo usa tokens del tema:
+   el modo oscuro funciona sin reglas propias. La barra, el panel
+   de código y la explicación reutilizan las clases .sim-* del tema.
+   ============================================================ */
+
+.reveal .sim-splay { font-size: 1em; }
+
+/* Código a la izquierda; árbol, pila, explicación y barra a la derecha.
+   La barra va en la columna derecha para que splay + splayIzq
+   (19 líneas) quepan a 0.72em. */
+.reveal .sp-cuerpo { display: flex; gap: 0.45em; align-items: flex-start; }
+.reveal .sp-izq { flex: 0 0 59%; min-width: 0; }
+.reveal .sp-der { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: 0.25em; }
+.reveal .sim-splay .sp-codigo { max-width: none; width: 100%; line-height: 1.18; }
+.reveal .sim-splay .sp-dice { font-size: 0.56em; min-height: 4.4em; flex: none; margin: 0; }
+.reveal .sim-splay .sp-barra { flex-wrap: wrap; row-gap: 0.25em; font-size: 0.92em; }
+.reveal .sim-splay .sp-barra .sim-test { flex-basis: 100%; order: 5; }
+
+/* Comparación y patrón: dibujo a lo ancho, explicación y barra abajo */
+.reveal .sp-abajo { display: flex; gap: 0.6em; align-items: flex-start; margin-top: 0.2em; }
+.reveal .sp-abajo .sp-dice { flex: 1 1 0; min-height: 3.2em; }
+.reveal .sp-abajo .sp-barra { flex: 0 0 42%; }
+
+/* ---------- Árbol ---------- */
+.reveal .sp-svg { width: 100%; display: block; }
+.reveal .sp-arista { stroke: var(--c-ink); stroke-width: 3; }
+.reveal .sp-arista.nueva { stroke: var(--c-accent); }
+.reveal .sp-punta { fill: var(--c-ink); }
+.reveal .sp-nodo circle { fill: var(--c-bg); stroke: var(--c-ink); stroke-width: 3; }
+.reveal .sp-dato { font-family: var(--font-sans); font-size: 19px; font-weight: 700; fill: var(--c-ink); text-anchor: middle; }
+.reveal .sp-tag { font-family: var(--font-mono); font-size: 17px; font-weight: 700; fill: var(--c-accent); text-anchor: end; }
+.reveal .sp-raiz { font-family: var(--font-mono); font-size: 15px; font-weight: 700; fill: var(--c-ink-soft); }
+
+.reveal .sp-nodo.activo circle { fill: var(--c-accent-bg); stroke: var(--c-accent); stroke-width: 5; }
+.reveal .sp-nodo.comp circle { stroke: var(--c-accent); stroke-width: 4; stroke-dasharray: 6 4; }
+.reveal .sp-nodo.mayor circle { fill: var(--c-accent-soft); stroke: var(--c-accent); stroke-width: 5; }
+.reveal .sp-nodo.listo circle { fill: var(--c-ok-bg); stroke: var(--c-ok); stroke-width: 5; }
+.reveal .sp-nodo.listo .sp-dato { fill: var(--c-ok); }
+/* el nodo que se busca y sube */
+.reveal .sp-nodo.buscado circle { fill: var(--c-accent-bg); stroke: var(--c-accent); stroke-width: 6; }
+.reveal .sp-nodo.buscado .sp-dato { fill: var(--c-accent); }
+
+.reveal .sp-titulo { font-family: var(--font-sans); font-size: 20px; font-weight: 700; fill: var(--c-ink-soft); text-anchor: middle; }
+.reveal .sp-titulo.acc { fill: var(--c-accent); }
+.reveal .sp-div { stroke: var(--c-line); stroke-width: 2; stroke-dasharray: 6 6; }
+
+/* ---------- Pila de llamadas en una línea ---------- */
+.reveal .sp-pila {
+  font-family: var(--font-mono); font-size: 0.5em; line-height: 1.5;
+  border: 2px solid var(--c-line); border-radius: var(--radius);
+  padding: 0.25em 0.5em; display: flex; flex-wrap: wrap; align-items: center; gap: 0.25em;
+}
+.reveal .sp-pila-tit { font-family: var(--font-sans); font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--c-ink-soft); margin-right: 0.35em; font-size: 0.85em; }
+.reveal .sp-marco { color: var(--c-ink-soft); padding: 0 0.3em; border-radius: 4px; }
+.reveal .sp-marco.activo { color: var(--c-accent); background: var(--c-accent-bg); font-weight: 700; }
+.reveal .sp-marco.vacio { font-style: italic; }
+.reveal .sp-sep { color: var(--c-ink-faint); }
+
+/* ---------- Gráfica del patrón de acceso ---------- */
+.reveal .sp-eje { stroke: var(--c-ink); stroke-width: 2; }
+.reveal .sp-rejilla { stroke: var(--c-line); stroke-width: 1; }
+.reveal .sp-marca { font-family: var(--font-mono); font-size: 16px; fill: var(--c-ink-soft); text-anchor: middle; }
+.reveal .sp-marca.der { text-anchor: end; }
+.reveal .sp-marca.izq { text-anchor: start; }
+.reveal .sp-serie { fill: none; stroke-width: 4; }
+.reveal .sp-serie.bal { stroke: var(--c-ink-soft); }
+.reveal .sp-serie.spl { stroke: var(--c-accent); }
+.reveal .sp-serie.uni { stroke-dasharray: 10 7; }
+.reveal .sp-punto.bal { fill: var(--c-ink-soft); }
+.reveal .sp-punto.spl { fill: var(--c-accent); }
+.reveal .sp-ley { font-family: var(--font-sans); font-size: 18px; fill: var(--c-ink); }
+
+@media (max-width: 760px) {
+  .reveal .sp-cuerpo, .reveal .sp-abajo { flex-direction: column; }
+  .reveal .sp-izq, .reveal .sp-abajo .sp-barra { flex-basis: auto; width: 100%; }
+}
+
+/* Bloque final de splay + splayIzq (19 líneas): mismo interlineado que
+   el panel de la simulación para que quepa en el slide. */
+.reveal pre.sp-compacto code { line-height: 1.18; }
