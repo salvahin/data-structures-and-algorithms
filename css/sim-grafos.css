@@ -1,0 +1,79 @@
+/* ============================================================
+   SIM-GRAFOS — estilos del simulador de representaciones de grafos
+   Se carga después de theme-curso.css. Solo usa tokens del tema:
+   el modo oscuro funciona sin reglas propias. La barra, el panel
+   de código y la explicación reutilizan las clases .sim-* del tema.
+   ============================================================ */
+
+.reveal .sim-grafos { font-size: 1em; }
+
+/* Consultas: código a la izquierda; matriz, lista, explicación y
+   barra a la derecha. */
+.reveal .sg-cuerpo { display: flex; gap: 0.45em; align-items: flex-start; }
+.reveal .sg-izq { flex: 0 0 52%; min-width: 0; }
+.reveal .sg-der { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: 0.25em; }
+.reveal .sim-grafos .sg-codigo { max-width: none; width: 100%; }
+.reveal .sim-grafos .sg-dice { font-size: 0.56em; min-height: 4.4em; flex: none; margin: 0; }
+.reveal .sim-grafos .sg-barra { flex-wrap: wrap; row-gap: 0.25em; font-size: 0.92em; }
+.reveal .sim-grafos .sg-barra .sim-test { flex-basis: 100%; order: 5; }
+
+/* Retratos y densidad: dibujo a lo ancho, explicación y barra abajo */
+.reveal .sg-abajo { display: flex; gap: 0.6em; align-items: flex-start; margin-top: 0.2em; }
+.reveal .sg-abajo .sg-dice { flex: 1 1 0; min-height: 3.2em; }
+.reveal .sg-abajo .sg-barra { flex: 0 0 42%; }
+
+.reveal .sg-svg { width: 100%; display: block; }
+.reveal .sg-titulo { font-family: var(--font-sans); font-size: 20px; font-weight: 700; fill: var(--c-ink-soft); text-anchor: middle; }
+.reveal .sg-titulo.izq { text-anchor: start; }
+.reveal .sg-ind { font-family: var(--font-mono); font-size: 16px; fill: var(--c-ink-soft); text-anchor: middle; }
+.reveal .sg-ind.acc { fill: var(--c-accent); font-weight: 700; }
+.reveal .sg-flecha-t { font-family: var(--font-mono); font-size: 18px; fill: var(--c-ink-soft); text-anchor: middle; }
+.reveal .sg-val { font-family: var(--font-mono); font-size: 17px; font-weight: 700; fill: var(--c-ink); text-anchor: middle; }
+.reveal .sg-val.chico { font-size: 15px; }
+
+/* Dibujo */
+.reveal .sg-arista { stroke: var(--c-ink); stroke-width: 3; }
+.reveal .sg-arista.nuevo { stroke: var(--c-accent); stroke-width: 6; }
+.reveal .sg-nodo circle { fill: var(--c-bg); stroke: var(--c-ink); stroke-width: 3; }
+.reveal .sg-dato { font-family: var(--font-sans); font-size: 19px; font-weight: 700; fill: var(--c-ink); text-anchor: middle; }
+
+/* Matriz: los ceros en tono suave, los unos en tinta */
+.reveal .sg-celda rect { fill: var(--c-bg); stroke: var(--c-line); stroke-width: 1.5; }
+.reveal .sg-celda .sg-val { fill: var(--c-ink-faint); font-weight: 400; }
+.reveal .sg-celda.uno .sg-val { fill: var(--c-ink); font-weight: 700; }
+.reveal .sg-fila { fill: var(--c-accent-bg); }
+
+/* Marcas compartidas por casillas y entradas */
+.reveal .sg-entrada rect { fill: var(--c-bg); stroke: var(--c-ink); stroke-width: 2; }
+.reveal .nuevo rect { fill: var(--c-accent-bg); stroke: var(--c-accent); stroke-width: 4; }
+.reveal .nuevo .sg-val { fill: var(--c-accent); }
+.reveal .lee rect { fill: var(--c-bg); stroke: var(--c-accent); stroke-width: 4; stroke-dasharray: 5 3; }
+.reveal .visto rect { fill: var(--c-surface-2); }
+.reveal .encontrado rect { fill: var(--c-ok-bg); stroke: var(--c-ok); stroke-width: 4; }
+.reveal .encontrado .sg-val { fill: var(--c-ok); }
+.reveal .vecino rect { fill: var(--c-ok-bg); stroke: var(--c-ok); stroke-width: 2; }
+
+/* Lista de arcos: peso a la mitad de cada arista */
+.reveal .sg-peso rect { fill: var(--c-surface-2); stroke: var(--c-ink-soft); stroke-width: 1.5; }
+.reveal .sg-pval { font-family: var(--font-mono); font-size: 14px; font-weight: 700; fill: var(--c-ink); text-anchor: middle; }
+.reveal .sg-peso.nuevo rect { fill: var(--c-accent); stroke: var(--c-accent); }
+.reveal .sg-peso.nuevo .sg-pval { fill: var(--c-on-accent); }
+.reveal .sg-arista.vecino { stroke: var(--c-ok); stroke-width: 6; }
+.reveal .sg-arista.lee { stroke: var(--c-accent); stroke-width: 5; stroke-dasharray: 8 5; }
+.reveal .sg-peso.vecino rect { fill: var(--c-ok-bg); stroke: var(--c-ok); }
+
+/* Densidad */
+.reveal .sg-etq { font-family: var(--font-sans); font-size: 20px; font-weight: 600; fill: var(--c-ink); }
+.reveal .sg-num { font-family: var(--font-mono); font-size: 19px; font-weight: 700; fill: var(--c-ink); }
+.reveal .sg-carril { fill: var(--c-surface-1); }
+.reveal .sg-barra-v.mat { fill: var(--c-ink-soft); }
+.reveal .sg-barra-v.lis { fill: var(--c-accent); }
+
+@media (max-width: 760px) {
+  .reveal .sg-cuerpo, .reveal .sg-abajo { flex-direction: column; }
+  .reveal .sg-izq, .reveal .sg-abajo .sg-barra { flex-basis: auto; width: 100%; }
+}
+
+/* Bloque de código largo en un slide con texto: interlineado del panel
+   de la simulación. */
+.reveal pre.sg-compacto code { line-height: 1.25; }

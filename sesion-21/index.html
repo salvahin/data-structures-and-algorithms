@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sesión 21 — Grafos: definición y representaciones</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+  <script>try{if(localStorage.getItem("curso-tema")==="dark"&&!/print-pdf/i.test(location.search))document.documentElement.dataset.theme="dark"}catch(e){}</script>
+  <link rel="stylesheet" href="../css/theme-curso.css">
+  <link rel="stylesheet" href="../css/sim-grafos.css">
+</head>
+<body>
+<div class="reveal">
+  <div class="slides">
+
+    <!-- ============ PORTADA ============ -->
+    <section class="cover">
+      <span class="kicker">Estructuras de Datos y Algoritmos · Bloque 4</span>
+      <h1>Grafos: definición y&nbsp;representaciones</h1>
+      <div class="cover-meta">
+        Sesión 21 · Semana 13<br>
+        Salvador Hinojosa
+      </div>
+    </section>
+
+    <!-- ============ OBJETIVO ============ -->
+    <section>
+      <span class="kicker">Objetivo de hoy</span>
+      <h2>Al salir de esta sesión podrás…</h2>
+      <ul>
+        <li class="fragment">Definir un grafo con su vocabulario: vértices, aristas, <span class="term" data-term="grado">grado</span>, camino, ciclo, conectividad.</li>
+        <li class="fragment">Convertir el enunciado de un problema en un grafo, decidiendo si es dirigido y si lleva pesos.</li>
+        <li class="fragment">Implementar en C++ las tres representaciones: matriz de adyacencias, lista de adyacencias y lista de arcos.</li>
+        <li class="fragment">Elegir la representación según la densidad del grafo y las operaciones que más se usan.</li>
+      </ul>
+    </section>
+
+    <!-- ============ DIVIDER 8.2.1 ============ -->
+    <section class="divider">
+      <h2>8.2.1 Definición y modelado</h2>
+    </section>
+
+    <!-- ============ 8.2.1 QUÉ ES UN GRAFO ============ -->
+    <section>
+      <span class="kicker">8.2.1 · Definición</span>
+      <h2>Un grafo es un conjunto de vértices y un conjunto de aristas</h2>
+      <p>\(G = (V, E)\). Los <strong>vértices</strong> representan entidades; las <strong>aristas</strong>, relaciones entre pares de entidades.</p>
+      <svg viewBox="0 44 1100 236" style="width:100%; max-height:236px;" role="img" aria-label="Grafo con vértices A, B, C y D y cinco aristas">
+        <path class="svg-edge" d="M 232 148 L 418 96"/>
+        <path class="svg-edge" d="M 232 172 L 418 224"/>
+        <path class="svg-edge" d="M 482 88 L 668 152"/>
+        <path class="svg-edge" d="M 482 232 L 668 168"/>
+        <path class="svg-edge" d="M 450 112 L 450 208"/>
+        <circle class="svg-node" cx="200" cy="160" r="32"/>
+        <circle class="svg-node" cx="450" cy="80" r="32"/>
+        <circle class="svg-node" cx="450" cy="240" r="32"/>
+        <circle class="svg-node" cx="700" cy="160" r="32"/>
+        <text class="svg-label" x="200" y="170" text-anchor="middle">A</text>
+        <text class="svg-label" x="450" y="90" text-anchor="middle">B</text>
+        <text class="svg-label" x="450" y="250" text-anchor="middle">C</text>
+        <text class="svg-label" x="700" y="170" text-anchor="middle">D</text>
+        <text x="880" y="100" style="font-size:26px; font-weight:600;" class="f-accent">vértice (nodo)</text>
+        <path class="svg-edge" d="M 870 92 L 740 140" stroke-dasharray="6 8"/>
+        <text x="880" y="250" style="font-size:26px; font-weight:600;" class="f-accent">arista</text>
+        <path class="svg-edge" d="M 870 242 L 600 200" stroke-dasharray="6 8"/>
+      </svg>
+      <p class="fragment">Aquí \(V = \{A, B, C, D\}\) y \(E = \{AB, AC, BC, BD, CD\}\): \(|V| = 4\), \(|E| = 5\).</p>
+    </section>
+
+    <!-- ============ 8.2.1 VARIANTES ============ -->
+    <section>
+      <span class="kicker">8.2.1 · Definición</span>
+      <h2>Tres decisiones al definir el grafo</h2>
+      <table>
+        <thead><tr><th>Decisión</th><th>Opciones</th><th>Ejemplo</th></tr></thead>
+        <tbody>
+          <tr class="fragment"><td><strong>Dirección</strong></td><td>No dirigido: la arista {u, v} conecta en ambos sentidos. Dirigido: el arco (u, v) va de u hacia v.</td><td>Amistad vs. "sigue a"</td></tr>
+          <tr class="fragment"><td><strong>Peso</strong></td><td>Ponderado: cada arista lleva un costo w(u, v). No ponderado: todas valen igual.</td><td>Distancia en km vs. "hay carretera"</td></tr>
+          <tr class="fragment"><td><strong>Ciclos</strong></td><td>Con ciclos o acíclico. Los dirigidos acíclicos (DAG) se estudian más adelante en este bloque.</td><td>Red vial vs. prerrequisitos</td></tr>
+        </tbody>
+      </table>
+      <p class="fragment muted">Las tres decisiones las fija el problema: un grafo de prerrequisitos con un ciclo describe una carrera imposible de cursar.</p>
+    </section>
+
+    <!-- ============ 8.2.1 VOCABULARIO ============ -->
+    <section>
+      <span class="kicker">8.2.1 · Definición</span>
+      <h2>Vocabulario que usaremos todo el bloque</h2>
+      <ul>
+        <li class="fragment"><strong><span class="term" data-term="grado">Grado</span></strong> de un vértice: cuántas aristas lo tocan. En dirigidos se separa en grado de entrada y de salida.</li>
+        <li class="fragment"><strong>Camino</strong>: secuencia de vértices donde cada par consecutivo está unido por una arista. Su longitud es el número de aristas.</li>
+        <li class="fragment"><strong>Ciclo</strong>: camino que regresa al vértice inicial sin repetir aristas.</li>
+        <li class="fragment"><strong>Conectividad</strong>: un grafo no dirigido es conexo si existe camino entre cualquier par de vértices; si no, se parte en <em>componentes conexos</em>.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 8.2.1 VOCABULARIO EN UN DIBUJO ============ -->
+    <section>
+      <span class="kicker">8.2.1 · Definición</span>
+      <h2>El vocabulario en un dibujo</h2>
+      <svg viewBox="0 0 1100 420" style="width:100%; max-height:420px;" role="img" aria-label="Grafo de ocho vértices en dos componentes, con un grado, un camino y un ciclo resaltados">
+        <!-- aristas -->
+        <path class="svg-edge" d="M 120 70 L 320 70"/>
+        <path class="svg-edge" d="M 120 70 L 120 250"/>
+        <path class="svg-edge" d="M 320 70 L 320 250"/>
+        <path class="svg-edge" d="M 120 250 L 320 250"/>
+        <path class="svg-edge" d="M 320 250 L 500 330"/>
+        <path class="svg-edge" d="M 500 330 L 660 210"/>
+        <path class="svg-edge" d="M 840 220 L 990 220"/>
+        <!-- 1: grado del 3 -->
+        <g class="anim-step" data-step="1" data-step-off="2">
+          <path class="s-accent" stroke-width="7" fill="none" d="M 320 70 L 320 250 M 120 250 L 320 250 M 320 250 L 500 330"/>
+        </g>
+        <!-- 2: camino 0-1-3-4-5 -->
+        <g class="anim-step" data-step="2" data-step-off="3">
+          <path class="s-accent" stroke-width="7" fill="none" d="M 120 70 L 320 70 L 320 250 L 500 330 L 660 210"/>
+        </g>
+        <!-- 3: ciclo 0-1-3-2-0 -->
+        <g class="anim-step" data-step="3" data-step-off="4">
+          <path class="s-ok" stroke-width="7" fill="none" d="M 120 70 L 320 70 L 320 250 L 120 250 Z"/>
+        </g>
+        <!-- 4: componentes -->
+        <g class="anim-step" data-step="4">
+          <rect x="70" y="20" width="640" height="370" rx="40" fill="none" stroke-width="4" stroke-dasharray="12 8" class="s-accent"/>
+          <rect x="770" y="140" width="290" height="160" rx="40" fill="none" stroke-width="4" stroke-dasharray="12 8" class="s-accent"/>
+        </g>
+        <!-- vértices -->
+        <circle class="svg-node" cx="120" cy="70" r="30"/>
+        <circle class="svg-node" cx="320" cy="70" r="30"/>
+        <circle class="svg-node" cx="120" cy="250" r="30"/>
+        <circle class="svg-node" cx="320" cy="250" r="30"/>
+        <circle class="svg-node" cx="500" cy="330" r="30"/>
+        <circle class="svg-node" cx="660" cy="210" r="30"/>
+        <circle class="svg-node" cx="840" cy="220" r="30"/>
+        <circle class="svg-node" cx="990" cy="220" r="30"/>
+        <text class="svg-label" x="120" y="79" text-anchor="middle">0</text>
+        <text class="svg-label" x="320" y="79" text-anchor="middle">1</text>
+        <text class="svg-label" x="120" y="259" text-anchor="middle">2</text>
+        <text class="svg-label" x="320" y="259" text-anchor="middle">3</text>
+        <text class="svg-label" x="500" y="339" text-anchor="middle">4</text>
+        <text class="svg-label" x="660" y="219" text-anchor="middle">5</text>
+        <text class="svg-label" x="840" y="229" text-anchor="middle">6</text>
+        <text class="svg-label" x="990" y="229" text-anchor="middle">7</text>
+        <!-- leyendas por paso -->
+        <g style="font-size:24px; font-weight:700;">
+          <text class="anim-step f-accent" data-step="1" data-step-off="2" x="480" y="90">grado(3) = 3: lo tocan tres aristas</text>
+          <text class="anim-step f-accent" data-step="2" data-step-off="3" x="480" y="90">camino 0, 1, 3, 4, 5: longitud 4</text>
+          <text class="anim-step f-ok" data-step="3" data-step-off="4" x="480" y="90">ciclo 0, 1, 3, 2, 0</text>
+          <text class="anim-step f-accent" data-step="4" x="760" y="110">dos componentes conexos:</text>
+          <text class="anim-step f-accent" data-step="4" x="760" y="345">del 0 no hay camino al 6</text>
+        </g>
+      </svg>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+      <span class="fragment"></span>
+    </section>
+
+    <!-- ============ 8.2.1 MODELADO ============ -->
+    <section>
+      <span class="kicker">8.2.1 · Modelado</span>
+      <h2>Convertir el enunciado en un grafo es la mitad del trabajo</h2>
+      <table>
+        <thead><tr><th>Enunciado</th><th>Vértices</th><th>Aristas</th><th>Tipo</th></tr></thead>
+        <tbody>
+          <tr class="fragment"><td>Red social</td><td>personas</td><td>amistades</td><td>no dirigido</td></tr>
+          <tr class="fragment"><td>La web</td><td>páginas</td><td>hipervínculos</td><td>dirigido</td></tr>
+          <tr class="fragment"><td>Mapa vial</td><td>cruces</td><td>calles con distancia</td><td>ponderado</td></tr>
+          <tr class="fragment"><td>Plan de estudios</td><td>materias</td><td>prerrequisitos</td><td>dirigido acíclico</td></tr>
+        </tbody>
+      </table>
+      <p class="fragment">Antes de escribir código conviene responder por escrito: ¿qué es un vértice, qué es una arista, la relación tiene dirección, tiene costo?</p>
+    </section>
+
+    <!-- ============ QUIZ 1 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="b">
+        <p class="quiz-question">Quieres modelar los prerrequisitos entre materias de tu carrera. ¿Qué tipo de grafo corresponde?</p>
+        <button class="quiz-option" data-opt="a">No dirigido: el prerrequisito relaciona dos materias por igual.</button>
+        <button class="quiz-option" data-opt="b">Dirigido: "A es prerrequisito de B" tiene un sentido, y el grafo no debería tener ciclos.</button>
+        <button class="quiz-option" data-opt="c">Ponderado no dirigido: el peso de cada arista indica cuántos créditos conecta.</button>
+        <div class="quiz-explain">
+          <strong>B.</strong> La relación es asimétrica: cursar A habilita B, pero no al revés — eso exige un arco
+          con dirección. Además, si hubiera un ciclo de prerrequisitos ninguna de esas materias podría cursarse jamás:
+          el modelo correcto es un grafo dirigido acíclico. El ordenamiento topológico, más adelante en el bloque,
+          detecta esos ciclos.
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ============ DIVIDER 8.2.2 ============ -->
+    <section class="divider">
+      <h2>8.2.2 Representaciones</h2>
+    </section>
+
+    <!-- ============ 8.2.2 DENSIDAD ============ -->
+    <section>
+      <span class="kicker">8.2.2 · Representaciones</span>
+      <h2>La pregunta previa: ¿cuántas aristas hay?</h2>
+      <ul>
+        <li class="fragment">Con V vértices, E puede ir desde \(V - 1\) (apenas conexo) hasta \(V(V-1)/2\) (todos con todos).</li>
+        <li class="fragment">Grafo <strong><span class="term" data-term="denso">denso</span></strong>: E se acerca a \(V^2\). Grafo <strong>disperso</strong> (ralo): E se acerca a V.</li>
+        <li class="fragment">Casi todos los grafos reales son dispersos: en una red social de millones de personas, cada una tiene cientos de amigos, no millones.</li>
+      </ul>
+      <p class="fragment box-key">La densidad decide la representación: guardar \(V^2\) casillas para un grafo con \(E \approx V\) desperdicia casi toda la memoria.</p>
+    </section>
+
+    <!-- ============ SIM RETRATOS ============ -->
+    <section>
+      <span class="kicker">8.2.2 · Representaciones</span>
+      <h2>Un grafo, tres retratos</h2>
+      <div class="sim-grafos" data-alg="retratos" data-n="6" data-aristas="0-1,0-2,1-3,2-3,3-4,4-5"></div>
+    </section>
+
+    <!-- ============ 8.2.2.1 MATRIZ ============ -->
+    <section>
+      <span class="kicker">8.2.2.1 · Matriz de adyacencias</span>
+      <h2>Matriz de adyacencias</h2>
+      <ul>
+        <li class="fragment">Una tabla de V×V: la casilla M[u][v] vale 1 si existe la arista (u, v) y 0 si no. En grafos ponderados guarda el peso.</li>
+        <li class="fragment">En grafos no dirigidos la matriz es simétrica: M[u][v] = M[v][u].</li>
+        <li class="fragment"><strong>Memoria: \(O(V^2)\)</strong>, sin importar cuántas aristas existan.</li>
+      </ul>
+      <pre class="fragment"><code class="language-cpp" data-trim>
+int n = 6;   // vértices 0..5
+std::vector&lt;int&gt; fila(n, 0);
+std::vector&lt;std::vector&lt;int&gt;&gt; M(n, fila);
+
+void agregarM(int u, int v) {
+    M[u][v] = 1;
+    M[v][u] = 1;   // omitir si es dirigido
+}
+      </code></pre>
+    </section>
+
+    <!-- ============ 8.2.2.2 LISTA ============ -->
+    <section>
+      <span class="kicker">8.2.2.2 · Lista de adyacencias</span>
+      <h2>Lista de adyacencias</h2>
+      <ul>
+        <li class="fragment">Un arreglo de V listas: la posición u guarda los vecinos de u.</li>
+        <li class="fragment"><strong>Memoria: \(O(V + E)\)</strong>. En un grafo no dirigido, la suma de los tamaños de todas las listas es 2E, porque cada arista aparece dos veces.</li>
+      </ul>
+      <pre class="fragment"><code class="language-cpp" data-trim>
+std::vector&lt;std::vector&lt;int&gt;&gt; ady(n);
+
+void agregarL(int u, int v) {
+    ady[u].push_back(v);
+    // si el grafo es dirigido, se omite:
+    ady[v].push_back(u);
+}
+      </code></pre>
+    </section>
+
+    <!-- ============ SIM EXISTE ============ -->
+    <section>
+      <span class="kicker">8.2.2 · Consultas</span>
+      <h2>¿Existe la arista 3–5?</h2>
+      <div class="sim-grafos" data-alg="existe" data-n="6" data-aristas="0-1,0-2,1-3,2-3,3-4,4-5" data-u="3" data-v="5"></div>
+    </section>
+
+    <!-- ============ CÓDIGO EXISTE ============ -->
+    <section>
+      <span class="kicker">8.2.2 · Consultas</span>
+      <h2>Consultar una arista</h2>
+      <pre><code class="language-cpp" data-trim>
+bool existeM(int u, int v) {
+    return M[u][v] == 1;
+}
+bool existeL(int u, int v) {
+    for (int w : ady[u]) {
+        if (w == v) return true;
+    }
+    return false;
+}
+      </code></pre>
+      <p class="fragment">Matriz: una lectura, \(O(1)\). Lista: revisar los vecinos de u, \(O(\text{grado}(u))\).</p>
+    </section>
+
+    <!-- ============ SIM VECINOS ============ -->
+    <section>
+      <span class="kicker">8.2.2 · Consultas</span>
+      <h2>¿Quiénes son los vecinos del 0?</h2>
+      <div class="sim-grafos" data-alg="vecinos" data-n="6" data-aristas="0-1,0-2,1-3,2-3,3-4,4-5" data-u="0"></div>
+    </section>
+
+    <!-- ============ CÓDIGO VECINOS ============ -->
+    <section>
+      <span class="kicker">8.2.2 · Consultas</span>
+      <h2>Recorrer los vecinos</h2>
+      <pre class="sg-compacto"><code class="language-cpp" data-trim>
+void vecinosM(int u) {
+    for (int v = 0; v &lt; n; v++) {
+        if (M[u][v] == 1) {
+            visita(v);
+        }
+    }
+}
+void vecinosL(int u) {
+    for (int v : ady[u]) {
+        visita(v);
+    }
+}
+      </code></pre>
+      <p class="fragment">Matriz: \(O(V)\). Lista: \(O(\text{grado}(u))\). <code>visita</code> es lo que haga el algoritmo con cada vecino.</p>
+    </section>
+
+    <!-- ============ 8.2.2.1 CUÁNDO ============ -->
+    <section>
+      <span class="kicker">8.2.2.1 · Matriz de adyacencias</span>
+      <h2>Cuándo conviene la matriz</h2>
+      <ul>
+        <li class="fragment">Grafo <strong>denso</strong>: si E se acerca a \(V^2\), las \(V^2\) casillas ya no son desperdicio.</li>
+        <li class="fragment">La operación más frecuente es <strong>consultar aristas concretas</strong>: ninguna otra representación iguala el \(O(1)\) de M[u][v].</li>
+        <li class="fragment">V es pequeño (cientos): las \(V^2\) casillas caben sin problema y el código es el más simple de los tres.</li>
+        <li class="fragment">Algoritmos que operan sobre la matriz completa, como Floyd–Warshall.</li>
+      </ul>
+      <p class="fragment muted">Con V = 100 000, la matriz necesita \(10^{10}\) casillas: unos 10 GB aun con un byte por casilla. Ahí la memoria descarta la matriz.</p>
+    </section>
+
+    <!-- ============ QUIZ 2 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="b">
+        <p class="quiz-question">Red social: 10 millones de usuarios, 200 amistades en promedio. ¿Qué representación usas?</p>
+        <button class="quiz-option" data-opt="a">Matriz de adyacencias: consultar si dos usuarios son amigos en O(1) compensa cualquier costo.</button>
+        <button class="quiz-option" data-opt="b">Lista de adyacencias: la matriz necesitaría \(10^{14}\) casillas; la lista guarda unas \(2 \times 10^{9}\) entradas.</button>
+        <button class="quiz-option" data-opt="c">Cualquiera de las dos: ambas representan exactamente la misma información.</button>
+        <div class="quiz-explain">
+          <strong>B.</strong> El grafo es dispersísimo: 200 vecinos de 10 millones posibles. La matriz costaría
+          \((10^{7})^2 = 10^{14}\) casillas, decenas de terabytes casi todos en cero, mientras que la lista ocupa
+          \(O(V+E) \approx 2 \times 10^{9}\) entradas. La opción C es cierta en lo lógico, pero ignora que las
+          dos representaciones cuestan muy distinto.
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ============ SIM DENSIDAD ============ -->
+    <section>
+      <span class="kicker">8.2.2 · Densidad</span>
+      <h2>Cuando el grafo se llena</h2>
+      <div class="sim-grafos" data-alg="densidad"></div>
+    </section>
+
+    <!-- ============ 8.2.2.3 ARCOS SIM ============ -->
+    <section>
+      <span class="kicker">8.2.2.3 · Lista de arcos</span>
+      <h2>Un arco, un registro</h2>
+      <div class="sim-grafos" data-alg="arcos" data-n="6" data-aristas="0-1,0-2,1-3,2-3,3-4,4-5" data-pesos="7,3,5,1,6,2" data-u="3"></div>
+    </section>
+
+    <!-- ============ 8.2.2.3 ARCOS CÓDIGO ============ -->
+    <section>
+      <span class="kicker">8.2.2.3 · Lista de arcos</span>
+      <h2>Lista de arcos</h2>
+      <pre><code class="language-cpp" data-trim>
+struct Arco {
+    int u;
+    int v;
+    int peso;
+};
+std::vector&lt;Arco&gt; arcos;
+
+bool menorPeso(Arco a, Arco b) {
+    return a.peso &lt; b.peso;
+}
+
+// Kruskal empieza ordenando todos los arcos
+std::sort(arcos.begin(), arcos.end(),
+          menorPeso);
+      </code></pre>
+    </section>
+
+    <!-- ============ 8.2.2.3 ARCOS CUÁNDO ============ -->
+    <section>
+      <span class="kicker">8.2.2.3 · Lista de arcos</span>
+      <h2>Cuándo conviene la lista de arcos</h2>
+      <ul>
+        <li class="fragment">Guarda solo la colección de aristas, sin índice por vértice. Memoria \(O(E)\).</li>
+        <li class="fragment">Es la representación adecuada cuando el algoritmo procesa <strong>aristas completas</strong> y no vecinos: <span class="term" data-term="kruskal">Kruskal</span> las ordena por peso; <span class="term" data-term="bellmanford">Bellman–Ford</span> las relaja todas en cada ronda.</li>
+        <li class="fragment">Para "vecinos de u" es la peor de las tres: hay que barrer las E aristas.</li>
+      </ul>
+    </section>
+
+    <!-- ============ 8.2.2 COMPARATIVA ============ -->
+    <section>
+      <span class="kicker">8.2.2 · Comparativa</span>
+      <h2>Las tres representaciones, frente a frente</h2>
+      <table>
+        <thead><tr><th></th><th>Matriz</th><th>Lista de adyacencias</th><th>Lista de arcos</th></tr></thead>
+        <tbody>
+          <tr class="fragment"><td>Memoria</td><td>\(O(V^2)\)</td><td>\(O(V + E)\)</td><td>\(O(E)\)</td></tr>
+          <tr class="fragment"><td>¿Existe (u, v)?</td><td>\(O(1)\)</td><td>\(O(\text{grado}(u))\)</td><td>\(O(E)\)</td></tr>
+          <tr class="fragment"><td>Vecinos de u</td><td>\(O(V)\)</td><td>\(O(\text{grado}(u))\)</td><td>\(O(E)\)</td></tr>
+          <tr class="fragment"><td>Cuándo</td><td>denso, V pequeño, consulta de arista</td><td>disperso, recorridos (el caso común)</td><td>algoritmos por arista (Kruskal, Bellman–Ford)</td></tr>
+        </tbody>
+      </table>
+      <p class="fragment muted">La tabla es una predicción: se puede comprobar midiendo memoria y tiempo de consulta sobre un grafo denso y uno disperso.</p>
+    </section>
+
+    <!-- ============ QUIZ 3 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="b">
+        <p class="quiz-question">¿En qué operación la matriz de adyacencias supera a la lista de adyacencias?</p>
+        <button class="quiz-option" data-opt="a">Recorrer los vecinos de un vértice.</button>
+        <button class="quiz-option" data-opt="b">Consultar si existe la arista (u, v).</button>
+        <button class="quiz-option" data-opt="c">Ahorrar memoria cuando el grafo tiene pocas aristas.</button>
+        <div class="quiz-explain">
+          <strong>B.</strong> M[u][v] responde en \(O(1)\); la lista tiene que buscar v entre los vecinos de u,
+          \(O(\text{grado}(u))\). En las otras dos operaciones gana la lista: recorre solo los vecinos reales
+          (la matriz barre la fila entera, \(O(V)\)) y su memoria \(O(V+E)\) se ajusta al grafo, mientras que
+          la matriz paga \(V^2\) casillas aunque casi todas valgan cero.
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ============ RETO ============ -->
+    <section>
+      <span class="kicker">Reto en parejas</span>
+      <h2>Dos problemas para practicar el modelado</h2>
+      <table>
+        <thead><tr><th>Problema</th><th>Dificultad</th><th>La idea</th></tr></thead>
+        <tbody>
+          <tr class="fragment"><td>LC 133 · Clone Graph</td><td>Media</td><td>Recorrer el grafo llevando un mapa nodo original → copia; el mapa es a la vez el registro de visitados.</td></tr>
+          <tr class="fragment"><td>LC 310 · Minimum Height Trees</td><td>Media–Alta</td><td>Pelar el grafo por capas desde las hojas: los últimos 1 o 2 vértices en caer son los centros.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ============ PRÓXIMA SESIÓN ============ -->
+    <section class="divider">
+      <h2>Próxima sesión:<br>Recorridos de grafos</h2>
+      <p class="muted" style="margin-top:1em;">Sube el reto (LC 133 / LC 310) al LMS antes de la próxima sesión.</p>
+    </section>
+
+    <!-- ============ DIVIDER MATERIAL EXTRA ============ -->
+    <section class="divider">
+      <h2>Material extra · autoestudio</h2>
+      <p class="muted">No se cubre en clase: la STL del tema y su conexión con sistemas de IA.</p>
+    </section>
+
+    <!-- ============ POR QUÉ IMPORTA HOY ============ -->
+    <section>
+      <span class="kicker kicker-ai">Por qué importa hoy</span>
+      <h2>El grafo de conocimiento detrás de GraphRAG</h2>
+      <div class="box-ai" data-label="Dónde vive esto en sistemas de IA">
+        <ul>
+          <li class="fragment"><span class="term" data-term="graphrag">GraphRAG</span> recupera contexto sobre un grafo de conocimiento — entidades y las relaciones que las conectan — en lugar de sobre una lista plana de fragmentos de texto. Es una de las líneas activas para reducir alucinaciones.</li>
+          <li class="fragment">Ese grafo necesita una representación concreta. Con millones de entidades y relaciones dispersas, la elección entre matriz y lista de adyacencias decide si el sistema escala o se queda en prototipo — el mismo cálculo del quiz de la red social.</li>
+          <li class="fragment">Las redes neuronales de grafos (<span class="term" data-term="gnn">GNN</span>) operan multiplicando por la matriz de adyacencias <em>dispersa</em>: la misma estructura de hoy, escrita en álgebra lineal.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============ CIERRE STL 1 ============ -->
+    <section>
+      <span class="kicker">STL</span>
+      <h2>Lista de adyacencias con contenedores estándar</h2>
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-2|4-6">
+// Vértices densos y numerados 0..n-1: la forma habitual
+std::vector&lt;std::vector&lt;int&gt;&gt; ady(n);
+
+// Vértices con identificador arbitrario:
+std::unordered_map&lt;std::string, std::vector&lt;std::string&gt;&gt; g;
+g["CDMX"].push_back("GDL");
+      </code></pre>
+      <ul>
+        <li class="fragment">Si los vértices son enteros consecutivos, <code>vector&lt;vector&lt;int&gt;&gt;</code> da acceso O(1) por índice y localidad de memoria.</li>
+        <li class="fragment">Si son cadenas o IDs dispersos, <code>unordered_map</code> evita renumerarlos a mano. El costo de esa comodidad se estudia con las <span class="term" data-term="hash">tablas hash</span>, más adelante en este bloque.</li>
+      </ul>
+    </section>
+
+    <!-- ============ CIERRE STL 2 ============ -->
+    <section>
+      <span class="kicker">STL</span>
+      <h2>Aristas ponderadas: <code>std::pair</code> y structured bindings</h2>
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-2|4-5">
+std::vector&lt;std::vector&lt;std::pair&lt;int,int&gt;&gt;&gt; ady(n);
+ady[u].push_back({v, peso});
+
+for (auto [vecino, peso] : ady[u])       // C++17
+    std::cout &lt;&lt; vecino &lt;&lt; " cuesta " &lt;&lt; peso &lt;&lt; '\n';
+      </code></pre>
+      <ul>
+        <li class="fragment">Cada vecino viaja con su peso en un <code>pair</code>; los <span class="term" data-term="bindings">structured bindings</span> desempacan los dos campos con nombre propio.</li>
+        <li class="fragment">Sin ellos el código se llena de <code>arista.first</code> y <code>arista.second</code>, que no dicen cuál es el vértice y cuál el peso.</li>
+      </ul>
+    </section>
+
+    <!-- ============ REFERENCIAS ============ -->
+    <section>
+      <span class="kicker">Sesión 21</span>
+      <h2>Referencias y material para profundizar</h2>
+      <div class="refs cols">
+        <div>
+          <h3>Referencias</h3>
+          <ul>
+            <li><span class="ref-type">Libro</span> Cormen, T. et al. <em>Introduction to Algorithms</em>, 4.ª ed., MIT Press, 2022. Cap. 20 (representaciones de grafos).</li>
+            <li><span class="ref-type">Libro</span> Weiss, M. A. <em>Data Structures and Algorithm Analysis in C++</em>, 4.ª ed., Pearson, 2014. Cap. 9.</li>
+            <li><span class="ref-type">Libro</span> Sedgewick, R. y Wayne, K. <em>Algorithms</em>, 4.ª ed., Addison-Wesley, 2011. Cap. 4.</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Para profundizar</h3>
+          <ul>
+            <li><span class="ref-type">Web</span> <a href="https://visualgo.net/en/graphds">VisuAlgo — Graph Data Structures</a> <span class="ref-nota">— el applet de las tres representaciones sincronizadas que vimos hoy.</span></li>
+            <li><span class="ref-type">Paper</span> Edge et al., <a href="https://arxiv.org/abs/2404.16130">From Local to Global: GraphRAG</a> (arXiv:2404.16130) <span class="ref-nota">— el grafo de conocimiento del "Por qué importa hoy".</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://en.cppreference.com/w/cpp/language/structured_binding">cppreference — structured bindings</a> <span class="ref-nota">— la sintaxis C++17 del cierre STL.</span></li>
+          </ul>
+        </div>
+      </div>
+      <p class="refs-ia">Nota: estas diapositivas fueron generadas usando inteligencia artificial, específicamente Claude (Anthropic).</p>
+    </section>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script src="../js/curso-slides.js"></script>
+<script src="../js/sim-grafos.js"></script>
+<script>
+  Reveal.initialize({
+    width: 1280,
+    height: 720,
+    margin: 0.06,
+    hash: true,
+    progress: true,
+    slideNumber: 'c/t',
+    controls: true,
+    transition: 'slide',
+    transitionSpeed: 'fast',
+    plugins: [ RevealHighlight ]
+  }).then(() => {
+    CursoSlides.init({
+      grado: {
+        titulo: "Grado de un vértice",
+        def: "Número de aristas que tocan al vértice. En grafos dirigidos se distingue el <em>grado de entrada</em> (arcos que llegan) del <em>grado de salida</em> (arcos que salen). La suma de todos los grados de un grafo no dirigido es 2E."
+      },
+      denso: {
+        titulo: "Grafo denso / disperso",
+        def: "Un grafo es <em>denso</em> cuando E se acerca a su máximo, del orden de \\(V^2\\), y <em>disperso</em> (o ralo) cuando E es cercano a V. La distinción decide la representación: matriz \\(O(V^2)\\) para densos, lista de adyacencias \\(O(V+E)\\) para dispersos — que son la gran mayoría de los grafos reales."
+      },
+      kruskal: {
+        titulo: "Algoritmo de Kruskal",
+        def: "Construye el árbol de expansión mínima de un grafo ponderado: ordena todas las aristas por peso y las acepta en orden, descartando las que formarían ciclo (lo detecta con union-find, que se estudia más adelante en este bloque). Por eso su representación natural es la lista de arcos."
+      },
+      bellmanford: {
+        titulo: "Algoritmo de Bellman–Ford",
+        def: "Calcula caminos más cortos desde un origen en grafos con pesos que pueden ser negativos: relaja <em>todas</em> las aristas V−1 veces. Como procesa la colección completa de aristas en cada ronda, la lista de arcos es su representación natural."
+      },
+      graphrag: {
+        titulo: "GraphRAG",
+        def: "Variante de RAG (generación aumentada por recuperación) que organiza el conocimiento como un grafo de entidades y relaciones en lugar de una lista plana de fragmentos. Para responder, recupera las entidades relevantes y expande el contexto siguiendo sus aristas — un recorrido de grafo como BFS o DFS."
+      },
+      gnn: {
+        titulo: "GNN — Graph Neural Network",
+        def: "Red neuronal que opera sobre grafos: en cada capa, cada vértice agrega la información de sus vecinos. En la práctica eso se implementa multiplicando por la matriz de adyacencias en formato <em>disperso</em>, porque en los grafos reales casi todas las casillas valen cero."
+      },
+      hash: {
+        titulo: "Tabla hash",
+        def: "Estructura que guarda pares clave–valor y calcula, a partir de la clave, la casilla donde va cada uno. Busca e inserta en O(1) en promedio. Se formaliza más adelante en este bloque, junto con <code>std::unordered_map</code>."
+      },
+      bindings: {
+        titulo: "Structured bindings (C++17)",
+        def: "Sintaxis <code>auto [a, b] = par;</code> que desempaca los miembros de un <code>pair</code>, <code>tuple</code> o struct en variables con nombre propio. En grafos ponderados evita el ilegible <code>arista.first</code> / <code>arista.second</code>."
+      }
+    });
+    SimGrafos.init();
+  });
+</script>
+</body>
+</html>
