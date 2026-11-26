@@ -1,0 +1,47 @@
+/* ============================================================
+   SIM-AVANZADOS — estilos propios del simulador de bipartito,
+   puntos de articulación y union-find. Se carga después de
+   theme-curso.css y sim-recorridos.css, de quien toma la maqueta,
+   los vértices, las aristas y las casillas. Solo usa tokens del tema.
+   ============================================================ */
+
+/* Halo del vértice que se está procesando */
+.reveal .sr-nodo circle.sa-halo.sa-halo.sa-halo { fill: none; stroke: var(--c-accent); stroke-width: 3; stroke-dasharray: 5 4; }
+.reveal .sr-nodo.choque circle.sa-halo.sa-halo.sa-halo,
+.reveal .sr-nodo.corte circle.sa-halo.sa-halo.sa-halo { stroke: var(--c-err); stroke-width: 4; stroke-dasharray: none; }
+
+/* Bipartito: color 0 en acento, color 1 en tinta */
+.reveal .sr-nodo.c0 circle { fill: var(--c-accent); stroke: var(--c-accent); }
+.reveal .sr-nodo.c0 .sr-dato { fill: var(--c-on-accent); }
+.reveal .sr-nodo.c1 circle { fill: var(--c-ink); stroke: var(--c-ink); }
+.reveal .sr-nodo.c1 .sr-dato { fill: var(--c-bg); }
+.reveal .sr-celda.c0 rect { fill: var(--c-accent); stroke: var(--c-accent); }
+.reveal .sr-celda.c0 .sr-val { fill: var(--c-on-accent); }
+.reveal .sr-celda.c1 rect { fill: var(--c-ink); stroke: var(--c-ink); }
+.reveal .sr-celda.c1 .sr-val { fill: var(--c-bg); }
+.reveal .sr-celda.c0.nuevo rect, .reveal .sr-celda.c1.nuevo rect { stroke: var(--c-accent-soft); stroke-width: 4; }
+.reveal .sr-arista.conflicto { stroke: var(--c-err); stroke-width: 7; stroke-dasharray: 12 6; }
+
+/* Articulación */
+.reveal .sr-arista.retro { stroke: var(--c-accent); stroke-width: 3; stroke-dasharray: 3 5; }
+.reveal .sr-arista.puente { stroke: var(--c-err); stroke-width: 6; }
+.reveal .sr-nodo.corte circle { stroke: var(--c-err); }
+
+/* Union-find: el representante con borde grueso; flechas al padre */
+.reveal .sa-uf .sr-nodo.rep circle { stroke: var(--c-ink); stroke-width: 5; fill: var(--c-surface-2); }
+.reveal .sa-uf .sr-nodo.rep .sr-dato { fill: var(--c-ink); }
+.reveal .sa-uf .sr-nodo:not(.rep) .sr-dato { fill: var(--c-ink); }
+.reveal .sa-uf .sr-nodo:not(.rep) circle { stroke: var(--c-ink-soft); }
+.reveal .sr-arista.sa-padre { stroke: var(--c-ink-soft); stroke-width: 2.5; }
+.reveal .sr-arista.sa-padre.sube { stroke: var(--c-accent); stroke-width: 5; stroke-dasharray: 9 5; }
+.reveal .sr-arista.sa-padre.nuevo { stroke: var(--c-accent); stroke-width: 5; }
+.reveal .sa-uf .sr-punta.base { fill: var(--c-ink-soft); }
+.reveal .sr-punta.sube, .reveal .sr-punta.nuevo { fill: var(--c-accent); }
+
+/* Paneles de más de 20 líneas (dfsLow, colorear, union-find): interlineado más corto */
+.reveal .sa-dfsLow .sr-codigo, .reveal .sa-colorear .sr-codigo, .reveal .sa-uf .sr-codigo { line-height: 1.1; }
+/* colorear y union-find tienen 22 líneas: interlineado aún más corto, sin bajar la letra */
+.reveal .sa-colorear .sr-codigo, .reveal .sa-uf .sr-codigo { line-height: 1.05; }
+.reveal pre.sr-compacto.sa-largo.sa-22 code { line-height: 1.05; }
+.reveal .sa-dfsLow .sr-izq { flex-basis: 59%; }
+.reveal pre.sr-compacto.sa-largo code { line-height: 1.12; }

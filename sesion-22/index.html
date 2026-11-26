@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sesión 22 — Recorridos de grafos</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+  <script>try{if(localStorage.getItem("curso-tema")==="dark"&&!/print-pdf/i.test(location.search))document.documentElement.dataset.theme="dark"}catch(e){}</script>
+  <link rel="stylesheet" href="../css/theme-curso.css">
+  <link rel="stylesheet" href="../css/sim-recorridos.css">
+  <link rel="stylesheet" href="../css/pregunta-alumno.css">
+</head>
+<body>
+<div class="reveal">
+  <div class="slides">
+
+    <!-- ============ PORTADA ============ -->
+    <section class="cover">
+      <span class="kicker">Estructuras de Datos y Algoritmos · Bloque 4</span>
+      <h1>Recorridos de&nbsp;grafos</h1>
+      <div class="cover-meta">
+        Sesión 22 · Semana 13<br>
+        Salvador Hinojosa
+      </div>
+    </section>
+
+    <!-- ============ OBJETIVO ============ -->
+    <section>
+      <span class="kicker">Objetivo de hoy</span>
+      <h2>Al salir de esta sesión podrás…</h2>
+      <ul>
+        <li class="fragment">Implementar DFS en versión recursiva e iterativa con pila explícita, marcando visitados correctamente.</li>
+        <li class="fragment">Implementar BFS con fila y explicar por qué produce distancias mínimas en grafos no ponderados.</li>
+        <li class="fragment">Calcular un orden topológico con el algoritmo de Kahn y detectar ciclos en el proceso.</li>
+        <li class="fragment">Elegir entre DFS y BFS según lo que el problema pide: conectividad, ciclos, distancias o dependencias.</li>
+      </ul>
+    </section>
+
+    <!-- ============ DIVIDER 8.2.3.1 ============ -->
+    <section class="divider">
+      <h2>8.2.3.1 DFS: búsqueda en profundidad</h2>
+    </section>
+
+    <!-- ============ DFS IDEA ============ -->
+    <section>
+      <span class="kicker">8.2.3.1 · DFS</span>
+      <h2>La regla de DFS</h2>
+      <ul>
+        <li class="fragment">Desde el vértice actual, avanza hacia un vecino no visitado; solo cuando ya no hay vecinos nuevos, retrocede.</li>
+        <li class="fragment">Los pendientes viven en una pila (<span class="term" data-term="lifo">LIFO</span>): en la versión recursiva, la pila de llamadas del programa; en la iterativa, un <code>std::stack</code> explícito.</li>
+        <li class="fragment"><strong>Marcar visitados es obligatorio</strong>: sin la marca, cualquier ciclo hace que el recorrido dé vueltas para siempre.</li>
+        <li class="fragment">Con lista de adyacencias cuesta \(O(V + E)\): cada vértice se visita una vez y cada arista se revisa un número constante de veces.</li>
+      </ul>
+    </section>
+
+    <!-- ============ SIM DFS ============ -->
+    <section>
+      <span class="kicker">8.2.3.1 · DFS</span>
+      <h2>DFS recursivo, línea por línea</h2>
+      <div class="sim-recorridos" data-alg="dfs" data-n="6" data-aristas="0-1,0-2,1-3,1-4,2-5,4-5" data-capas="0|1,2|3,4,5" data-inicio="0"></div>
+    </section>
+
+    <!-- ============ CÓDIGO DFS ============ -->
+    <section>
+      <span class="kicker">8.2.3.1 · DFS</span>
+      <h2>DFS recursivo</h2>
+      <div class="cols">
+        <pre class="sr-compacto"><code class="language-cpp" data-trim>
+void dfs(int u) {
+    visitado[u] = true;
+    visita(u);
+    for (int v : ady[u]) {
+        if (!visitado[v]) {
+            dfs(v);
+        }
+    }
+}
+        </code></pre>
+        <div class="sr-nota">
+          <p class="fragment"><code>ady</code> es la lista de adyacencias y <code>visitado</code> un <code>std::vector&lt;bool&gt;</code> de tamaño n que empieza en <code>false</code>. <code>visita</code> es lo que haga el algoritmo con cada vértice.</p>
+          <p class="fragment">La recursión se encarga del retroceso: cuando termina el <code>for</code> de un vértice, el control regresa a la llamada que lo invocó.</p>
+          <p class="fragment muted">En grafos muy profundos la pila de llamadas puede desbordarse; para eso existe la versión iterativa.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ SIM DFS ITERATIVO ============ -->
+    <section>
+      <span class="kicker">8.2.3.1 · DFS</span>
+      <h2>DFS iterativo con <code>std::stack</code></h2>
+      <div class="sim-recorridos" data-alg="dfsIter" data-n="6" data-aristas="0-1,0-2,1-3,1-4,2-5,4-5" data-capas="0|1,2|3,4,5" data-inicio="0"></div>
+    </section>
+
+    <!-- ============ CÓDIGO DFS ITERATIVO ============ -->
+    <section>
+      <span class="kicker">8.2.3.1 · DFS</span>
+      <h2>DFS iterativo</h2>
+      <div class="cols">
+        <pre class="sr-compacto"><code class="language-cpp" data-trim>
+void dfsIter(int inicio) {
+    std::stack&lt;int&gt; pila;
+    pila.push(inicio);
+    while (!pila.empty()) {
+        int u = pila.top();
+        pila.pop();
+        if (!visitado[u]) {
+            visitado[u] = true;
+            visita(u);
+            for (int v : ady[u]) {
+                if (!visitado[v]) {
+                    pila.push(v);
+                }
+            }
+        }
+    }
+}
+        </code></pre>
+        <div class="sr-nota">
+          <p class="fragment">Un vértice puede entrar a la pila dos veces, desde dos vecinos distintos, antes de procesarse. Por eso la marca se revisa al <em>sacarlo</em>, en <code>if (!visitado[u])</code>.</p>
+          <p class="fragment">Sin ese <code>if</code>, el vértice repetido se visitaría dos veces.</p>
+          <p class="fragment muted">El orden sale distinto al de la versión recursiva porque el último vecino apilado es el primero en salir. Los dos órdenes son recorridos en profundidad.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ DFS APLICACIONES ============ -->
+    <section>
+      <span class="kicker">8.2.3.1 · DFS</span>
+      <h2>Qué se resuelve con DFS</h2>
+      <ul>
+        <li class="fragment"><strong>Componentes conexos:</strong> lanzar DFS desde cada vértice sin visitar; cada lanzamiento pinta un componente completo.</li>
+        <li class="fragment"><strong>Detección de ciclos:</strong> en un grafo no dirigido, una arista hacia un vértice visitado que no es el padre delata un ciclo (en la simulación pasó con la arista 0–2). En dirigidos, el ciclo aparece como una arista hacia un vértice que sigue en la pila de llamadas.</li>
+        <li class="fragment"><strong>Laberintos, backtracking y orden topológico por DFS:</strong> todo lo que se formula como «explora hasta el fondo y regresa».</li>
+      </ul>
+    </section>
+
+    <!-- ============ COMPONENTES CONEXOS ============ -->
+    <section>
+      <span class="kicker">8.2.3.1 · DFS</span>
+      <h2>Componentes conexos: un DFS por cada vértice sin visitar</h2>
+      <div class="cols">
+        <pre class="sr-compacto"><code class="language-cpp" data-trim>
+int componentes() {
+    int c = 0;
+    for (int u = 0; u &lt; n; u++) {
+        if (!visitado[u]) {
+            dfs(u);
+            c = c + 1;
+        }
+    }
+    return c;
+}
+        </code></pre>
+        <div class="sr-nota">
+          <svg viewBox="0 0 460 330" style="width:100%; max-height:330px;" role="img" aria-label="Grafo de siete vértices en tres componentes; cada llamada a dfs desde el for pinta uno">
+<path class="svg-edge" d="M 90 60 L 40 170"/>
+<path class="svg-edge" d="M 90 60 L 150 170"/>
+<path class="svg-edge" d="M 300 60 L 410 60"/>
+<path class="svg-edge" d="M 410 60 L 355 170"/>
+<path class="svg-edge" d="M 300 60 L 355 170"/>
+<g class="anim-step" data-step="1">
+<path class="s-accent" stroke-width="7" fill="none" d="M 90 60 L 40 170"/>
+<path class="s-accent" stroke-width="7" fill="none" d="M 90 60 L 150 170"/>
+</g>
+<g class="anim-step" data-step="2">
+<path class="s-accent" stroke-width="7" fill="none" d="M 300 60 L 410 60"/>
+<path class="s-accent" stroke-width="7" fill="none" d="M 410 60 L 355 170"/>
+<path class="s-accent" stroke-width="7" fill="none" d="M 300 60 L 355 170"/>
+</g>
+<circle class="svg-node" cx="90" cy="60" r="26"/>
+<circle class="svg-node" cx="40" cy="170" r="26"/>
+<circle class="svg-node" cx="150" cy="170" r="26"/>
+<circle class="svg-node" cx="300" cy="60" r="26"/>
+<circle class="svg-node" cx="410" cy="60" r="26"/>
+<circle class="svg-node" cx="355" cy="170" r="26"/>
+<circle class="svg-node" cx="90" cy="290" r="26"/>
+<g class="anim-step" data-step="1">
+<circle class="svg-node-hl" cx="90" cy="60" r="26"/>
+<circle class="svg-node-hl" cx="40" cy="170" r="26"/>
+<circle class="svg-node-hl" cx="150" cy="170" r="26"/>
+<text class="anim-step f-accent" data-step="1" x="10" y="235" style="font-size:22px;font-weight:700;">dfs(0) · c = 1</text>
+</g>
+<g class="anim-step" data-step="2">
+<circle class="svg-node-hl" cx="300" cy="60" r="26"/>
+<circle class="svg-node-hl" cx="410" cy="60" r="26"/>
+<circle class="svg-node-hl" cx="355" cy="170" r="26"/>
+<text class="anim-step f-accent" data-step="2" x="280" y="235" style="font-size:22px;font-weight:700;">dfs(3) · c = 2</text>
+</g>
+<g class="anim-step" data-step="3">
+<circle class="svg-node-hl" cx="90" cy="290" r="26"/>
+<text class="anim-step f-accent" data-step="3" x="135" y="298" style="font-size:22px;font-weight:700;">dfs(6) · c = 3</text>
+</g>
+<text class="svg-label" x="90" y="68" text-anchor="middle">0</text>
+<text class="svg-label" x="40" y="178" text-anchor="middle">1</text>
+<text class="svg-label" x="150" y="178" text-anchor="middle">2</text>
+<text class="svg-label" x="300" y="68" text-anchor="middle">3</text>
+<text class="svg-label" x="410" y="68" text-anchor="middle">4</text>
+<text class="svg-label" x="355" y="178" text-anchor="middle">5</text>
+<text class="svg-label" x="90" y="298" text-anchor="middle">6</text>
+</svg>
+          <span class="fragment"></span>
+          <span class="fragment"></span>
+          <span class="fragment"></span>
+          <p class="fragment">El for prueba los vértices en orden. El 1 y el 2 ya quedaron visitados por <code>dfs(0)</code>, así que el siguiente que lanza un recorrido es el 3.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ QUIZ 1 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="b">
+        <p class="quiz-question">En tu DFS olvidaste marcar los vértices como visitados. El grafo tiene un ciclo. ¿Qué pasa?</p>
+        <button class="quiz-option" data-opt="a">El recorrido funciona igual, solo que visita los vértices en otro orden.</button>
+        <button class="quiz-option" data-opt="b">El recorrido entra al ciclo y no termina: revisita los mismos vértices indefinidamente.</button>
+        <button class="quiz-option" data-opt="c">El compilador lo detecta: <code>ady</code> no puede recorrerse sin un arreglo de visitados.</button>
+        <div class="quiz-explain">
+          <strong>B.</strong> La marca de visitado es lo único que impide volver a entrar a un vértice ya explorado.
+          Con un ciclo A→B→C→A y sin marcas, el DFS recorre ese ciclo sin fin (en la versión recursiva, hasta
+          desbordar la pila de llamadas). Es un error clásico porque el algoritmo se ve completo, compila
+          y funciona bien en grafos sin ciclos.
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ DIVIDER 8.2.3.2 ============ -->
+    <section class="divider">
+      <h2>8.2.3.2 BFS: búsqueda en anchura</h2>
+    </section>
+
+    <!-- ============ BFS IDEA ============ -->
+    <section>
+      <span class="kicker">8.2.3.2 · BFS</span>
+      <h2>La regla de BFS</h2>
+      <ul>
+        <li class="fragment">Visita primero todos los vértices a distancia 1 del origen, luego los de distancia 2, y así por niveles.</li>
+        <li class="fragment">Los pendientes viven en una fila (<span class="term" data-term="fifo">FIFO</span>): los vértices se procesan en el orden en que fueron descubiertos.</li>
+        <li class="fragment">El arreglo de distancias sirve además como registro de visitados: <code>dist[v] == -1</code> significa «no descubierto».</li>
+        <li class="fragment">Cuesta \(O(V + E)\), igual que DFS: cambia el orden de visita, no el costo.</li>
+      </ul>
+    </section>
+
+    <!-- ============ SIM BFS ============ -->
+    <section>
+      <span class="kicker">8.2.3.2 · BFS</span>
+      <h2>BFS con distancias, línea por línea</h2>
+      <div class="sim-recorridos" data-alg="bfs" data-n="6" data-aristas="0-1,0-2,1-3,1-4,2-5,4-5" data-capas="0|1,2|3,4,5" data-inicio="0"></div>
+    </section>
+
+    <!-- ============ CÓDIGO BFS ============ -->
+    <section>
+      <span class="kicker">8.2.3.2 · BFS</span>
+      <h2>BFS con distancias</h2>
+      <div class="cols">
+        <pre class="sr-compacto"><code class="language-cpp" data-trim>
+std::vector&lt;int&gt; bfs(int inicio) {
+    std::vector&lt;int&gt; dist(n, -1);
+    std::queue&lt;int&gt; fila;
+    dist[inicio] = 0;
+    fila.push(inicio);
+    while (!fila.empty()) {
+        int u = fila.front();
+        fila.pop();
+        for (int v : ady[u]) {
+            if (dist[v] == -1) {
+                dist[v] = dist[u] + 1;
+                fila.push(v);
+            }
+        }
+    }
+    return dist;
+}
+        </code></pre>
+        <div class="sr-nota">
+          <p class="fragment">BFS marca al <em>descubrir</em>: <code>dist[v]</code> cambia antes de encolar, así que cada vértice entra a la fila una sola vez.</p>
+          <p class="fragment muted">Un vértice que no se alcanza desde el origen termina con <code>dist == -1</code>.</p>
+          <div class="pregunta fragment">
+            <p><span class="pq">¿Por qué aquí se marca al meter y en el DFS iterativo al sacar?</span> En BFS, la primera vez que se descubre un vértice ya se conoce su distancia mínima, así que marcarlo ahí es correcto y evita que entre dos veces a la fila. En el DFS iterativo, marcar al meter deja al vértice con quien lo vio primero, y el orden deja de ser en profundidad.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ SIM GEMELOS ============ -->
+    <section>
+      <span class="kicker">8.2.3.2 · BFS vs DFS</span>
+      <h2>El contenedor decide el recorrido</h2>
+      <div class="sim-recorridos" data-alg="gemelos" data-n="6" data-aristas="0-1,0-2,1-3,1-4,2-5,4-5" data-capas="0|1,2|3,4,5" data-inicio="0"></div>
+    </section>
+
+    <!-- ============ BFS CAMINO MÁS CORTO ============ -->
+    <section>
+      <span class="kicker">8.2.3.2 · BFS</span>
+      <h2>Por qué BFS da el camino más corto</h2>
+      <ul>
+        <li class="fragment">La fila procesa los vértices en orden de distancia: primero todos los de distancia d, después los de d + 1. Nunca se mezclan.</li>
+        <li class="fragment">Cuando un vértice se descubre, se descubre desde el nivel más cercano posible. Cualquier otro camino hasta él llegaría igual de lejos o más tarde.</li>
+        <li class="fragment">DFS no tiene esa propiedad. En la simulación llegó al 2 por el camino 0, 1, 4, 5, 2, de cuatro aristas, aunque el 2 es vecino directo del 0.</li>
+      </ul>
+      <p class="fragment box-key">La garantía vale para grafos <strong>no ponderados</strong>. Con pesos distintos por arista se usa Dijkstra, que cambia la fila por una fila de prioridad: el heap del bloque de árboles.</p>
+    </section>
+
+    <!-- ============ QUIZ 2 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="b">
+        <p class="quiz-question">Tomas el código de BFS y cambias <code>std::queue</code> por <code>std::stack</code>, sin tocar nada más. ¿Qué obtienes?</p>
+        <button class="quiz-option" data-opt="a">Un BFS más rápido: la pila tiene menos sobrecarga que la fila.</button>
+        <button class="quiz-option" data-opt="b">Un recorrido en profundidad: el orden por niveles se pierde y <code>dist</code> deja de ser la distancia mínima.</button>
+        <button class="quiz-option" data-opt="c">El mismo recorrido: el contenedor de la frontera no afecta el orden de visita.</button>
+        <div class="quiz-explain">
+          <strong>B.</strong> Toda la diferencia entre BFS y DFS está en qué contenedor guarda la frontera:
+          FIFO procesa por niveles, LIFO se hunde por el último descubierto. Con pila, un vértice puede
+          descubrirse por un camino largo antes que por el corto, y el valor que quede en <code>dist</code>
+          ya no es mínimo. Es el error conceptual más común del bloque de grafos.
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ DIVIDER 8.2.3.3 ============ -->
+    <section class="divider">
+      <h2>8.2.3.3 Ordenamiento topológico</h2>
+    </section>
+
+    <!-- ============ TOPO CONCEPTO ============ -->
+    <section>
+      <span class="kicker">8.2.3.3 · Orden topológico</span>
+      <h2>Ordenar respetando dependencias</h2>
+      <ul>
+        <li class="fragment">Un <strong>orden topológico</strong> de un grafo dirigido es una lista de sus vértices donde toda arista (u, v) tiene a u antes que a v.</li>
+        <li class="fragment">Existe si y solo si el grafo es un <span class="term" data-term="dag">DAG</span>: con un ciclo, alguien tendría que ir antes que sí mismo.</li>
+        <li class="fragment">Un DAG puede admitir muchos órdenes válidos; el algoritmo produce uno.</li>
+        <li class="fragment">Ejemplos: materias y prerrequisitos, tareas de un build, dependencias entre paquetes.</li>
+      </ul>
+    </section>
+
+    <!-- ============ GRADOS DE ENTRADA ============ -->
+    <section>
+      <span class="kicker">8.2.3.3 · Orden topológico</span>
+      <h2>Primero, contar las flechas que llegan</h2>
+      <pre><code class="language-cpp" data-trim>
+std::vector&lt;int&gt; gradosEntrada() {
+    std::vector&lt;int&gt; ge(n, 0);
+    for (int u = 0; u &lt; n; u++) {
+        for (int v : ady[u]) {
+            ge[v] = ge[v] + 1;
+        }
+    }
+    return ge;
+}
+      </code></pre>
+      <p class="fragment">El grado de entrada <code>ge[v]</code> cuenta cuántos vértices tienen que ir antes que v. Un vértice con <code>ge[v] == 0</code> puede ir ya.</p>
+      <p class="fragment muted">Recorre todas las listas una vez: \(O(V + E)\).</p>
+    </section>
+
+    <!-- ============ SIM KAHN ============ -->
+    <section>
+      <span class="kicker">8.2.3.3 · Orden topológico</span>
+      <h2>Algoritmo de <span class="term" data-term="kahn">Kahn</span>, paso a paso</h2>
+      <div class="sim-recorridos" data-alg="kahn" data-n="6" data-aristas="4>1,0>1,1>3,4>5,3>2,5>2" data-capas="0,4|1,5|3,_|2"></div>
+    </section>
+
+    <!-- ============ CÓDIGO KAHN ============ -->
+    <section>
+      <span class="kicker">8.2.3.3 · Orden topológico</span>
+      <h2>Kahn en C++</h2>
+      <div class="cols">
+        <pre class="sr-compacto sr-largo"><code class="language-cpp" data-trim>
+std::vector&lt;int&gt; kahn() {
+    std::vector&lt;int&gt; ge = gradosEntrada();
+    std::queue&lt;int&gt; listos;
+    for (int u = 0; u &lt; n; u++) {
+        if (ge[u] == 0) {
+            listos.push(u);
+        }
+    }
+    std::vector&lt;int&gt; orden;
+    while (!listos.empty()) {
+        int u = listos.front();
+        listos.pop();
+        orden.push_back(u);
+        for (int v : ady[u]) {
+            ge[v] = ge[v] - 1;
+            if (ge[v] == 0) {
+                listos.push(v);
+            }
+        }
+    }
+    return orden;
+}
+        </code></pre>
+        <div class="sr-nota">
+          <p class="fragment">La fila de listos guarda los vértices que ya no esperan a nadie. Cada vez que uno sale, sus flechas de salida se cumplen y los grados bajan.</p>
+          <p class="fragment">Cada vértice entra una vez a la fila y cada flecha se descuenta una vez: \(O(V + E)\).</p>
+          <p class="fragment box-key">Si <code>orden.size()</code> es menor que n, el grafo tiene un ciclo.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ SIM KAHN CON CICLO ============ -->
+    <section>
+      <span class="kicker">8.2.3.3 · Orden topológico</span>
+      <h2>El mismo grafo con una flecha más: 2→1</h2>
+      <div class="sim-recorridos" data-alg="kahn" data-n="6" data-aristas="4>1,0>1,1>3,4>5,3>2,5>2,2>1" data-capas="0,4|1,5|3,_|2"></div>
+    </section>
+
+    <!-- ============ TOPO DFS ============ -->
+    <section>
+      <span class="kicker">8.2.3.3 · Orden topológico</span>
+      <h2>La variante por DFS</h2>
+      <ul>
+        <li class="fragment">Se corre DFS y cada vértice se anota al <em>terminar</em> su llamada. La lista invertida es un orden topológico.</li>
+        <li class="fragment">Funciona porque un vértice solo termina cuando ya terminaron todos los que tienen que ir después de él.</li>
+        <li class="fragment">Para detectar ciclos, cada vértice lleva uno de tres estados: <strong>NUEVO</strong>, <strong>ABIERTO</strong> (su llamada sigue en la pila) o <strong>CERRADO</strong>. Una flecha hacia un vértice ABIERTO cierra un ciclo.</li>
+      </ul>
+    </section>
+
+    <!-- ============ SIM TOPO DFS ============ -->
+    <section>
+      <span class="kicker">8.2.3.3 · Orden topológico</span>
+      <h2>Orden topológico por DFS, línea por línea</h2>
+      <div class="sim-recorridos" data-alg="dfsTopo" data-n="6" data-aristas="4&gt;1,0&gt;1,1&gt;3,4&gt;5,3&gt;2,5&gt;2" data-capas="0,4|1,5|3,_|2"></div>
+    </section>
+
+    <!-- ============ SIM TOPO DFS CON CICLO ============ -->
+    <section>
+      <span class="kicker">8.2.3.3 · Orden topológico</span>
+      <h2>Con la flecha 2→1, una llamada abierta delata el ciclo</h2>
+      <div class="sim-recorridos" data-alg="dfsTopo" data-n="6" data-aristas="4&gt;1,0&gt;1,1&gt;3,4&gt;5,3&gt;2,5&gt;2,2&gt;1" data-capas="0,4|1,5|3,_|2"></div>
+    </section>
+
+    <!-- ============ TOPO DFS EN C++ ============ -->
+    <section>
+      <span class="kicker">8.2.3.3 · Orden topológico</span>
+      <h2>Orden topológico por DFS en C++</h2>
+      <div class="cols">
+        <pre class="sr-compacto"><code class="language-cpp" data-trim>
+const int NUEVO = 0;
+const int ABIERTO = 1;
+const int CERRADO = 2;
+
+std::vector&lt;int&gt; ordenTopoDfs() {
+    estado.assign(n, NUEVO);
+    terminados.clear();
+    hayCiclo = false;
+    for (int u = 0; u &lt; n; u++) {
+        if (estado[u] == NUEVO) {
+            dfsTopo(u);
+        }
+    }
+    std::reverse(terminados.begin(), terminados.end());
+    return terminados;
+}
+        </code></pre>
+        <div class="sr-nota">
+          <p class="fragment"><code>estado</code> y <code>terminados</code> son <code>std::vector&lt;int&gt;</code> y <code>hayCiclo</code> un <code>bool</code>, visibles para las dos funciones. <code>dfsTopo</code> es la de la simulación.</p>
+          <p class="fragment">El for lanza un DFS desde cada vértice que siga NUEVO, igual que al contar componentes. Así se cubren los vértices que ningún recorrido anterior alcanzó.</p>
+          <p class="fragment">Los dos algoritmos detectan el ciclo sin trabajo extra: en Kahn, porque <code>orden.size()</code> queda menor que n; aquí, porque <code>hayCiclo</code> termina en <code>true</code>. Los dos cuestan \(O(V + E)\).</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ QUIZ 3 ============ -->
+    <section>
+      <span class="kicker">Checkpoint</span>
+      <div class="quiz" data-correct="b">
+        <p class="quiz-question">Corres Kahn sobre un grafo dirigido de 8 vértices y el orden resultante tiene 5. ¿Qué concluyes?</p>
+        <button class="quiz-option" data-opt="a">El grafo no es conexo: hay 3 vértices sin conexión con el resto.</button>
+        <button class="quiz-option" data-opt="b">Hay un ciclo: los 3 vértices faltantes nunca alcanzaron grado de entrada 0.</button>
+        <button class="quiz-option" data-opt="c">Faltó inicializar la fila con más vértices de grado 0; el resultado depende del orden inicial.</button>
+        <div class="quiz-explain">
+          <strong>B.</strong> Un vértice solo entra al orden cuando su grado de entrada llega a 0. Los que
+          participan en un ciclo se esperan mutuamente y ninguno lo alcanza jamás. La opción A no aplica:
+          los vértices aislados tienen grado de entrada 0 y entran a la fila desde el inicio. La C tampoco:
+          el conjunto de vértices procesados no depende del orden en que se saquen, solo la secuencia.
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ RETO ============ -->
+    <section>
+      <span class="kicker">Reto en parejas</span>
+      <h2>Dependencias y un grafo que no está dibujado</h2>
+      <table>
+        <thead><tr><th>Problema</th><th>Dificultad</th><th>La idea</th></tr></thead>
+        <tbody>
+          <tr class="fragment"><td>LC 210 · Course Schedule II</td><td>Media</td><td>Kahn tal cual: materias, prerrequisitos y un orden válido, o un arreglo vacío si hay ciclo.</td></tr>
+          <tr class="fragment"><td>LC 127 · Word Ladder</td><td>Alta</td><td>BFS donde lo difícil es construir el grafo implícito: qué palabras son vecinas y cómo generarlas sin comparar todas contra todas.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ============ PRÓXIMA SESIÓN ============ -->
+    <section class="divider">
+      <h2>Próxima sesión:<br>Conceptos avanzados de grafos</h2>
+      <p class="muted" style="margin-top:1em;">Sube el reto (LC 210 / LC 127) al LMS antes de la próxima sesión.</p>
+    </section>
+
+    <!-- ============ DIVIDER MATERIAL EXTRA ============ -->
+    <section class="divider">
+      <h2>Material extra · autoestudio</h2>
+      <p class="muted">No se cubre en clase: la STL del tema y su conexión con sistemas de IA.</p>
+    </section>
+
+    <!-- ============ POR QUÉ IMPORTA HOY ============ -->
+    <section>
+      <span class="kicker kicker-ai">Por qué importa hoy</span>
+      <h2>El <code>backward</code> de PyTorch es Kahn</h2>
+      <div class="box-ai" data-label="Dónde vive esto en sistemas de IA">
+        <ul>
+          <li class="fragment">La retropropagación recorre el grafo de cómputo en orden topológico inverso: ningún nodo puede procesar su gradiente antes que quienes dependen de él.</li>
+          <li class="fragment">En modo <em>eager</em>, PyTorch no ordena nada hacia adelante — ejecuta tu código tal cual y construye el grafo como subproducto. El motor de <span class="term" data-term="autograd">autograd</span> resuelve el <code>backward</code> con conteo de dependencias sobre una cola de listos: Kahn, distribuido.</li>
+          <li class="fragment">En los compiladores de grafo (<code>torch.compile</code>, XLA) el orden topológico es explícito también hacia adelante, para programar y fusionar operaciones.</li>
+          <li class="fragment">Y el BFS multi-salto es como <span class="term" data-term="graphrag">GraphRAG</span> expande contexto: desde la entidad mencionada, traer vecinos a distancia 1 y 2.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============ CIERRE STL ============ -->
+    <section>
+      <span class="kicker">STL</span>
+      <h2>Los contenedores de los recorridos</h2>
+      <pre><code class="language-cpp" data-trim data-line-numbers="1-2|4-5|7-8">
+std::queue&lt;int&gt; fila;    // BFS: push, front, pop
+std::stack&lt;int&gt; pila;    // DFS iterativo: push, top, pop
+
+std::vector&lt;bool&gt; visitado(n, false);   // ojo: guarda bits
+std::vector&lt;char&gt; visitado2(n, 0);      // alternativa sin sorpresas
+
+std::unordered_set&lt;std::string&gt; visto;  // vértices no numerados
+visto.insert("nodo-42");
+      </code></pre>
+      <ul>
+        <li class="fragment"><code>vector&lt;bool&gt;</code> empaqueta bits: ahorra memoria, pero <code>&amp;visitado[i]</code> no es un <code>bool*</code> y escribir en paralelo en índices distintos no es seguro.</li>
+        <li class="fragment"><code>unordered_set</code> sirve para vértices con identificadores arbitrarios; su \(O(1)\) promedio viene de las <span class="term" data-term="hash">tablas hash</span>.</li>
+      </ul>
+    </section>
+
+    <!-- ============ REFERENCIAS ============ -->
+    <section>
+      <span class="kicker">Sesión 22</span>
+      <h2>Referencias y material para profundizar</h2>
+      <div class="refs cols">
+        <div>
+          <h3>Referencias</h3>
+          <ul>
+            <li><span class="ref-type">Libro</span> Cormen, T. et al. <em>Introduction to Algorithms</em>, 4.ª ed., MIT Press, 2022. Cap. 20 (BFS, DFS, orden topológico).</li>
+            <li><span class="ref-type">Libro</span> Weiss, M. A. <em>Data Structures and Algorithm Analysis in C++</em>, 4.ª ed., Pearson, 2014. Cap. 9.</li>
+            <li><span class="ref-type">Libro</span> Sedgewick, R. y Wayne, K. <em>Algorithms</em>, 4.ª ed., Addison-Wesley, 2011. Cap. 4.</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Para profundizar</h3>
+          <ul>
+            <li><span class="ref-type">Web</span> <a href="https://visualgo.net/en/dfsbfs">VisuAlgo — Graph Traversal</a> <span class="ref-nota">— DFS y BFS animados sobre el grafo que ustedes dibujen.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://docs.pytorch.org/docs/stable/notes/autograd.html">PyTorch — Autograd mechanics</a> <span class="ref-nota">— el grafo de cómputo y su recorrido hacia atrás, de primera mano.</span></li>
+            <li><span class="ref-type">Web</span> <a href="https://en.cppreference.com/w/cpp/container/queue">cppreference — std::queue</a> <span class="ref-nota">— la interfaz exacta del adaptador que usa BFS.</span></li>
+          </ul>
+        </div>
+      </div>
+      <p class="refs-ia">Nota: estas diapositivas fueron generadas usando inteligencia artificial, específicamente Claude (Anthropic).</p>
+    </section>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script src="../js/curso-slides.js"></script>
+<script src="../js/sim-recorridos.js"></script>
+<script>
+  Reveal.initialize({
+    width: 1280,
+    height: 720,
+    margin: 0.06,
+    hash: true,
+    progress: true,
+    slideNumber: 'c/t',
+    controls: true,
+    transition: 'slide',
+    transitionSpeed: 'fast',
+    plugins: [ RevealHighlight ]
+  }).then(() => {
+    CursoSlides.init({
+      lifo: {
+        titulo: "LIFO — Last In, First Out",
+        def: "Disciplina de la pila: el último elemento en entrar es el primero en salir. Es lo que hace que DFS se hunda por el camino más reciente antes de retroceder. Su contraparte FIFO (la fila) produce BFS."
+      },
+      fifo: {
+        titulo: "FIFO — First In, First Out",
+        def: "Disciplina de la fila: los elementos salen en el orden en que entraron. Aplicada a la frontera de un recorrido, garantiza que los vértices se procesen por niveles de distancia — la propiedad de la que BFS deriva sus distancias mínimas."
+      },
+      dag: {
+        titulo: "DAG — Directed Acyclic Graph",
+        def: "Grafo dirigido sin ciclos. Es exactamente la clase de grafos que admite orden topológico. Modela dependencias: prerrequisitos, builds, grafos de cómputo. Sus propiedades se estudian a fondo más adelante en este bloque."
+      },
+      kahn: {
+        titulo: "Algoritmo de Kahn (1962)",
+        def: "Calcula un orden topológico manteniendo el grado de entrada de cada vértice y una fila de «listos» (grado 0): al procesar un vértice se descuenta el grado de sus vecinos, y los que llegan a 0 entran a la fila. Si al final quedan vértices sin procesar, el grafo tiene un ciclo. Complejidad O(V+E)."
+      },
+      autograd: {
+        titulo: "Autograd",
+        def: "Motor de diferenciación automática de PyTorch: registra cada operación en un grafo de cómputo durante la ejecución y, al llamar <code>backward()</code>, propaga gradientes procesando cada nodo solo cuando todos sus dependientes terminaron — un conteo de dependencias equivalente al algoritmo de Kahn."
+      },
+      hash: {
+        titulo: "Tabla hash",
+        def: "Estructura que guarda pares clave–valor y calcula, a partir de la clave, la casilla donde va cada uno. Busca e inserta en O(1) en promedio. Se formaliza más adelante en este bloque, junto con <code>std::unordered_set</code> y <code>std::unordered_map</code>."
+      },
+      graphrag: {
+        titulo: "GraphRAG",
+        def: "Variante de RAG que organiza el conocimiento como un grafo de entidades y relaciones. Para responder una consulta parte de las entidades mencionadas y expande el contexto con sus vecinos a distancia 1 y 2 — un BFS multi-salto sobre el grafo de conocimiento."
+      }
+    });
+    SimRecorridos.init();
+  });
+</script>
+</body>
+</html>

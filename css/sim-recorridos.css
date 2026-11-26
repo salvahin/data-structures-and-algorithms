@@ -1,0 +1,101 @@
+/* ============================================================
+   SIM-RECORRIDOS — estilos del simulador de DFS, BFS y Kahn
+   Se carga después de theme-curso.css. Solo usa tokens del tema:
+   el modo oscuro funciona sin reglas propias. La barra, el panel
+   de código y la explicación reutilizan las clases .sim-* del tema.
+   ============================================================ */
+
+.reveal .sim-recorridos { font-size: 1em; }
+
+/* Código a la izquierda; dibujo, estructuras, explicación y barra a
+   la derecha. */
+.reveal .sr-cuerpo { display: flex; gap: 0.45em; align-items: flex-start; }
+.reveal .sr-izq { flex: 0 0 54%; min-width: 0; }
+.reveal .sr-der { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: 0.25em; }
+.reveal .sim-recorridos .sr-codigo { max-width: none; width: 100%; line-height: 1.2; }
+.reveal .sim-recorridos .sr-dice { font-size: 0.56em; min-height: 4.4em; flex: none; margin: 0; }
+.reveal .sim-recorridos .sr-barra { flex-wrap: wrap; row-gap: 0.25em; font-size: 0.92em; }
+.reveal .sim-recorridos .sr-barra .sim-test { flex-basis: 100%; order: 5; }
+
+/* Gemelos: dibujo a lo ancho, explicación y barra abajo */
+.reveal .sr-abajo { display: flex; gap: 0.6em; align-items: flex-start; margin-top: 0.3em; }
+.reveal .sr-abajo .sr-dice { flex: 1 1 0; min-height: 3.2em; }
+.reveal .sr-abajo .sr-barra { flex: 0 0 42%; }
+
+.reveal .sr-svg { width: 100%; display: block; }
+.reveal .sr-titulo { font-family: var(--font-sans); font-size: 19px; font-weight: 700; fill: var(--c-ink-soft); text-anchor: middle; }
+.reveal .sr-titulo.izq { text-anchor: start; font-family: var(--font-mono); }
+.reveal .sr-etq { font-family: var(--font-mono); font-size: 18px; font-weight: 600; fill: var(--c-ink-soft); }
+.reveal .sr-ind { font-family: var(--font-mono); font-size: 14px; fill: var(--c-ink-faint); text-anchor: middle; }
+.reveal .sr-val { font-family: var(--font-mono); font-size: 18px; font-weight: 700; fill: var(--c-ink); text-anchor: middle; }
+.reveal .sr-tope { font-family: var(--font-mono); font-size: 15px; fill: var(--c-accent); font-weight: 700; }
+.reveal .sr-piso { stroke: var(--c-ink-soft); stroke-width: 3; }
+.reveal .sr-vacia { fill: none; stroke: var(--c-line); stroke-width: 1.5; stroke-dasharray: 5 4; }
+.reveal .sr-vacia-t { font-family: var(--font-sans); font-size: 15px; fill: var(--c-ink-faint); text-anchor: middle; font-style: italic; }
+.reveal .sr-panel { fill: var(--c-surface-1); }
+
+/* Aristas */
+.reveal .sr-arista { stroke: var(--c-ink-faint); stroke-width: 3; }
+.reveal .sr-arista.arbol { stroke: var(--c-ink); stroke-width: 5; }
+.reveal .sr-arista.revisa { stroke: var(--c-accent); stroke-width: 5; stroke-dasharray: 9 5; }
+.reveal .sr-arista.hecha { stroke: var(--c-ink-faint); stroke-width: 2; stroke-dasharray: 4 5; }
+.reveal .sr-arista.ciclo { stroke: var(--c-err); stroke-width: 4; }
+.reveal .sr-arista.curva { fill: none; }
+.reveal .sr-punta { fill: var(--c-ink-faint); }
+.reveal .sr-punta.revisa { fill: var(--c-accent); }
+.reveal .sr-punta.arbol { fill: var(--c-ink); }
+.reveal .sr-punta.ciclo { fill: var(--c-err); }
+
+/* Vértices: sin descubrir · pendiente (en la pila o la fila) · actual
+   · activo (su llamada espera) · visitado o terminado · atorado */
+.reveal .sr-nodo circle { fill: var(--c-bg); stroke: var(--c-ink-faint); stroke-width: 3; }
+.reveal .sr-dato { font-family: var(--font-sans); font-size: 19px; font-weight: 700; fill: var(--c-ink-soft); text-anchor: middle; }
+.reveal .sr-nodo.pendiente circle { fill: var(--c-accent-bg); stroke: var(--c-accent); stroke-dasharray: 6 4; }
+.reveal .sr-nodo.activo circle { fill: var(--c-accent-bg); stroke: var(--c-accent); }
+.reveal .sr-nodo.actual circle { fill: var(--c-accent); stroke: var(--c-accent); stroke-width: 4; }
+.reveal .sr-nodo.actual .sr-dato { fill: var(--c-on-accent); }
+.reveal .sr-nodo.visitado circle,
+.reveal .sr-nodo.terminado circle { fill: var(--c-surface-3); stroke: var(--c-ink); }
+.reveal .sr-nodo.pendiente .sr-dato, .reveal .sr-nodo.activo .sr-dato,
+.reveal .sr-nodo.visitado .sr-dato, .reveal .sr-nodo.terminado .sr-dato { fill: var(--c-ink); }
+.reveal .sr-nodo.atorado circle { fill: var(--c-err-bg); stroke: var(--c-err); stroke-width: 4; }
+.reveal .sr-nodo.atorado .sr-dato { fill: var(--c-err); }
+
+/* Etiqueta junto al vértice: dist o grado de entrada */
+.reveal .sr-badge rect { fill: var(--c-surface-2); stroke: var(--c-ink-soft); stroke-width: 1.5; }
+.reveal .sr-bval { font-family: var(--font-mono); font-size: 15px; font-weight: 700; fill: var(--c-ink); text-anchor: middle; }
+.reveal .sr-badge.nuevo rect { fill: var(--c-accent); stroke: var(--c-accent); }
+.reveal .sr-badge.nuevo .sr-bval { fill: var(--c-on-accent); }
+.reveal .sr-badge.hecho { opacity: .45; }
+.reveal .sr-badge.err rect { fill: var(--c-err); stroke: var(--c-err); }
+.reveal .sr-badge.err .sr-bval { fill: var(--c-on-accent); }
+
+/* Casillas de arreglos y contenedores */
+.reveal .sr-celda rect { fill: var(--c-bg); stroke: var(--c-line); stroke-width: 1.5; }
+.reveal .sr-celda .sr-val { fill: var(--c-ink); font-weight: 600; }
+.reveal .sr-celda.f .sr-val { fill: var(--c-ink-faint); font-weight: 400; }
+.reveal .sr-celda.si rect { fill: var(--c-ok-bg); stroke: var(--c-ok); }
+.reveal .sr-celda.si .sr-val { fill: var(--c-ok); font-weight: 700; }
+.reveal .sr-celda.frente rect, .reveal .sr-celda.actual rect { stroke: var(--c-accent); stroke-width: 3; }
+.reveal .sr-celda.frente .sr-val, .reveal .sr-celda.actual .sr-val { fill: var(--c-accent); font-weight: 700; }
+.reveal .sr-celda.actual rect { fill: var(--c-accent-bg); }
+.reveal .sr-celda.dup rect { fill: var(--c-err-bg); stroke: var(--c-err); stroke-dasharray: 5 3; }
+.reveal .sr-celda.dup .sr-val { fill: var(--c-err); font-weight: 700; }
+.reveal .sr-celda.nuevo rect { fill: var(--c-accent-bg); stroke: var(--c-accent); stroke-width: 4; }
+.reveal .sr-celda.nuevo .sr-val { fill: var(--c-accent); font-weight: 700; }
+
+@media (max-width: 760px) {
+  .reveal .sr-cuerpo, .reveal .sr-abajo { flex-direction: column; }
+  .reveal .sr-izq, .reveal .sr-abajo .sr-barra { flex-basis: auto; width: 100%; }
+}
+
+/* Bloque de código largo en un slide con texto: interlineado del panel
+   de la simulación. */
+.reveal pre.sr-compacto code { line-height: 1.22; }
+.reveal .cols > pre.sr-compacto { flex: 0 0 58%; }
+.reveal .cols > .sr-nota { font-size: 0.8em; }
+.reveal .cols > .sr-nota p { margin: 0 0 0.6em; }
+
+/* Kahn tiene 22 líneas: interlineado más corto, sin bajar la letra del mínimo proyectable */
+.reveal .sr-kahn .sr-codigo { line-height: 1.05; }
+.reveal pre.sr-compacto.sr-largo code { line-height: 1.05; }

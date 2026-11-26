@@ -30,6 +30,8 @@ Cada deck es un `index.html` autocontenido hecho con [reveal.js](https://revealj
 | `sesion-18/` | S18 — Heaps |
 | `sesion-19/` | S19 — Árboles splay |
 | `sesion-21/` | S21 — Grafos: definición y representaciones |
+| `sesion-22/` | S22 — Recorridos de grafos |
+| `sesion-23/` | S23 — Conceptos avanzados de grafos |
 | `sesion-24/` | S24 — Hashing y conjuntos |
 | `taller-01-two-pointers/` | T1 — Patrones de LeetCode: two pointers |
 | `taller-02-hashing/` | T2 — Patrones de LeetCode: tablas hash |
